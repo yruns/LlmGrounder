@@ -5,11 +5,12 @@ Author: yruns
 
 Description: This file contains ...
 """
+from typing import List, Tuple, Union
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import open3d as o3d
-from typing import List, Tuple, Union
 
 
 class Convertor(object):

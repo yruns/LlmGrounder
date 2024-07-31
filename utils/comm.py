@@ -5,9 +5,22 @@ Author: yruns
 
 Description: This file contains ...
 """
+import base64
 import logging
-import numpy as np
 import os
+
+import httpx
+import numpy as np
+
+
+def encode_image_to_base64(image_path):
+    """Encodes an image to a base64 string."""
+
+    if image_path.startswith('http'):
+        return base64.b64encode(httpx.get(image_path).content).decode("utf-8")
+    else:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 def create_logger(exp_name):

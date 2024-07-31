@@ -5,22 +5,19 @@ Author: yruns
 
 Description: This file contains ...
 """
-import cv2
-import glob
-import logging
-import numpy as np
-import open3d as o3d
 import os
 import pickle
-import torch
-import torch.nn as nn
-import utils.render as render_utils
-from PIL import Image
-from transformers import AutoTokenizer, CLIPModel
 from typing import List, Dict, Union
 from typing import Literal
 
+import cv2
+import numpy as np
+import open3d as o3d
+import torch
+from transformers import AutoTokenizer, CLIPModel
+
 from data.scannet200_constants import CLASS_LABELS_200
+from utils import render as render_utils
 
 feats: Union[List[Dict], None] = None
 
@@ -143,7 +140,7 @@ class PictureTaker(object):
 
 class GrounderBase(object):
 
-    def invoke(self, description, images_path):
+    def invoke(self, description, images_path, candidate_bbox_nums):
         pass
 
 

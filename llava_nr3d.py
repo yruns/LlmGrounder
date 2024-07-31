@@ -9,12 +9,15 @@ import argparse
 import copy
 import json
 import time
+import warnings
+
 from tqdm import tqdm
 
-from base_grounder.grounder import LMMGrounder
-from base_grounder.utils import comm
-from base_grounder.utils import ground as ground_utils
-from base_grounder.utils import render as render_utils
+warnings.filterwarnings("ignore", category=UserWarning, message="TypedStorage is deprecated")
+
+from grounder import LMMGrounder
+from utils import comm
+from utils import ground as ground_utils
 
 if __name__ == '__main__':
     # add an argument
@@ -28,7 +31,13 @@ if __name__ == '__main__':
     with open(args.data_path, 'r') as f:
         datas = json.load(f)
 
-    llava_grounder = LMMGrounder("llava-1.5-7b-hf", render_quality="high")
+    lmm_name = "qwen-vl-max"
+    vote_nums = 1
+
+    exp_name = "LMM:{}&vote_nums:{}&{}".format(lmm_name, vote_nums, "nr3d" if "nr3d" in args.data_path else "scanrefer")
+    logger = comm.create_logger(exp_name + str(int(time.time())))
+    logger.info("LMM: {} | vote_nums: {}".format(lmm_name, vote_nums))
+    lmm_grounder = LMMGrounder(lmm=lmm_name, render_quality="low", vote_nums=vote_nums)
 
     correct_25 = 0
     correct_50 = 0
@@ -36,11 +45,11 @@ if __name__ == '__main__':
     correct_dep = 0
     easy_total = 0
     dep_total = 0
-    recall = 0
 
     ground_errors = 0
 
     result = []
+    datas = datas[:100]
 
     try:
         for sample in tqdm(datas):
@@ -54,9 +63,8 @@ if __name__ == '__main__':
                 dep_total += 1
 
             try:
-                pred_box = llava_grounder.ground(sample)
-                continue
-                index, pred_box = llava_grounder.ask_gpt(sample)
+
+                index, pred_box = lmm_grounder.ask_lmm(sample)
                 iou = comm.calc_iou(pred_box, target_box)
 
                 new_sample = copy.deepcopy(sample)
@@ -72,15 +80,12 @@ if __name__ == '__main__':
                         correct_easy += 1
                     if sample['view_dep']:
                         correct_dep += 1
-
             except Exception as e:
                 print(f"{sample['uid']}: {e}")
                 ground_errors += 1
     finally:
         # json.dump(result, open('data/nr3d_val_gpt4o.json', 'w'), indent=4)
-        json.dump(result, open('../data/nr3d_val.json', 'w'), indent=4)
-
-        logger = comm.create_logger(str(args.exp_name + str(time.time())))
+        json.dump(result, open('data/nr3d_val_llava:34b.json', 'w'), indent=4)
 
         logger.info('Easy {} {} / {}'.format(correct_easy / easy_total, correct_easy, easy_total))
         logger.info('Hard {} {} / {}'.format((correct_25 - correct_easy) / (len(datas) - easy_total),
@@ -92,7 +97,6 @@ if __name__ == '__main__':
                                                    len(datas) - dep_total))
         logger.info('Acc@25 {} {} / {}'.format(correct_25 / len(datas), correct_25, len(datas)))
         # print('Acc@50', correct_50 / len(programs), correct_50, '/', len(programs))
-        logger.info('Recall {} {} / {}'.format(recall / len(datas), recall, len(datas)))
 
         logger.info('Program Errors: {}'.format(ground_errors))
         logger.info('Programs errors rate: {}'.format(ground_errors / len(datas)))
