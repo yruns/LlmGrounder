@@ -31,13 +31,17 @@ if __name__ == '__main__':
     with open(args.data_path, 'r') as f:
         datas = json.load(f)
 
-    lmm_name = "qwen-vl-max"
-    vote_nums = 1
+    from configs.lmmgroundercfg import LMMGrounderConfig as cfg
 
-    exp_name = "LMM:{}&vote_nums:{}&{}".format(lmm_name, vote_nums, "nr3d" if "nr3d" in args.data_path else "scanrefer")
+    exp_name = "LMM:{}&cfg.vote_nums:{}&cfg.render_quality:{}&{}&".format(
+        cfg.lmm_name, cfg.vote_nums, cfg.render_quality, "nr3d" if "nr3d" in args.data_path else "scanrefer")
     logger = comm.create_logger(exp_name + str(int(time.time())))
-    logger.info("LMM: {} | vote_nums: {}".format(lmm_name, vote_nums))
-    lmm_grounder = LMMGrounder(lmm=lmm_name, render_quality="low", vote_nums=vote_nums)
+    logger.info("LMM: {} | cfg.vote_nums: {} | cfg.render_quality: {}".format(cfg.lmm_name, cfg.vote_nums, cfg.render_quality))
+    cfg.log_self(logger)
+    lmm_grounder = LMMGrounder(
+        lmm=cfg.lmm_name, render_quality=cfg.render_quality,
+        vote_nums=cfg.vote_nums, render_view_nums=cfg.render_view_nums
+    )
 
     correct_25 = 0
     correct_50 = 0
@@ -63,7 +67,6 @@ if __name__ == '__main__':
                 dep_total += 1
 
             try:
-
                 index, pred_box = lmm_grounder.ask_lmm(sample)
                 iou = comm.calc_iou(pred_box, target_box)
 
@@ -81,12 +84,10 @@ if __name__ == '__main__':
                     if sample['view_dep']:
                         correct_dep += 1
             except Exception as e:
-                print(f"{sample['uid']}: {e}")
+                print(f"Uid {sample['uid']}: {e}")
                 ground_errors += 1
     finally:
-        # json.dump(result, open('data/nr3d_val_gpt4o.json', 'w'), indent=4)
-        json.dump(result, open('data/nr3d_val_llava:34b.json', 'w'), indent=4)
-
+        # json.dump(result, open(f'data/nr3d_val_{cfg.lmm_name}.json', 'w'), indent=4)
         logger.info('Easy {} {} / {}'.format(correct_easy / easy_total, correct_easy, easy_total))
         logger.info('Hard {} {} / {}'.format((correct_25 - correct_easy) / (len(datas) - easy_total),
                                              correct_25 - correct_easy,
@@ -96,7 +97,6 @@ if __name__ == '__main__':
                                                    correct_25 - correct_dep,
                                                    len(datas) - dep_total))
         logger.info('Acc@25 {} {} / {}'.format(correct_25 / len(datas), correct_25, len(datas)))
-        # print('Acc@50', correct_50 / len(programs), correct_50, '/', len(programs))
 
         logger.info('Program Errors: {}'.format(ground_errors))
         logger.info('Programs errors rate: {}'.format(ground_errors / len(datas)))

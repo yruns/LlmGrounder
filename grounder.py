@@ -18,7 +18,7 @@ class LMMGrounder(object):
 
     def __init__(
             self,
-            lmm: Literal["llava:34b", "gpt-4o", "qwen-vl-plus", "qwen-vl-max"],
+            lmm: Literal["llava:34b", "gpt-4o", "qwen-vl-max"],
             vote_nums=1,
             render_view_nums: int = 4,
             render_quality: Literal["low", "high"] = "low"
@@ -47,6 +47,8 @@ class LMMGrounder(object):
 
         assert vote_nums >= 1, "vote_nums must be greater than or equal to 1"
         self.vote_nums = vote_nums
+        self.render_view_nums = render_view_nums
+        self.render_quality = render_quality
         self.locator = ground_utils.Locator()
         self.picture_taker = ground_utils.PictureTaker(
             scan_root="/data3/ysh/Datasets/ScanNet/scans",
@@ -71,18 +73,26 @@ class LMMGrounder(object):
         target_bboxes = np.load(os.path.join("rendered_views", scan_id, str(uid), "target_bboxes.npy"))
 
         vote_count = np.zeros((len(target_bboxes),), dtype=int)
-
         for _ in range(self.vote_nums):
             try:
+                rendered_views_root = os.path.join("rendered_views", scan_id, str(uid))
+                if self.render_quality == "high":
+                    rendered_views_root = os.path.join(rendered_views_root, "high")
                 result = self.lmm.invoke(
                     description=caption, candidate_bbox_nums=len(target_bboxes),
-                    images_path=[os.path.join("rendered_views", scan_id, str(uid), f"view_{i}.png") for i in [0, 1]]
+                    images_path=[
+                        os.path.join(rendered_views_root, f"view_{i}.png")
+                        for i in range(self.render_view_nums)
+                    ]
                 )
                 vote_count[result] += 1
             except Exception:
                 pass
-        index = np.argmax(vote_count)
 
+        if np.sum(vote_count) == 0:
+            raise ValueError("No valid votes from LMM")
+
+        index = np.argmax(vote_count)
         return index, target_bboxes[index]
 
     def ground(self, sample):

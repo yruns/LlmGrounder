@@ -18,7 +18,7 @@ from utils.ground import GrounderBase
 class Llava(GrounderBase):
 
     def __init__(self, model="llava:34b"):
-        self.llm = OllamaLLM(model=model)
+        self.llm = OllamaLLM(model=model, temperature=0)
         self.system_instruction = """You are a helpful image locator who can understand the text description I give you about a specific object. You need to answer which bounding box (bbox) in the image contains the target object from the text description. You only need to provide the index of the upper-left corner of the bbox and explain why you chose it. Wrap the output in `json` tags\n{format_instructions} \ndescription: {description}"""
 
     def invoke(self, description, images_path, candidate_bbox_nums):
