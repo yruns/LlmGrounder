@@ -8,3 +8,6 @@ resources/
 *.png
 *.jpg
 *.log
+
+test.py
+tmp.py
