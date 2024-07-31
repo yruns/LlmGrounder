@@ -1,0 +1,10 @@
+.idea
+.iml
+
+/**/__pycache__/
+
+resources/
+
+*.png
+*.jpg
+*.log
