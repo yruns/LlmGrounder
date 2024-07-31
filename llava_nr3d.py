@@ -33,10 +33,10 @@ if __name__ == '__main__':
 
     from configs.lmmgroundercfg import LMMGrounderConfig as cfg
 
-    exp_name = "LMM:{}&cfg.vote_nums:{}&cfg.render_quality:{}&{}&".format(
+    exp_name = "LMM:{}&vote_nums:{}&render_quality:{}&{}&".format(
         cfg.lmm_name, cfg.vote_nums, cfg.render_quality, "nr3d" if "nr3d" in args.data_path else "scanrefer")
     logger = comm.create_logger(exp_name + str(int(time.time())))
-    logger.info("LMM: {} | cfg.vote_nums: {} | cfg.render_quality: {}".format(cfg.lmm_name, cfg.vote_nums, cfg.render_quality))
+    logger.info("LMM: {} | vote_nums: {} | render_quality: {}".format(cfg.lmm_name, cfg.vote_nums, cfg.render_quality))
     cfg.log_self(logger)
     lmm_grounder = LMMGrounder(
         lmm=cfg.lmm_name, render_quality=cfg.render_quality,
@@ -68,6 +68,7 @@ if __name__ == '__main__':
 
             try:
                 index, pred_box = lmm_grounder.ask_lmm(sample)
+                # _ = lmm_grounder.ground(sample)
                 iou = comm.calc_iou(pred_box, target_box)
 
                 new_sample = copy.deepcopy(sample)
@@ -84,7 +85,7 @@ if __name__ == '__main__':
                     if sample['view_dep']:
                         correct_dep += 1
             except Exception as e:
-                print(f"Uid {sample['uid']}: {e}")
+                logger.info(f"Uid {sample['uid']}: {e}")
                 ground_errors += 1
     finally:
         # json.dump(result, open(f'data/nr3d_val_{cfg.lmm_name}.json', 'w'), indent=4)

@@ -26,7 +26,8 @@ class GPT(GrounderBase):
         self.model = ChatOpenAI(
             model=model,
             api_key=api_key,
-            base_url=base_url
+            base_url=base_url,
+            temperature=0.0,
         )
         self.system_instruction = """You are a helpful image locator who can understand the text descriptions I give you about a specific object. You need to answer which bounding box (bbox) in the image contains the target object from the text description. You only need to provide the index of the upper-left corner of the bbox and explain why you chose it. "Wrap the output in `json` tags\n{format_instructions}"
         """
@@ -47,7 +48,7 @@ class GPT(GrounderBase):
             The result of the image locator.
             """
             index: int = Field(
-                default=None, enum=range(len(images_path)),
+                default=None, enum=list(range(candidate_bbox_nums)),
                 description="the index of the upper-left corner of the bbox")
 
             reason: str = Field(

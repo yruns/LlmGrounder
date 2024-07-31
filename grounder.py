@@ -110,8 +110,9 @@ class LMMGrounder(object):
 
         target_bboxes = np.stack(target_bboxes)
         # import os
-        # np.save(os.path.join("rendered_views", scan_id, str(uid), "target_bboxes.npy"), target_bboxes)
+        os.makedirs(os.path.join("rendered_views", scan_id, str(uid)), exist_ok=True)
+        np.save(os.path.join("rendered_views", scan_id, str(uid), "target_bboxes.npy"), target_bboxes)
 
-        rendered_views_path = self.take_pictures(scan_id, uid=uid, bboxes=target_bboxes)
+        # rendered_views_path = self.take_pictures(scan_id, uid=uid, bboxes=target_bboxes)
 
         return None
