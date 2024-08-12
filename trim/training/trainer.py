@@ -1,14 +1,20 @@
 from trim.utils.events import EventStorage
-from trim.utils import comm
 from trim.callbacks.misc import *
+from accelerate import Accelerator
 
 import weakref
 
 class TrainerBase(object):
+
+    need_prepare_by_accelerator_objects = [
+        "model", "train_loader", "val_loader", "optimizer", "lr_scheduler"
+    ]
+
     def __init__(self):
+        self.accelerator: Accelerator = None
         self.model = None
         self.optimizer = None
-        self.scheduler = None
+        self.lr_scheduler = None
         self.criteria = None
         self.train_loader = None
         self.val_loader = None
@@ -21,9 +27,13 @@ class TrainerBase(object):
         self.best_metric_value = float("-inf")
         self.save_path = None
 
-        self.epoch = 0
+        self.epochs = 0
         self.start_epoch = 0
         self.max_epoch = None
+        self.completed_steps = 0
+        self.resume_step = 0
+        self.total_train_steps = 0
+        self.num_update_steps_per_epoch = 0
         self.data_iterator = None
         self.debug = False
 
@@ -34,8 +44,6 @@ class TrainerBase(object):
         pass
 
     def on_training_epoch_start(self):
-        if comm.get_world_size() > 1:
-            self.train_loader.sampler.set_epoch(self.epoch)
         for callback in self.callbacks:
             callback.on_training_epoch_start()
 
@@ -51,7 +59,7 @@ class TrainerBase(object):
 
     def on_training_setp_end(self):
         for callback in self.callbacks:
-            callback.on_training_setp_end()
+            callback.on_training_step_end()
 
     def on_training_phase_start(self):
         for callback in self.callbacks:
@@ -86,6 +94,8 @@ class TrainerBase(object):
         pass
 
     def setup(self):
+        from trim.utils import comm
+        comm.lazy_init_accelerate(self.accelerator)
         self.configure_wandb()
         self.configure_model()
         self.configure_dataloader()
@@ -93,6 +103,17 @@ class TrainerBase(object):
         self.configure_criteria()
         self.configure_scaler()
         self.configure_callbacks()
+
+        wait_prepare_obj_names = []
+        wait_prepare_objs = []
+        for obj_name in self.need_prepare_by_accelerator_objects:
+            if hasattr(self, obj_name):
+                wait_prepare_obj_names.append(obj_name)
+                wait_prepare_objs.append(getattr(self, obj_name))
+
+        prepared_objs = self.accelerator.prepare(*wait_prepare_objs)
+        for obj_name, prepared_objs in zip(wait_prepare_obj_names, prepared_objs):
+            setattr(self, obj_name, prepared_objs)
 
 
     def fit(self):

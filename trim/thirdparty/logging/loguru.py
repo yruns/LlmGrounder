@@ -2,8 +2,6 @@ from trim.utils.comm import is_main_process
 from loguru import logger
 import sys
 
-from trim.utils.logger import get_root_logger
-
 
 def log_in_main_process_only(record):
     return is_main_process()

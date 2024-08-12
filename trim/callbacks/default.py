@@ -13,7 +13,7 @@ class CallbackBase(object):
     def on_training_setp_start(self):
         pass
 
-    def on_training_setp_end(self):
+    def on_training_step_end(self):
         pass
 
     def on_validation_epoch_start(self):

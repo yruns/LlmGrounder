@@ -7,10 +7,11 @@ Author: yruns
 """
 
 from typing import Literal
+
 from configs import GlobalConfig
 
-class LMMGrounderConfig(GlobalConfig):
 
+class LMMGrounderConfig(GlobalConfig):
     lmm_name: Literal["llava:34b", "gpt-4o", "qwen-vl-max"] = "gpt-4o"
     vote_nums: int = 1
     render_view_nums: int = 4
@@ -18,11 +19,9 @@ class LMMGrounderConfig(GlobalConfig):
     temperature: float = 0.0
 
 
-
 if __name__ == "__main__":
     from loguru import logger
 
-    # 测试代码
     # config = LMMGrounderConfig()
 
     LMMGrounderConfig.log_self(logger)

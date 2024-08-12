@@ -16,7 +16,7 @@ import torch
 import torch.utils.data
 
 from trim.utils.timer import Timer
-from trim.utils.comm import is_main_process
+from trim.utils import comm
 
 from trim.callbacks.default import CallbackBase
 
@@ -40,7 +40,7 @@ class IterationTimer(CallbackBase):
         data_time = self._iter_timer.seconds()
         self.trainer.storage.put_scalar("data_time", data_time)
 
-    def on_training_setp_end(self):
+    def on_training_step_end(self):
         batch_time = self._iter_timer.seconds()
         self._iter_timer.reset()
         self.trainer.storage.put_scalar("batch_time", batch_time)
@@ -76,20 +76,20 @@ class InformationWriter(CallbackBase):
     def on_training_phase_start(self):
         self.trainer.comm_info["iter_info"] = ""
         self.curr_iter = self.trainer.start_epoch * len(self.trainer.train_loader)
-        self.trainer.logger.info(self.trainer.args)
+        self.trainer.logger.info(self.trainer.hparams)
 
     def on_training_setp_start(self):
         self.curr_iter += 1
         info = "Train: [{epoch}/{max_epoch}][{iter}/{max_iter}] ".format(
             epoch=self.trainer.epoch + 1,
             max_epoch=self.trainer.max_epoch,
-            iter=self.trainer.comm_info["iter"] + 1,
-            max_iter=len(self.trainer.train_loader),
+            iter=(self.trainer.completed_steps % self.trainer.num_update_steps_per_epoch) + 1,
+            max_iter=self.trainer.num_update_steps_per_epoch,
         )
         self.trainer.comm_info["iter_info"] += info
 
-    def on_training_setp_end(self):
-        current_iter = self.trainer.epoch * len(self.trainer.train_loader) + self.trainer.comm_info["iter"]
+    def on_training_step_end(self):
+        current_iter = self.trainer.completed_steps
 
         # Anything you want to log in terminal and file
         if "terminal_log" in self.trainer.comm_info.keys():
@@ -97,15 +97,15 @@ class InformationWriter(CallbackBase):
             self.model_output_keys = terminal_log.keys()
             for key in self.model_output_keys:
                 self.trainer.storage.put_scalar(key, terminal_log[key].item())
-                self.trainer.wandb.log({
-                    key: terminal_log[key],
-                }, step=current_iter)
+                # self.trainer.wandb.log({
+                #     key: terminal_log[key],
+                # }, step=current_iter)
 
         for key in self.model_output_keys:
             self.trainer.comm_info["iter_info"] += "{key}: {value:.4f} ".format(
                 key=key, value=self.trainer.storage.history(key).val
             )
-        lr = self.trainer.optimizer.state_dict()["param_groups"][0]["lr"]
+        lr = self.trainer.optimizer.param_groups[0]["lr"]
         self.trainer.comm_info["iter_info"] += "Lr: {lr:.5f}".format(lr=lr)
 
         # log in terminal and file
@@ -122,6 +122,7 @@ class InformationWriter(CallbackBase):
 
         self.trainer.comm_info["iter_info"] = ""  # reset iter info
 
+
 class CheckpointSaver(CallbackBase):
     """
     CheckpointSaver
@@ -131,65 +132,75 @@ class CheckpointSaver(CallbackBase):
     It is recommended to set these values in the `Evaluator` callback.
     """
 
-    def __init__(self, save_freq=None):
+    def __init__(self, save_freq):
         self.save_freq = save_freq  # None or int, None indicate only save models last
 
-    def on_training_epoch_end(self):
-        is_best = False
-        current_metric_value = self.trainer.comm_info["current_metric_value"]
-        current_metric_name = self.trainer.comm_info["current_metric_name"]
-        if current_metric_value > self.trainer.best_metric_value:
-            self.trainer.best_metric_value = current_metric_value
-            self.trainer.best_metric_epoch = self.trainer.epoch + 1
-            is_best = True
-            self.trainer.logger.info(
-                "Best validation {} updated to: {:.4f}".format(
-                    current_metric_name, current_metric_value
-                )
-            )
-        self.trainer.logger.info(
-            "Currently Best {}: {:.4f} at epoch {}".format(
-                current_metric_name, self.trainer.best_metric_value, self.trainer.best_metric_epoch
-            )
-        )
-        self.trainer.wandb.update({
-            current_metric_name: self.trainer.best_metric_value,
-            f"best_{current_metric_name}_epoch": self.trainer.best_metric_epoch
-        })
+        if isinstance(save_freq, int):
+            # step based
+            self.checkpointing_steps = save_freq
+        elif isinstance(save_freq, str) and save_freq == "epoch":
+            # epoch based
+            self.checkpointing_steps = self.trainer.num_update_steps_per_epoch
 
-        filename = os.path.join(
-            self.trainer.save_path, "model", "model_last.pth"
-        )
-        self.trainer.logger.info("Saving checkpoint to: " + filename)
-        if is_main_process():
-            torch.save(
-                {
-                    "epoch": self.trainer.epoch + 1,
-                    "state_dict": self.trainer.model.state_dict(),
-                    "optimizer": self.trainer.optimizer.state_dict(),
-                    "scheduler": self.trainer.scheduler.state_dict(),
-                    "scaler": self.trainer.scaler.state_dict()
-                    if self.trainer.scaler else None,
-                    "best_metric_value": self.trainer.best_metric_value,
-                    "best_metric_epoch": self.trainer.best_metric_epoch,
-                },
-                filename + ".tmp",
-            )
-            os.replace(filename + ".tmp", filename)
-        if is_best and is_main_process():
-            shutil.copyfile(
-                filename,
-                os.path.join(self.trainer.save_path, "model", "model_best.pth"),
-            )
-        if self.save_freq and (self.trainer.epoch + 1) % self.save_freq == 0 and is_main_process():
-            shutil.copyfile(
-                filename,
-                os.path.join(
-                    self.trainer.save_path,
-                    "model",
-                    f"epoch_{self.trainer.epoch + 1}.pth",
-                ),
-            )
+    def on_training_step_end(self):
+        if hasattr(self, "checkpointing_steps") and self.trainer.completed_steps % self.checkpointing_steps == 0:
+            self.save_checkpoint()
+            # if comm.is_main_process():
+
+            # comm.synchronize()
+
+    def save_checkpoint(self):
+        output_dir = "epoch_{epoch}".format(epoch=self.trainer.epoch + 1) if self.save_freq == "epoch" else \
+            "step_{step}".format(step=self.trainer.completed_steps)
+        self.trainer.logger.info("=> Saving checkpoint to: " + output_dir)
+        output_dir = os.path.join(self.trainer.save_path, output_dir)
+        self.trainer.accelerator.save_state(output_dir)
+
+
+class Resumer(CallbackBase):
+
+    def __init__(self, checkpoint=None):
+        self.checkpoint = checkpoint
+        self.stored_train_loader = None
+
+    def on_training_phase_start(self):
+        if self.checkpoint is not None:
+            self.resume()
+        else:
+            self.trainer.logger.info("=> No checkpoint found, starting from scratch")
+
+    def resume(self):
+        if not os.path.exists(self.checkpoint):
+            raise FileNotFoundError(f"=> No checkpoint found at: {self.checkpoint}")
+        self.trainer.logger.info(f"=> Resuming from checkpoint: {self.checkpoint}")
+        self.trainer.accelerator.load_state(self.checkpoint)
+
+        path = os.path.basename(self.checkpoint)
+        training_difference = os.path.splitext(path)[0]
+
+        resume_step = 0
+        if "epoch" in training_difference:
+            starting_epoch = int(training_difference.replace("epoch_", "")) + 1
+            completed_steps = starting_epoch * self.trainer.num_update_steps_per_epoch
+        else:
+            resume_step = int(training_difference.replace("step_", ""))
+            completed_steps = resume_step
+            starting_epoch = resume_step // self.trainer.num_update_steps_per_epoch
+            resume_step -= starting_epoch * self.trainer.num_update_steps_per_epoch
+
+        self.trainer.resume_step = resume_step
+        self.trainer.completed_steps = completed_steps
+        self.trainer.start_epoch = starting_epoch
+        # store the train_loader
+        self.stored_train_loader = self.trainer.train_loader
+        self.trainer.train_loader = \
+            self.trainer.accelerator.skip_first_batches(self.trainer.train_loader, resume_step)
+
+    def on_training_epoch_end(self):
+        if self.stored_train_loader is not None:
+            self.trainer.train_loader = self.stored_train_loader
+            self.stored_train_loader = None
+
 
 class CheckpointLoader(CallbackBase):
     def __init__(self, keywords="", replacement=None, strict=True):

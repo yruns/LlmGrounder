@@ -31,6 +31,8 @@ class ReferIt3DUtils:
 
     @staticmethod
     def is_explicitly_view_dependent(tokens):
+        if isinstance(tokens, str):
+            tokens = eval(tokens)
         target_words = {
             'front', 'behind', 'back', 'right', 'left', 'facing', 'leftmost', 'rightmost',
             'looking', 'across'

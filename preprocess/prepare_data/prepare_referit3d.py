@@ -28,6 +28,8 @@ def process_referit3d(referit3d_file, save_path, separate_storage=True, mentione
 
     for idx, row in tqdm(data.iterrows(), total=len(data)):
         utterance = row["utterance"]
+        if utterance.startswith("'") and utterance.endswith("'"):
+            utterance = utterance[1:-1]
 
         scan_id, target_class, n_objects, target_id, distractors_ids = \
             ReferIt3DUtils.decode_stimulus_string(row["stimulus_id"])
