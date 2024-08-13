@@ -30,8 +30,8 @@ class Evaluator(CallbackBase):
 
             test_loss += loss
 
-        test_loss = self.trainer.accelerator.reduce(test_loss) / len(self.trainer.val_loader.dataset)
-        acc = self.trainer.accelerator.reduce(correct) / len(self.trainer.val_loader.dataset)
+        test_loss = self.accelerator.reduce(test_loss) / len(self.trainer.val_loader.dataset)
+        acc = self.accelerator.reduce(correct) / len(self.trainer.val_loader.dataset)
 
         self.trainer.logger.info(f"Test set: Average loss: {test_loss:.4f}, Accuracy: {acc:.4f}")
 

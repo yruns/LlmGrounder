@@ -149,12 +149,11 @@ class CheckpointSaver(CallbackBase):
             "step_{step}".format(step=self.trainer.completed_steps)
         self.trainer.logger.info("=> Saving checkpoint to: " + output_dir)
         output_dir = os.path.join(self.trainer.output_dir, output_dir)
-        self.trainer.accelerator.save_state(output_dir)
+        self.accelerator.save_state(output_dir)
 
-        if self.save_last_only and self.last_checkpoint is not None:
+        if self.save_last_only and self.last_checkpoint is not None and self.accelerator.is_main_process:
             shutil.rmtree(self.last_checkpoint)
-
-        self.last_checkpoint = output_dir
+            self.last_checkpoint = output_dir
 
 
 class Resumer(CallbackBase):
@@ -173,7 +172,7 @@ class Resumer(CallbackBase):
         if not os.path.exists(self.checkpoint):
             raise FileNotFoundError(f"=> No checkpoint found at: {self.checkpoint}")
         self.trainer.logger.info(f"=> Resuming from checkpoint: {self.checkpoint}")
-        self.trainer.accelerator.load_state(self.checkpoint)
+        self.accelerator.load_state(self.checkpoint)
 
         path = os.path.basename(self.checkpoint)
         training_difference = os.path.splitext(path)[0]
@@ -194,7 +193,7 @@ class Resumer(CallbackBase):
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader
         self.trainer.train_loader = \
-            self.trainer.accelerator.skip_first_batches(self.trainer.train_loader, resume_step)
+            self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step)
 
     def on_training_epoch_end(self):
         if self.stored_train_loader is not None:

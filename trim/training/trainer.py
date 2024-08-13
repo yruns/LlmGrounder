@@ -74,6 +74,7 @@ class TrainerBase(object):
         for callback in self.callbacks:
             assert isinstance(callback, CallbackBase)
             callback.trainer = weakref.proxy(self)
+            callback.accelerator = weakref.proxy(self.accelerator)
 
     def configure_optimizers(self):
         pass

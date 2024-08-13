@@ -1,8 +1,9 @@
-
+from accelerate import Accelerator
 
 class CallbackBase(object):
 
     trainer = None
+    accelerator: Accelerator
 
     def on_training_epoch_start(self):
         pass
