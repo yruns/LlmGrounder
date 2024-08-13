@@ -68,7 +68,6 @@ class TrainerBase(object):
     def on_training_phase_end(self):
         for callback in self.callbacks:
             callback.on_training_phase_end()
-        self.wandb.finish()
 
     def configure_callbacks(self):
         for callback in self.callbacks:
@@ -144,4 +143,6 @@ class TrainerBase(object):
                     self.on_training_epoch_end()
             # => after train
             self.on_training_phase_end()
+
+
 

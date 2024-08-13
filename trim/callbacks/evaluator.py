@@ -10,6 +10,7 @@ import numpy as np
 import torch
 
 from trim.callbacks.default import CallbackBase
+from trim.utils import comm
 
 
 class Evaluator(CallbackBase):
@@ -21,9 +22,9 @@ class Evaluator(CallbackBase):
         self.trainer.model.eval()
         test_loss = 0.0
         correct = 0
-        for i, (data, target) in enumerate(self.trainer.val_loader):
+        for i, batch in enumerate(self.trainer.val_loader):
             with torch.no_grad():
-                # data, target = data.to(accelerator.device, torch.bfloat16), target.to(accelerator.device, torch.long)
+                data, target = comm.convert_tensor_to_dtype(batch, self.accelerator.mixed_precision)
                 output, loss = self.trainer.model(data, target)
                 pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
                 correct += pred.eq(target.view_as(pred)).sum()
@@ -34,6 +35,8 @@ class Evaluator(CallbackBase):
         acc = self.accelerator.reduce(correct) / len(self.trainer.val_loader.dataset)
 
         self.trainer.logger.info(f"Test set: Average loss: {test_loss:.4f}, Accuracy: {acc:.4f}")
+
+        self.trainer.wandb.log({"val_loss": test_loss, "val_acc": acc}, step=self.trainer.completed_steps)
 
         self.trainer.logger.info("<<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<")
         self.trainer.comm_info["current_metric_value"] = acc  # save for saver

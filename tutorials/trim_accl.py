@@ -60,7 +60,7 @@ class Trainer(TrainerBase):
     def __init__(self, hparams, accelerator, logger, debug=False, callbacks=None):
         super().__init__()
         self.hparams = hparams
-        self.accelerator = accelerator
+        self.accelerator: Accelerator = accelerator
         self.logger = logger
         self.max_epoch = hparams.num_train_epochs
         self.output_dir = hparams.output_dir
@@ -83,10 +83,10 @@ class Trainer(TrainerBase):
                                  transform=transform)
 
         self.train_loader = DataLoader(
-            train_dataset,
+            train_dataset, shuffle=True,
             batch_size=self.hparams.per_device_train_batch_size,
         )
-        self.val_loader = DataLoader(eval_dataset, batch_size=self.hparams.per_device_eval_batch_size)
+        self.val_loader = DataLoader(eval_dataset, shuffle=False, batch_size=self.hparams.per_device_eval_batch_size)
 
     def configure_optimizers(self):
         optimizer_cls = (
@@ -137,7 +137,9 @@ class Trainer(TrainerBase):
 
     def training_setp(self, batch_data, batch_index):
         with self.accelerator.accumulate(self.model):
+            batch_data = comm.convert_tensor_to_dtype(batch_data, self.accelerator.mixed_precision)
             data, target = batch_data
+
             output, loss = self.model(data, target)
             self.accelerator.backward(loss)
             self.optimizer.step()
@@ -166,13 +168,19 @@ def main(hparams):
     comm.seed_everything(hparams.seed)
     comm.copy_codebase(hparams.save_path)
 
-    accelerator = Accelerator()
+    accelerator = Accelerator(
+        # mixed_precision="bf16",
+        gradient_accumulation_steps=2,
+        deepspeed_plugin=DeepSpeedPlugin(
+            hf_ds_config="configs/zero_3_stage.json",
+        )
+    )
 
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
         # Resumer(checkpoint="output/step_600"),
         IterationTimer(warmup_iter=1),
-        InformationWriter(log_interval=1),
+        InformationWriter(log_interval=10),
         Evaluator(),
         CheckpointSaver(save_freq=300),
     ])

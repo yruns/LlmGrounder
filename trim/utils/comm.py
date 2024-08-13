@@ -66,27 +66,79 @@ def sum_model_parameters(model):
     return total_params
 
 
-def convert_tensor_to_cuda(input_value):
-    """Convert input tensors to cuda(non_blocking=True)"""
+def move_tensor_to_device(input_value, device):
+    """Move input tensors to device"""
     if isinstance(input_value, torch.Tensor):
-        return input_value.cuda(non_blocking=True)
+        return input_value.to(device)
 
     # convert tuple to list
     if isinstance(input_value, tuple):
-        input_value = list(input_value)
+        return tuple(move_tensor_to_device(list(input_value), device))
 
     if isinstance(input_value, list):
         for i in range(len(input_value)):
-            input_value[i] = convert_tensor_to_cuda(input_value[i])
+            input_value[i] = move_tensor_to_device(input_value[i], device)
         return input_value
 
     if isinstance(input_value, dict):
         for key in input_value.keys():
-            input_value[key] = convert_tensor_to_cuda(input_value[key])
+            input_value[key] = move_tensor_to_device(input_value[key], device)
         return input_value
 
     raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
 
+STR_TO_DTYPE = {
+    "float16": torch.float16,
+    "float32": torch.float32,
+    "float64": torch.float64,
+    "bfloat16": torch.bfloat16,
+    "bf16": torch.bfloat16,
+    "fp16": torch.float16,
+    "fp32": torch.float32,
+    "fp64": torch.float64,
+    "half": torch.half,
+    "int8": torch.int8,
+    "int16": torch.int16,
+    "int32": torch.int32,
+    "int64": torch.int64,
+    "uint8": torch.uint8,
+    "bool": torch.bool,
+}
+
+def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
+    """Convert string to torch.dtype"""
+    if dtype_str not in STR_TO_DTYPE:
+        raise ValueError(f"Unsupported dtype: {dtype_str}")
+
+    return STR_TO_DTYPE[dtype_str]
+
+def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str]):
+    """Move input tensors to device"""
+    if isinstance(dtype, str):
+        if dtype == "no":
+            return input_value
+        dtype = convert_str_to_dtype(dtype)
+
+    if isinstance(input_value, torch.Tensor):
+        if input_value.dtype in [torch.int8, torch.int16, torch.int32, torch.int64, torch.uint8, torch.bool]:
+            return input_value
+        return input_value.to(dtype)
+
+    # convert tuple to list
+    if isinstance(input_value, tuple):
+        return tuple(convert_tensor_to_dtype(list(input_value), dtype))
+
+    if isinstance(input_value, list):
+        for i in range(len(input_value)):
+            input_value[i] = convert_tensor_to_dtype(input_value[i], dtype)
+        return input_value
+
+    if isinstance(input_value, dict):
+        for key in input_value.keys():
+            input_value[key] = convert_tensor_to_dtype(input_value[key], dtype)
+        return input_value
+
+    raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
 
 def copy_codebase(save_path, exclude_dirs=None):
     """Copy codebase to save_path for future reference"""

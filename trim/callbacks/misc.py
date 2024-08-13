@@ -114,7 +114,9 @@ class InformationWriter(CallbackBase):
             for key in wandb_log.keys():
                 self.trainer.wandb.log({
                     key: wandb_log[key],
-                }, step=current_iter)
+                    "epoch": self.trainer.epoch,
+                    "step": current_iter
+                })
 
         self.trainer.comm_info["iter_info"] = ""  # reset iter info
 
