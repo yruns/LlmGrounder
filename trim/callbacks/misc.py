@@ -31,7 +31,7 @@ class IterationTimer(CallbackBase):
 
     def on_training_phase_start(self):
         self._start_time = time.perf_counter()
-        self._remain_iter = self.trainer.max_epoch * len(self.trainer.train_loader)
+        self._remain_iter = self.trainer.total_train_steps - self.trainer.completed_steps
 
     def on_training_epoch_start(self):
         self._iter_timer.reset()
@@ -44,7 +44,7 @@ class IterationTimer(CallbackBase):
         batch_time = self._iter_timer.seconds()
         self._iter_timer.reset()
         self.trainer.storage.put_scalar("batch_time", batch_time)
-        self._remain_iter -= 1
+        self._remain_iter = self.trainer.total_train_steps - self.trainer.completed_steps
         remain_time = self._remain_iter * self.trainer.storage.history("batch_time").avg
         t_m, t_s = divmod(remain_time, 60)
         t_h, t_m = divmod(t_m, 60)
@@ -75,11 +75,9 @@ class InformationWriter(CallbackBase):
 
     def on_training_phase_start(self):
         self.trainer.comm_info["iter_info"] = ""
-        self.curr_iter = self.trainer.start_epoch * len(self.trainer.train_loader)
         self.trainer.logger.info(self.trainer.hparams)
 
     def on_training_setp_start(self):
-        self.curr_iter += 1
         info = "Train: [{epoch}/{max_epoch}][{iter}/{max_iter}] ".format(
             epoch=self.trainer.epoch + 1,
             max_epoch=self.trainer.max_epoch,
@@ -89,6 +87,7 @@ class InformationWriter(CallbackBase):
         self.trainer.comm_info["iter_info"] += info
 
     def on_training_step_end(self):
+        self.trainer.completed_steps += 1
         current_iter = self.trainer.completed_steps
 
         # Anything you want to log in terminal and file
@@ -97,9 +96,6 @@ class InformationWriter(CallbackBase):
             self.model_output_keys = terminal_log.keys()
             for key in self.model_output_keys:
                 self.trainer.storage.put_scalar(key, terminal_log[key].item())
-                # self.trainer.wandb.log({
-                #     key: terminal_log[key],
-                # }, step=current_iter)
 
         for key in self.model_output_keys:
             self.trainer.comm_info["iter_info"] += "{key}: {value:.4f} ".format(
@@ -109,7 +105,7 @@ class InformationWriter(CallbackBase):
         self.trainer.comm_info["iter_info"] += "Lr: {lr:.5f}".format(lr=lr)
 
         # log in terminal and file
-        if (self.curr_iter + 1) % self.log_interval == 0:
+        if (current_iter + 1) % self.log_interval == 0:
             self.trainer.logger.info(self.trainer.comm_info["iter_info"])
 
         # Anything you want to log in wandb
@@ -132,8 +128,10 @@ class CheckpointSaver(CallbackBase):
     It is recommended to set these values in the `Evaluator` callback.
     """
 
-    def __init__(self, save_freq):
-        self.save_freq = save_freq  # None or int, None indicate only save models last
+    def __init__(self, save_freq, save_last_only=True):
+        self.save_freq = save_freq
+        self.save_last_only = save_last_only
+        self.last_checkpoint = None
 
         if isinstance(save_freq, int):
             # step based
@@ -145,16 +143,18 @@ class CheckpointSaver(CallbackBase):
     def on_training_step_end(self):
         if hasattr(self, "checkpointing_steps") and self.trainer.completed_steps % self.checkpointing_steps == 0:
             self.save_checkpoint()
-            # if comm.is_main_process():
-
-            # comm.synchronize()
 
     def save_checkpoint(self):
         output_dir = "epoch_{epoch}".format(epoch=self.trainer.epoch + 1) if self.save_freq == "epoch" else \
             "step_{step}".format(step=self.trainer.completed_steps)
         self.trainer.logger.info("=> Saving checkpoint to: " + output_dir)
-        output_dir = os.path.join(self.trainer.save_path, output_dir)
+        output_dir = os.path.join(self.trainer.output_dir, output_dir)
         self.trainer.accelerator.save_state(output_dir)
+
+        if self.save_last_only and self.last_checkpoint is not None:
+            shutil.rmtree(self.last_checkpoint)
+
+        self.last_checkpoint = output_dir
 
 
 class Resumer(CallbackBase):
@@ -167,7 +167,7 @@ class Resumer(CallbackBase):
         if self.checkpoint is not None:
             self.resume()
         else:
-            self.trainer.logger.info("=> No checkpoint found, starting from scratch")
+            self.trainer.logger.info("=> No checkpoint given, training from scratch")
 
     def resume(self):
         if not os.path.exists(self.checkpoint):

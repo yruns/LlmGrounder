@@ -611,6 +611,9 @@ def main():
                     progress_bar.update(1)
                     completed_steps += 1
 
+                if completed_steps % 10:
+                    accelerator.print(f"step {completed_steps} loss {loss}, lr {optimizer.param_groups[0]['lr']}")
+
             # We keep track of the loss at each epoch
             if args.with_tracking:
                 step_loss = accelerator.reduce(loss.detach().clone()).item()

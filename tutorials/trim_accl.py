@@ -63,7 +63,7 @@ class Trainer(TrainerBase):
         self.accelerator = accelerator
         self.logger = logger
         self.max_epoch = hparams.num_train_epochs
-        self.save_path = hparams.save_path
+        self.output_dir = hparams.output_dir
         self.callbacks = callbacks or []
         self.debug = debug
 
@@ -98,10 +98,12 @@ class Trainer(TrainerBase):
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
 
         # Scheduler and math around the number of training steps.
+        num_update_steps_per_epoch_for_scheduler = math.ceil(
+            len(self.train_loader) / self.accelerator.gradient_accumulation_steps)
+        max_train_steps_for_scheduler = num_update_steps_per_epoch_for_scheduler * self.hparams.num_train_epochs
         self.num_update_steps_per_epoch = math.ceil(
             len(self.train_loader) / self.accelerator.gradient_accumulation_steps / self.accelerator.num_processes)
         self.total_train_steps = self.hparams.num_train_epochs * self.num_update_steps_per_epoch
-        self.hparams.max_train_steps = self.hparams.num_train_epochs * self.num_update_steps_per_epoch
 
         if (
                 self.accelerator.state.deepspeed_plugin is None
@@ -111,11 +113,11 @@ class Trainer(TrainerBase):
                 name=self.hparams.lr_scheduler_type,
                 optimizer=self.optimizer,
                 num_warmup_steps=self.hparams.num_warmup_steps,
-                num_training_steps=self.hparams.max_train_steps,
+                num_training_steps=max_train_steps_for_scheduler,
             )
         else:
             self.lr_scheduler = DummyScheduler(
-                self.optimizer, total_num_steps=self.hparams.max_train_steps, warmup_num_steps=self.hparams.num_warmup_steps
+                self.optimizer, total_num_steps=max_train_steps_for_scheduler, warmup_num_steps=self.hparams.num_warmup_steps
             )
 
     def configure_wandb(self):
@@ -128,7 +130,7 @@ class Trainer(TrainerBase):
             },
             save_code=False,
             resume=False,
-            file_prefix=os.path.join(self.save_path, "codebase"),
+            file_prefix=os.path.join(self.output_dir, "codebase"),
             save_files=[__file__],
             debug=True
         )
@@ -143,11 +145,10 @@ class Trainer(TrainerBase):
             self.optimizer.zero_grad()
 
             if self.accelerator.sync_gradients:
-                self.completed_steps += 1
-
+                # self.completed_steps += 1
                 reduced_loss = self.accelerator.reduce(loss)
-                if self.completed_steps % self.hparams.log_interval == 0:
-                    self.logger.info(f"Step {self.completed_steps}: loss {reduced_loss}")
+                # if self.completed_steps % self.hparams.log_interval == 0:
+                #     self.logger.info(f"Step {self.completed_steps}: loss {reduced_loss}")
 
                 # Anything you want to log in terminal
                 self.comm_info["terminal_log"] = {"loss": reduced_loss}
@@ -161,30 +162,15 @@ def main(hparams):
     hparams.save_path = "output/"
     hparams.log_project = "accl_test"
     hparams.log_tag = "init_1"
-    hparams.gradient_accumulation_steps = 1
 
     comm.seed_everything(hparams.seed)
     comm.copy_codebase(hparams.save_path)
 
-    df_plugin = DeepSpeedPlugin(
-        zero_stage=2,
-        gradient_accumulation_steps=hparams.gradient_accumulation_steps,
-    )
-
-    accelerator = (
-        Accelerator(
-            log_with=hparams.report_to,
-            project_dir=hparams.output_dir,
-            deepspeed_plugin=df_plugin,
-            gradient_accumulation_steps=hparams.gradient_accumulation_steps,
-        )
-        if hparams.with_tracking
-        else Accelerator(gradient_accumulation_steps=hparams.gradient_accumulation_steps, deepspeed_plugin=df_plugin)
-    )
+    accelerator = Accelerator()
 
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        # Resumer(checkpoint="output/step_1800"),
+        # Resumer(checkpoint="output/step_600"),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=1),
         Evaluator(),
@@ -195,7 +181,7 @@ def main(hparams):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fabric MNIST Example")
-    parser.add_argument("--num_train_epochs", type=int, default=14, metavar="N",
+    parser.add_argument("--num_train_epochs", type=int, default=8, metavar="N",
                         help="number of epochs to train (default: 14)")
     parser.add_argument("--lr", type=float, default=1.0, metavar="LR", help="learning rate (default: 1.0)")
     parser.add_argument("--gamma", type=float, default=0.7, metavar="M", help="Learning rate step gamma (default: 0.7)")

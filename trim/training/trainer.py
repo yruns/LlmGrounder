@@ -1,6 +1,7 @@
 from trim.utils.events import EventStorage
 from trim.callbacks.misc import *
 from accelerate import Accelerator
+from typing import Union
 
 import weakref
 
@@ -11,7 +12,7 @@ class TrainerBase(object):
     ]
 
     def __init__(self):
-        self.accelerator: Accelerator = None
+        self.accelerator: Union[Accelerator, None] = None
         self.model = None
         self.optimizer = None
         self.lr_scheduler = None
@@ -25,9 +26,8 @@ class TrainerBase(object):
         self.stroage: EventStorage
         self.comm_info = dict()
         self.best_metric_value = float("-inf")
-        self.save_path = None
+        self.output_dir = None
 
-        self.epochs = 0
         self.start_epoch = 0
         self.max_epoch = None
         self.completed_steps = 0
@@ -51,7 +51,7 @@ class TrainerBase(object):
         for callback in self.callbacks:
             callback.on_training_epoch_end()
         self.storage.reset_histories()  # reset histories (required)
-        self.wandb.save(os.path.join(self.save_path, "train.log"))
+        self.wandb.save(os.path.join(self.output_dir, "train.log"))
 
     def on_training_setp_start(self):
         for callback in self.callbacks:
@@ -128,15 +128,19 @@ class TrainerBase(object):
                     self.data_iterator = enumerate(islice(self.train_loader, 10))
                 else:
                     self.data_iterator = enumerate(self.train_loader)
-                self.on_training_epoch_start()
+                if self.accelerator.sync_gradients:
+                    self.on_training_epoch_start()
                 # => run_epoch
                 for batch_index, batch_data in self.data_iterator:
                     self.comm_info["iter"] = batch_index
-                    self.on_training_setp_start()
+                    if self.accelerator.sync_gradients:
+                        self.on_training_setp_start()
                     self.training_setp(batch_data, batch_index)
-                    self.on_training_setp_end()
+                    if self.accelerator.sync_gradients:
+                        self.on_training_setp_end()
                 # => after epoch
-                self.on_training_epoch_end()
+                if self.accelerator.sync_gradients:
+                    self.on_training_epoch_end()
             # => after train
             self.on_training_phase_end()
 

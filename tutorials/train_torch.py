@@ -92,7 +92,8 @@ def run(hparams):
             if (batch_idx == 0) or ((batch_idx + 1) % hparams.log_interval == 0):
                 print(
                     f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}"
-                    f" ({100.0 * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}"
+                    f" ({100.0 * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f} \t"
+                    f"LR: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}"
                 )
                 if hparams.dry_run:
                     break

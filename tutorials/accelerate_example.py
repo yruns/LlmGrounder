@@ -96,8 +96,7 @@ def setup_optimizer_scheduler(hparams, optimizer_grouped_parameters, train_datal
     optimizer = optimizer_cls(optimizer_grouped_parameters, lr=hparams.lr)
 
     # Scheduler and math around the number of training steps.
-    num_update_steps_per_epoch = math.ceil(
-        len(train_dataloader) / accelerator.gradient_accumulation_steps / accelerator.num_processes)
+    num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
     hparams.max_train_steps = hparams.num_train_epochs * num_update_steps_per_epoch
 
     # Creates Dummy Scheduler if `scheduler` was specified in the config file else creates `hparams.lr_scheduler_type` Scheduler
@@ -139,20 +138,20 @@ def main(hparams):
     # If we're using tracking, we also need to initialize it here and it will by default pick up all supported trackers
     # in the environment
 
-    df_plugin = DeepSpeedPlugin(
-        zero_stage=2,
-        gradient_accumulation_steps=hparams.gradient_accumulation_steps,
-    )
+    # df_plugin = DeepSpeedPlugin(
+    #     zero_stage=2,
+    #     gradient_accumulation_steps=hparams.gradient_accumulation_steps,
+    # )
 
     accelerator = (
         Accelerator(
             log_with=hparams.report_to,
             project_dir=hparams.output_dir,
-            deepspeed_plugin=df_plugin,
+            # deepspeed_plugin=df_plugin,
             gradient_accumulation_steps=hparams.gradient_accumulation_steps,
         )
         if hparams.with_tracking
-        else Accelerator(gradient_accumulation_steps=hparams.gradient_accumulation_steps, deepspeed_plugin=df_plugin)
+        else Accelerator(gradient_accumulation_steps=hparams.gradient_accumulation_steps)
     )
 
     if accelerator.is_main_process:
@@ -173,6 +172,7 @@ def main(hparams):
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
+    hparams.max_train_steps = hparams.num_train_epochs * num_update_steps_per_epoch
 
     # Figure out how many steps we should save the Accelerator states
     checkpointing_steps = hparams.checkpointing_steps
@@ -242,9 +242,9 @@ def main(hparams):
                     progress_bar.update(1)
                     completed_steps += 1
 
-                reduced_loss = accelerator.reduce(loss)
-                if completed_steps % hparams.log_interval == 0 and accelerator.is_main_process:
-                    logger.info(f"Step {completed_steps}: loss {reduced_loss}")
+                    reduced_loss = accelerator.reduce(loss)
+                    if completed_steps % hparams.log_interval == 0 and accelerator.is_main_process:
+                        logger.info(f"Step {completed_steps}: loss {reduced_loss} , lr {optimizer.param_groups[0]['lr']}")
 
             # We keep track of the loss at each epoch
             if hparams.with_tracking:
@@ -322,7 +322,7 @@ if __name__ == "__main__":
 
     # Arguments can be passed in through the CLI as normal and will be parsed here
     parser = argparse.ArgumentParser(description="Fabric MNIST Example")
-    parser.add_argument("--num_train_epochs", type=int, default=14, metavar="N",
+    parser.add_argument("--num_train_epochs", type=int, default=8, metavar="N",
                         help="number of epochs to train (default: 14)")
     parser.add_argument("--lr", type=float, default=1.0, metavar="LR", help="learning rate (default: 1.0)")
     parser.add_argument("--gamma", type=float, default=0.7, metavar="M", help="Learning rate step gamma (default: 0.7)")
@@ -333,6 +333,12 @@ if __name__ == "__main__":
         default=1,
         metavar="N",
         help="how many batches to wait before logging training status",
+    )
+    parser.add_argument(
+        "--gradient_accumulation_steps",
+        type=int,
+        default=2,
+        help="Number of updates steps to accumulate before performing a backward/update pass.",
     )
     parser.add_argument(
         "--per_device_train_batch_size",
@@ -346,15 +352,7 @@ if __name__ == "__main__":
         default=1,
         help="Batch size (per device) for the evaluation dataloader.",
     )
-
     parser.add_argument("--weight_decay", type=float, default=0.0, help="Weight decay to use.")
-
-    parser.add_argument(
-        "--gradient_accumulation_steps",
-        type=int,
-        default=1,
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
-    )
     parser.add_argument(
         "--lr_scheduler_type",
         type=str,
@@ -391,8 +389,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--resume_from_checkpoint",
         type=str,
-        # default=None,
-        default="output/step_1500",
+        default=None,
+        # default="output/step_1500",
         help="If the training should continue from a checkpoint folder.",
     )
     # Whether to load the best model at the end of training

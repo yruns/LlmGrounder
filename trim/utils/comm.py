@@ -11,15 +11,16 @@ import random
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import torch.distributed as dist
 from accelerate import Accelerator
+from typing import Union
 
 
-accelerator: Accelerator = None
+accelerator: Union[Accelerator, None] = None
 def lazy_init_accelerate(accel):
     global accelerator
-    import weakref
-    accelerator = weakref.proxy(accel)
+    if accelerator is None:
+        import weakref
+        accelerator = weakref.proxy(accel)
 
 def seed_everything(seed):
     random.seed(seed)
