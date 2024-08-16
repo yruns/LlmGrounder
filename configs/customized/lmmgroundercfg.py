@@ -22,6 +22,6 @@ class LMMGrounderConfig(GlobalConfig):
 if __name__ == "__main__":
     from loguru import logger
 
-    # config = LMMGrounderConfig()
+    config = LMMGrounderConfig()
 
-    LMMGrounderConfig.log_self(logger)
+    config.log_self(logger)

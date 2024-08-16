@@ -132,7 +132,7 @@ class CheckpointSaver(CallbackBase):
 
     def __init__(self, save_freq, save_last_only=True):
         self.save_freq = save_freq
-        self.save_last_only = save_last_only
+        self.save_lastest_only = save_last_only
         self.last_checkpoint = None
 
         if isinstance(save_freq, int):
@@ -143,7 +143,10 @@ class CheckpointSaver(CallbackBase):
             self.checkpointing_steps = self.trainer.num_update_steps_per_epoch
 
     def on_training_step_end(self):
-        if hasattr(self, "checkpointing_steps") and self.trainer.completed_steps % self.checkpointing_steps == 0:
+        if (
+                hasattr(self, "checkpointing_steps")
+                and self.trainer.completed_steps % self.checkpointing_steps == 0
+        ):
             self.save_checkpoint()
 
     def save_checkpoint(self):
@@ -153,7 +156,7 @@ class CheckpointSaver(CallbackBase):
         output_dir = os.path.join(self.trainer.output_dir, output_dir)
         self.accelerator.save_state(output_dir)
 
-        if self.save_last_only and self.last_checkpoint is not None and self.accelerator.is_main_process:
+        if self.save_lastest_only and self.last_checkpoint is not None and self.accelerator.is_main_process:
             shutil.rmtree(self.last_checkpoint)
             self.last_checkpoint = output_dir
 
