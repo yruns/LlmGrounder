@@ -11,7 +11,7 @@ from typing import Optional
 import torch
 from torch import Tensor, nn
 
-from models.detector_Vote2Cap_DETR.helpers import (
+from .helpers import (
     ACTIVATION_DICT, NORM_DICT, WEIGHT_INIT_DICT,
     get_clones
 )

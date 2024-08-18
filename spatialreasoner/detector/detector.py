@@ -203,6 +203,21 @@ class Vote2CapDETR(nn.Module):
             enc_inds = torch.gather(pre_enc_inds, 1, enc_inds.long())
         return enc_xyz, enc_features, enc_inds
 
+    def encode_scene(self, data_dict):
+        point_clouds = data_dict["point_clouds"]
+        point_cloud_dims = [
+            data_dict["point_cloud_dims_min"],
+            data_dict["point_cloud_dims_max"],
+        ]
+
+        ## feature encoding
+        # encoder features: npoints x batch x channel -> batch x channel x npoints
+        enc_xyz, enc_features, enc_inds = self.run_encoder(point_clouds)
+        enc_features = enc_features.permute(1, 0, 2)
+
+        return enc_features
+
+
     def get_box_predictions(self, query_xyz, point_cloud_dims, box_features):
         """
         Parameters:
@@ -425,24 +440,3 @@ def build_decoder(cfg):
     return decoder
 
 
-def detector(scene_data_config):
-    cfg = DetectorConfig(scene_data_config)
-    
-    tokenizer = build_preencoder(cfg)
-    encoder = build_encoder(cfg)
-    decoder = build_decoder(cfg)
-    
-    criterion = build_criterion(cfg, scene_data_config)
-    
-    model = Vote2CapDETR(
-        tokenizer,
-        encoder,
-        decoder,
-        cfg.dataset_config,
-        encoder_dim=cfg.enc_dim,
-        decoder_dim=cfg.dec_dim,
-        mlp_dropout=cfg.mlp_dropout,
-        num_queries=cfg.nqueries,
-        criterion=criterion
-    )
-    return model

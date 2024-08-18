@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch import nn, Tensor
 from typing import Dict
 from utils.box_util import generalized_box3d_iou
-from utils.dist import all_reduce_average
+from trim.utils import comm
 from utils.misc import huber_loss
 from scipy.optimize import linear_sum_assignment
 
@@ -389,7 +389,7 @@ class SetPredictionCriterion(nn.Module):
 
     def forward(self, outputs, targets):
         nactual_gt = targets["gt_box_present"].sum(axis=1).long()
-        num_boxes = torch.clamp(all_reduce_average(nactual_gt.sum()), min=1).item()
+        num_boxes = torch.clamp(comm.reduce_average(nactual_gt.sum()), min=1).item()
         targets["nactual_gt"] = nactual_gt
         targets["num_boxes"] = num_boxes
         targets[

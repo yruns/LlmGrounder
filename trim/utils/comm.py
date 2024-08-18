@@ -48,6 +48,12 @@ def get_local_rank() -> int:
 def is_main_process() -> bool:
     return accelerator.is_main_process
 
+def reduce(tensor):
+    return accelerator.reduce(tensor)
+
+def reduce_average(tensor):
+    return reduce(tensor) / accelerator.num_processes
+
 def synchronize():
     """
     Helper function to synchronize (barrier) among all processes when
