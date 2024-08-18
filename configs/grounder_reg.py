@@ -13,6 +13,7 @@ now = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
 
 # file paths
+scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
