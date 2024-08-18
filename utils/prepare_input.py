@@ -39,24 +39,4 @@ def assemble_instruction(utterance, granularity):
     return "".join(instruction_snippet_list)    # Modifying sep may cause errors in `tokenize_scene_token` function
 
 
-def prepare_for_llm(
-    instruction,
-    tokenizer,
-    has_scene=True
-):
-    """
-    1. Tokenize the instruction;
-    2. Make a deepcopy as the target. Mask reply words with IGNORE_INDEX.
-    """
-    input_ids = tokenize_scene_token(
-        instruction,
-        tokenizer,
-        scene_token=SCENE_TOKEN,
-        scene_token_index=SCENE_TOKEN_INDEX
-    )
 
-    target_ids = input_ids.clone()
-
-
-
-    return input_ids, target_ids

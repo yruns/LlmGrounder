@@ -3,6 +3,8 @@ File: collator.py
 Date: 2024/8/18
 Author: yruns
 """
+from abc import abstractmethod
+
 from transformers import PreTrainedTokenizerBase
 from dataclasses import dataclass
 
@@ -15,7 +17,8 @@ class DataCollatorBase(object):
 
     tokenizer: PreTrainedTokenizerBase
 
-    def __call__(self, batch):
+    @abstractmethod
+    def collate(self, batch):
         pass
 
 
