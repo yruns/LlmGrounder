@@ -3,8 +3,9 @@ File: builder.py
 Date: 2024/8/17
 Author: yruns
 """
-from spatialreasoner.detector.detector import *
-
+from .detector.detector import *
+from .detector.criterion import build_criterion
+from .detector.config import DetectorConfig
 
 def build_mm_detector(scannet_config):
     cfg = DetectorConfig(scannet_config)
@@ -13,7 +14,7 @@ def build_mm_detector(scannet_config):
     encoder = build_encoder(cfg)
     decoder = build_decoder(cfg)
 
-    criterion = build_criterion(cfg, scannet_config)
+    criterion = build_criterion(cfg, cfg.dataset_config)
 
     model = Vote2CapDETR(
         tokenizer,
@@ -26,7 +27,7 @@ def build_mm_detector(scannet_config):
         num_queries=cfg.nqueries,
         criterion=criterion
     )
-    return model
+    return model, cfg
 
 
 def build_mm_segmentor():

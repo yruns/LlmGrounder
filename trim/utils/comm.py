@@ -41,7 +41,7 @@ def get_world_size() -> int:
 
 def get_rank() -> int:
     if accelerator is None:
-        return int(os.environ["RANK"])
+        return int(os.environ["RANK"]) if hasattr(os.environ, "RANK") else 0
     return accelerator.process_index
 
 
@@ -105,6 +105,7 @@ def move_tensor_to_device(input_value, device):
 
 
 STR_TO_DTYPE = {
+    "no": torch.float32,    # Default dtype
     "float16": torch.float16,
     "float32": torch.float32,
     "float64": torch.float64,
@@ -131,7 +132,7 @@ def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
     return STR_TO_DTYPE[dtype_str]
 
 
-def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str]):
+def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str], ignore_keys=None):
     """Move input tensors to device"""
     if isinstance(dtype, str):
         if dtype == "no":
@@ -154,6 +155,8 @@ def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str]):
 
     if isinstance(input_value, dict):
         for key in input_value.keys():
+            if ignore_keys is not None and key in ignore_keys:
+                continue
             input_value[key] = convert_tensor_to_dtype(input_value[key], dtype)
         return input_value
 
@@ -168,7 +171,7 @@ def copy_codebase(save_path, exclude_dirs=None):
     save_path = os.path.join(save_path, "codebase")
 
     if exclude_dirs is None:
-        exclude_dirs = ["__pycache__", "wandb", "out", "pretrained", "data", "clip-vit-base-patch16", "output"]
+        exclude_dirs = ["__pycache__", "wandb", "pretrained", "data", "clip-vit-base-patch16", "output", "tutorials"]
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)

@@ -18,7 +18,7 @@ import pytorch_utils as pt_utils
 try:
     import builtins
 except:
-    import __builtin__ as builtins
+    import builtins as builtins
 
 try:
     import pointnet2._ext as _ext

@@ -18,16 +18,23 @@ class SpatialReasonerMetaModel:
 
     def __init__(self, config):
         super(SpatialReasonerMetaModel, self).__init__(config)
+        self.config = config
+        self.mm_detector = None
+        self.mm_projector = None
 
-        if hasattr(config, "mm_detector"):
-            self.mm_detector = build_mm_detector(getattr(config, "scannet_config"))
-            self.mm_projector = nn.Linear(
-                config.mm_hidden_size,
-                config.hidden_size,
-            )
+    def initialize_vision_modules(self, hparms):
+        scannet_config = getattr(hparms, "scannet_config")
+        self.mm_detector, detector_cfg = build_mm_detector(scannet_config)
+        self.mm_projector = nn.Linear(
+            detector_cfg.enc_dim,
+            self.config.hidden_size,
+        )
 
     def get_detector(self):
         return getattr(self, "mm_detector", None)
+
+    def reset_detector_precision(self, precision: torch.dtype):
+        setattr(self, "mm_detector", self.get_detector().to(dtype=precision))
 
 
 class SpatialReasonerMetaForCausalLM(ABC):
@@ -37,18 +44,21 @@ class SpatialReasonerMetaForCausalLM(ABC):
     def get_model(self):
         pass
 
+    def reset_detector_precision(self, precision: torch.dtype):
+        self.get_model().reset_detector_precision(precision)
+
     def get_detector(self):
-        return getattr(self, "mm_detector", None)
+        return self.get_model().get_detector()
 
     def encode_scene(self, scene_data_dict: Dict):
-        return self.get_detector().encode_scene(scene_data_dict)
+        scene_features = self.get_detector().encode_scene(scene_data_dict).to(getattr(self.config, "compute_dtype"))
+        return self.get_model().mm_projector(scene_features)
 
     def prepare_for_multimodal(
             self,
             input_ids: torch.LongTensor = None,
             attention_mask: Optional[torch.Tensor] = None,
             position_ids: Optional[torch.LongTensor] = None,
-            past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
             labels: Optional[torch.LongTensor] = None,
             scene_data_dict: Dict = None
     ):
@@ -83,7 +93,7 @@ class SpatialReasonerMetaForCausalLM(ABC):
                 multimodal_labels.append(cur_labels)
                 continue
 
-            scene_token_indices = [-1] + torch.where(cur_input_ids == SCENE_TOKEN_INDEX)[0] + [cur_input_ids.shape[0]]
+            scene_token_indices = [-1] + torch.where(cur_input_ids == SCENE_TOKEN_INDEX)[0].tolist() + [cur_input_ids.shape[0]]
             cur_input_ids_no_scene_snippets = []
             cur_labels_no_scene_snippets = []
 
@@ -108,7 +118,7 @@ class SpatialReasonerMetaForCausalLM(ABC):
                 if i < num_scenes:
                     cur_scene_features = scene_enc_features[scene_idx]
                     cur_multimodal_embeds.append(cur_scene_features)
-                    cur_multimodal_labels.append(torch.full(cur_scene_features.shape[0], IGNORE_INDEX, device=device))
+                    cur_multimodal_labels.append(torch.full((cur_scene_features.shape[0],), IGNORE_INDEX, device=device, dtype=torch.long))
                     scene_idx += 1
 
             cur_multimodal_embeds = torch.cat(cur_multimodal_embeds, dim=0)
@@ -127,9 +137,10 @@ class SpatialReasonerMetaForCausalLM(ABC):
 
         ### => Combine the input_embeds and labels
         embedding_dim = multimodal_input_embeds[0].shape[1]
-        multimodal_input_embeds_padded = torch.zero((batch_size, batch_max_len, embedding_dim),
-                                                    dtype=attention_mask.dtype, device=device)
-        multimodal_labels_padded = torch.ones((batch_size, batch_max_len), dtype=torch.long, device=device)
+        multimodal_input_embeds_padded = torch.zeros((batch_size, batch_max_len, embedding_dim),
+                                                    dtype=multimodal_input_embeds_truncated[0].dtype, device=device)
+        multimodal_labels_padded = torch.ones((batch_size, batch_max_len), dtype=torch.long, device=device) * IGNORE_INDEX
+        multimodal_attention_mask = torch.zeros((batch_size, batch_max_len), dtype=torch.bool, device=device)
 
         padding_strategy = getattr(self.config, 'tokenizer_padding_side', 'right')
         for i in range(batch_size):
@@ -138,11 +149,13 @@ class SpatialReasonerMetaForCausalLM(ABC):
                     multimodal_input_embeds_truncated[i]
                 multimodal_labels_padded[i, -multimodal_labels_truncated[i].shape[0]:] = \
                     multimodal_labels_truncated[i]
+                multimodal_attention_mask[i, -multimodal_input_embeds_truncated[i].shape[0]:] = True
             else:
                 multimodal_input_embeds_padded[i, :multimodal_input_embeds_truncated[i].shape[0]] = \
                     multimodal_input_embeds_truncated[i]
                 multimodal_labels_padded[i, :multimodal_labels_truncated[i].shape[0]] = \
                     multimodal_labels_truncated[i]
+                multimodal_attention_mask[i, :multimodal_input_embeds_truncated[i].shape[0]] = True
 
         ### => input_ids, position_ids, attention_mask, past_key_values, inputs_embeds, labels
-        return None, position_ids, attention_mask, past_key_values, multimodal_input_embeds_padded, multimodal_labels_padded
+        return None, position_ids, attention_mask, multimodal_input_embeds_padded, multimodal_labels_padded

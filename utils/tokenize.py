@@ -46,15 +46,11 @@ def tokenize_with_mask(text: str, tokenizer, wrapper: Union[Tuple, str]):
 def tokenize_scene_token(
         instruction: str,
         tokenizer,
-        scene_token=SCENE_TOKEN,
-        scene_token_index=SCENE_TOKEN_INDEX
+        scene_token_id
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
-    tokenizer_copy.add_tokens([scene_token, REG_TOKEN, SEG_TOKEN], special_tokens=True)  # TODO: get special tokens from tokenizer
-    temp_ids = tokenizer_copy(scene_token, add_special_tokens=False).input_ids[0]
 
-    input_ids, mask_ids = tokenize_with_mask(instruction, tokenizer_copy, wrapper=(ROLES["reply"], REPLY_END_TOKEN))
-    input_ids[input_ids == temp_ids] = scene_token_index
+    input_ids, mask_ids = tokenize_with_mask(instruction, tokenizer, wrapper=(ROLES["reply"], REPLY_END_TOKEN))
+    input_ids[input_ids == scene_token_id] = SCENE_TOKEN_INDEX
 
     target_ids = input_ids.clone()
     target_ids[mask_ids != 1] = IGNORE_INDEX

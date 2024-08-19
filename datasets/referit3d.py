@@ -11,7 +11,7 @@ from typing import *
 
 import torch
 from torch.utils.data import default_collate, DataLoader
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
 from staticvars.const import *
 from utils.collator import DataCollatorBase
@@ -25,7 +25,7 @@ class ReferItDataset(ScanNetBaseDataset):
             self,
             data_path: str,
             scannet_config: Dict = None,
-            tokenizer: AutoTokenizer = None,
+            tokenizer: PreTrainedTokenizerBase = None,
             grounding_granularity: Literal["seg", "reg"] = "reg",
             split: Literal["train", "val"] = "train",
     ):
@@ -35,6 +35,16 @@ class ReferItDataset(ScanNetBaseDataset):
         self.grounding_granularity = grounding_granularity
         self.split = split
         self.data = json.load(open(osp.join(self.data_path, f"nr3d_{self.split}.json"), "r"))
+
+        self.tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
+        original_tokenizer_len = len(self.tokenizer_copy)
+        added_tokens = []
+        for idx in range(original_tokenizer_len, len(tokenizer)):
+            added_tokens.append(tokenizer.decode([idx]))
+        added_tokens.append(SCENE_TOKEN)
+
+        self.tokenizer_copy.add_tokens(added_tokens, special_tokens=True)
+        self.scene_token_id = self.tokenizer_copy(SCENE_TOKEN, add_special_tokens=False).input_ids[0]
 
     def __len__(self):
         return len(self.data)
@@ -49,7 +59,8 @@ class ReferItDataset(ScanNetBaseDataset):
 
         input_ids, target_ids = tokenize_scene_token(
             instruction,
-            self.tokenizer,
+            self.tokenizer_copy,
+            self.scene_token_id
         )
 
         return dict(

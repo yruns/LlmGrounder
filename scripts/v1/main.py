@@ -5,7 +5,6 @@ Author: yruns
 """
 import time
 start = time.time()
-
 from os import path
 from typing import Optional
 
@@ -22,19 +21,21 @@ from transformers import (
 )
 
 import scripts.v1.grounder_reg as hparams
+
 from datasets.referit3d import build_dataloader
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
 from staticvars.const import REG_TOKEN
-from trim import TrainerBase
-from trim.callbacks.misc import *
+
 from trim.thirdparty.logging import WandbWrapper
 from trim.thirdparty.logging import logger
+from trim import TrainerBase
+from trim.callbacks.misc import *
 from trim.utils import comm
 
 
 class Trainer(TrainerBase):
 
-    def __init__(self, hparams, accelerator, logger, debug=False, callbacks=None):
+    def __init__(self, hparams, accelerator: Accelerator, logger, debug=False, callbacks=None):
         super().__init__()
         self.hparams = hparams
         self.accelerator: Accelerator = accelerator
@@ -45,6 +46,7 @@ class Trainer(TrainerBase):
         self.debug = debug
 
         self.tokenizer: Optional[PreTrainedTokenizerBase] = None
+        self.compute_dtype = comm.convert_str_to_dtype(accelerator.mixed_precision)
 
         end_time = time.time()
         logger.info(f"### => Loading with {end_time - start} seconds")
@@ -64,13 +66,29 @@ class Trainer(TrainerBase):
 
         self.model = SpatialReasonerForCausalLM.from_pretrained(
             pretrained_model_path,
+            torch_dtype=self.compute_dtype,
             attn_implementation=self.hparams.attn_implementation,
         )
+        # Configure model tokens
+        self.model.config.eos_token_id = self.tokenizer.eos_token_id
+        self.model.config.bos_token_id = self.tokenizer.bos_token_id
+        self.model.config.pad_token_id = self.tokenizer.pad_token_id
+        ## Initialize vision modules
+        self.model.model.initialize_vision_modules(self.hparams)
+        self.model.config.tokenizer_padding_side = self.tokenizer.padding_side
+        self.model.config.tokenizer_model_max_length = self.tokenizer.model_max_length
+        self.model.config.compute_dtype = self.compute_dtype
+
+        self.model.resize_token_embeddings(len(self.tokenizer))
 
         if self.hparams.freeze_backbone:
             self.model.model.requires_grad_(False)
         num_parameters = comm.count_parameters(self.model)
         logger.info(f"Number of learnable parameters: {num_parameters}")
+
+    def on_training_phase_start(self):
+        super().on_training_phase_start()
+        self.model.reset_detector_precision(torch.float32)
 
     def configure_dataloader(self):
         logger.info("### => Creating dataloader...")
@@ -131,7 +149,10 @@ class Trainer(TrainerBase):
 
     def training_setp(self, batch_data, batch_index):
         with self.accelerator.accumulate(self.model):
-            batch_data = comm.convert_tensor_to_dtype(batch_data, self.accelerator.mixed_precision)
+            batch_data = comm.convert_tensor_to_dtype(
+                batch_data, self.accelerator.mixed_precision,
+                ignore_keys="scene_data_dict"
+            )
 
             output = self.model(**batch_data)
             loss = output.loss
@@ -152,11 +173,14 @@ class Trainer(TrainerBase):
 def main(hparams):
     """Main function."""
     comm.seed_everything(hparams.seed)
-    comm.copy_codebase(hparams.output_dir)
+    comm.copy_codebase(
+        hparams.output_dir,
+        exclude_dirs=["__pycache__", "wandb", "pretrained", "data", "clip-vit-base-patch16", "output", "tutorials"]
+    )
 
     accelerator = Accelerator(
         mixed_precision="bf16",
-        gradient_accumulation_steps=2,
+        gradient_accumulation_steps=1,
         deepspeed_plugin=DeepSpeedPlugin(
             hf_ds_config="configs/zero_3_stage.json",
         )

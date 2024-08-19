@@ -30,7 +30,7 @@ class SpatialReasonerModel(SpatialReasonerMetaModel, LlamaModel):
         super(SpatialReasonerModel, self).__init__(config)
 
 
-class SpatialReasonerForCausalLM(SpatialReasonerMetaForCausalLM, LlamaForCausalLM):
+class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalLM):
     config_class = SpatialReasonerConfig
 
     def __init__(self, config: LlamaConfig):
@@ -62,19 +62,17 @@ class SpatialReasonerForCausalLM(SpatialReasonerMetaForCausalLM, LlamaForCausalL
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         if inputs_embeds is None:
             (
-                inputs_embeds,
-                position_ids,
-                attention_mask,
-                past_key_values,
-                inputs_embeds,
-                labels
-            ) = self.prepare_for_multimodal(
                 input_ids,
                 position_ids,
                 attention_mask,
-                past_key_values,
-                labels,
-                scene_data_dict
+                inputs_embeds,
+                labels
+            ) = self.prepare_for_multimodal(
+                input_ids=input_ids,
+                position_ids=position_ids,
+                attention_mask=attention_mask,
+                labels=labels,
+                scene_data_dict=scene_data_dict
             )
 
         return super().forward(

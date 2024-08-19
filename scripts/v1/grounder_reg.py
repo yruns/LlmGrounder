@@ -16,10 +16,10 @@ scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
-resume_from_checkpoint: Optional[str] = None
+resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240819-233542/step_10"
 
 # data
-num_workers: int = 4
+num_workers: int = 0
 dataset_name: Literal["referit3d"] = "referit3d"
 grounding_granularity: Literal["reg", "seg"] = "reg"
 scannet_config: Dict = dict(
@@ -56,14 +56,14 @@ deepspeed_config: str = "configs/zero_3_stage.json"
 
 lr: float = 2e-5
 optimizer: Literal["adamw_torch"] = "adamw_torch"
-warmup_ratio: float = 0.03
+warmup_ratio: float = 0.00
 lr_scheduler_type: Literal["linear", "cosine"] = "linear"
 
 num_train_epochs: int = 10
 save_freq: Union[str, int] = 300  # or "epoch"
 
 # logging
-log_interval: int = 10
+log_interval: int = 1
 log_project: str = "grounder_reg"
 log_tag: str = "test1"
 
