@@ -5,11 +5,9 @@ Author: yruns
 """
 import random
 
-from fontTools.ttLib.tables.ttProgram import instructions
-
-from staticvars.prompts import *
 from staticvars.const import *
-from utils.tokenize import tokenize_scene_token
+from staticvars.prompts import *
+
 
 def assemble_instruction(utterance, granularity):
     """
@@ -20,23 +18,20 @@ def assemble_instruction(utterance, granularity):
     """
     instruction_snippet_list = []
 
-    # Add system prompt
+    ### => Add system prompt
     system_prompt = random.choice(SYSTEM_PROMPTS)
     instruction_snippet_list.append(system_prompt)
 
-    # Add ask prompt
+    ### => Add ask prompt
     ask_role = ROLES["ask"]
-    ask_prompt = random.choice(ASK_PROMPTS[granularity]).format(SCENE_TOKEN=SCENE_TOKEN, UTTERACNE=utterance)
+    ask_prompt = random.choice(ASK_PROMPTS[granularity]).format(SCENE_TOKEN=SCENE_TOKEN, UTTERANCE=utterance)
     instruction_snippet_list.append("{role}: {prompt}".format(role=ask_role, prompt=ask_prompt))
 
-    # Add reply prompt
+    ### => Add reply prompt
     reply_role = ROLES["reply"]
     reply_prompt = random.choice(REPLY_PROMPTS[granularity])
     instruction_snippet_list.append(
         "{role}: {prompt}{end_token}".format(role=reply_role, prompt=reply_prompt, end_token=REPLY_END_TOKEN)
     )
 
-    return "".join(instruction_snippet_list)    # Modifying sep may cause errors in `tokenize_scene_token` function
-
-
-
+    return "".join(instruction_snippet_list)  # Modifying sep may cause errors in `tokenize_scene_token` function

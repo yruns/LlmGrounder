@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch
-import numpy as np
-from collections import deque
 from typing import List
+
+import numpy as np
+import torch
+
 
 def my_worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
@@ -32,4 +33,3 @@ def huber_loss(error, delta=1.0):
     linear = abs_error - quadratic
     loss = 0.5 * quadratic ** 2 + delta * linear
     return loss
-

@@ -12,8 +12,9 @@ import os
 import h5py
 import numpy as np
 import torch
-import utils.pc_util as pc_util
 from torch.utils.data import Dataset
+
+import utils.pc_util as pc_util
 from utils.box_util import (
     flip_axis_to_camera_np, flip_axis_to_camera_tensor,
     get_3d_box_batch_np, get_3d_box_batch_tensor
@@ -158,12 +159,12 @@ class ScanNetBaseDataset(Dataset):
         root_dir = DATASET_ROOT_DIR
         meta_data_dir = DATASET_METADATA_DIR
 
-        self.data_path = root_dir
+        self.root_dir = root_dir
         all_scan_names = list(
             set(
                 [
                     os.path.basename(x)[0:12]
-                    for x in os.listdir(self.data_path)
+                    for x in os.listdir(self.root_dir)
                     if x.startswith("scene")
                 ]
             )
@@ -205,14 +206,14 @@ class ScanNetBaseDataset(Dataset):
         return len(self.scan_names)
 
     def _get_scan_data(self, scan_name):
-        mesh_vertices = np.load(os.path.join(self.data_path, scan_name) + "_aligned_vert.npy")
+        mesh_vertices = np.load(os.path.join(self.root_dir, scan_name) + "_aligned_vert.npy")
         instance_labels = np.load(
-            os.path.join(self.data_path, scan_name) + "_ins_label.npy"
+            os.path.join(self.root_dir, scan_name) + "_ins_label.npy"
         )
         semantic_labels = np.load(
-            os.path.join(self.data_path, scan_name) + "_sem_label.npy"
+            os.path.join(self.root_dir, scan_name) + "_sem_label.npy"
         )
-        instance_bboxes = np.load(os.path.join(self.data_path, scan_name) + "_aligned_bbox.npy")
+        instance_bboxes = np.load(os.path.join(self.root_dir, scan_name) + "_aligned_bbox.npy")
 
         if not self.use_color:
             point_cloud = mesh_vertices[:, 0:3]  # do not use color for now
@@ -231,7 +232,7 @@ class ScanNetBaseDataset(Dataset):
             pid = mp.current_process().pid
             if pid not in self.multiview_data:
                 self.multiview_data[pid] = h5py.File(
-                    os.path.join(self.data_path, 'enet_feats_maxpool.hdf5'),
+                    os.path.join(self.root_dir, 'enet_feats_maxpool.hdf5'),
                     'r', libver='latest'
                 )
             multiview = self.multiview_data[pid][scan_name]

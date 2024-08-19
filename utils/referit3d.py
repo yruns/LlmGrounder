@@ -5,6 +5,7 @@ Author: yruns
 """
 import os.path as osp
 
+
 class ReferIt3DUtils:
 
     @staticmethod

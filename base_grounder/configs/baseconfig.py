@@ -6,6 +6,7 @@ Author: yruns
 
 """
 
+
 class BaseConfig(object):
 
     @classmethod

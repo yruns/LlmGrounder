@@ -11,19 +11,35 @@ Configuration file for grounder(reg).
 """
 now = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
-
 # file paths
 scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
+resume_from_checkpoint: Optional[str] = None
 
 # data
+num_workers: int = 4
 dataset_name: Literal["referit3d"] = "referit3d"
+grounding_granularity: Literal["reg", "seg"] = "reg"
+scannet_config: Dict = dict(
+    num_points=40000,
+    use_color=False,
+    use_normal=False,
+    use_multiview=False,
+    use_height=False,
+    augment=False,
+    use_random_cuboid=True,
+    random_cuboid_min_points=30000
+)
 
 # model
-llm_name="Meta-Llama-3.1-8B-Instruct"
-detector_name="V-DETR"
+# llm_name="Meta-Llama-3.1-8B-Instruct"
+llm_name = "vicuna-7b-v1.3"
+model_max_length = 2048
+attn_implementation = "flash_attention_2"
+freeze_backbone = True
+detector_name = "V-DETR"
 
 # train
 seed: int = 42
@@ -38,16 +54,18 @@ per_device_eval_batch_size: int = 1
 
 deepspeed_config: str = "configs/zero_3_stage.json"
 
+lr: float = 2e-5
 optimizer: Literal["adamw_torch"] = "adamw_torch"
-scheduler: Literal["linear", "cosine"] = "linear"
+warmup_ratio: float = 0.03
+lr_scheduler_type: Literal["linear", "cosine"] = "linear"
 
-num_workers: int = 4
-learning_rate: float = 1e-4
 num_train_epochs: int = 10
+save_freq: Union[str, int] = 300  # or "epoch"
 
-
-
-
+# logging
+log_interval: int = 10
+log_project: str = "grounder_reg"
+log_tag: str = "test1"
 
 
 if __name__ == "__main__":

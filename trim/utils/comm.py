@@ -7,20 +7,22 @@ Modified from detectron2(https://github.com/facebookresearch/detectron2)
 
 import os
 import random
+from typing import Union
 
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 from accelerate import Accelerator
-from typing import Union
-
 
 accelerator: Union[Accelerator, None] = None
+
+
 def lazy_init_accelerate(accel):
     global accelerator
     if accelerator is None:
         import weakref
         accelerator = weakref.proxy(accel)
+
 
 def seed_everything(seed):
     random.seed(seed)
@@ -38,6 +40,8 @@ def get_world_size() -> int:
 
 
 def get_rank() -> int:
+    if accelerator is None:
+        return int(os.environ["RANK"])
     return accelerator.process_index
 
 
@@ -46,13 +50,18 @@ def get_local_rank() -> int:
 
 
 def is_main_process() -> bool:
+    if accelerator is None:
+        return get_rank() == 0
     return accelerator.is_main_process
+
 
 def reduce(tensor):
     return accelerator.reduce(tensor)
 
+
 def reduce_average(tensor):
     return reduce(tensor) / accelerator.num_processes
+
 
 def synchronize():
     """
@@ -60,6 +69,7 @@ def synchronize():
     using distributed training
     """
     accelerator.wait_for_everyone()
+
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -93,6 +103,7 @@ def move_tensor_to_device(input_value, device):
 
     raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
 
+
 STR_TO_DTYPE = {
     "float16": torch.float16,
     "float32": torch.float32,
@@ -111,12 +122,14 @@ STR_TO_DTYPE = {
     "bool": torch.bool,
 }
 
+
 def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
     """Convert string to torch.dtype"""
     if dtype_str not in STR_TO_DTYPE:
         raise ValueError(f"Unsupported dtype: {dtype_str}")
 
     return STR_TO_DTYPE[dtype_str]
+
 
 def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str]):
     """Move input tensors to device"""
@@ -146,6 +159,7 @@ def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str]):
 
     raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
 
+
 def copy_codebase(save_path, exclude_dirs=None):
     """Copy codebase to save_path for future reference"""
     import shutil
@@ -169,4 +183,3 @@ def copy_codebase(save_path, exclude_dirs=None):
                             ignore=shutil.ignore_patterns("*.pyc", "*.pth"), dirs_exist_ok=True)
         else:
             shutil.copy2(s, d)
-

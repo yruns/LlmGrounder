@@ -16,26 +16,24 @@
 Fine-tuning the library models for causal language modeling (GPT, GPT-2, CTRL, ...)
 on a text file or a dataset without using HuggingFace Trainer.
 
-Here is the full list of checkpoints on the hub that can be fine-tuned by this script:
+Here is the full list of checkpoints on the hub that can be fine-tuned by this scripts:
 https://huggingface.co/models?filter=text-generation
 """
-# You can also adapt this script on your own causal language modeling task. Pointers for this are left as comments.
+# You can also adapt this scripts on your own causal language modeling task. Pointers for this are left as comments.
 
 import argparse
 import json
 import logging
-import math
 import os
 import random
 from itertools import chain
 
-import datasets
+import math
 import torch
 import transformers
 from accelerate import Accelerator, DistributedType
 from accelerate.logging import get_logger
 from accelerate.utils import DummyOptim, DummyScheduler, set_seed
-from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (
@@ -48,6 +46,9 @@ from transformers import (
     get_scheduler,
 )
 from transformers.utils.versions import require_version
+
+import datasets
+from datasets import load_dataset
 
 logger = get_logger(__name__)
 
@@ -300,7 +301,7 @@ def main():
     # or just provide the name of one of the public datasets available on the hub at https://huggingface.co/datasets/
     # (the dataset will be downloaded automatically from the datasets Hub).
     #
-    # For CSV/JSON files, this script will use the column called 'text' or the first column if no column called
+    # For CSV/JSON files, this scripts will use the column called 'text' or the first column if no column called
     # 'text' is found. You can easily tweak this behavior (see below).
     #
     # In distributed training, the load_dataset function guarantee that only one local process can concurrently
@@ -367,8 +368,8 @@ def main():
         tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=not args.use_slow_tokenizer)
     else:
         raise ValueError(
-            "You are instantiating a new tokenizer from scratch. This is not supported by this script."
-            "You can do it from another script, save it, and load it from here, using --tokenizer_name."
+            "You are instantiating a new tokenizer from scratch. This is not supported by this scripts."
+            "You can do it from another scripts, save it, and load it from here, using --tokenizer_name."
         )
 
     if args.model_name_or_path:
@@ -483,7 +484,7 @@ def main():
     optimizer_cls = (
         torch.optim.AdamW
         if accelerator.state.deepspeed_plugin is None
-        or "optimizer" not in accelerator.state.deepspeed_plugin.deepspeed_config
+           or "optimizer" not in accelerator.state.deepspeed_plugin.deepspeed_config
         else DummyOptim
     )
     optimizer = optimizer_cls(optimizer_grouped_parameters, lr=args.learning_rate)

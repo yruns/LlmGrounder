@@ -3,13 +3,14 @@ File: tokenize.py
 Date: 2024/8/17
 Author: yruns
 """
-from typing import Union, Tuple
 import re
+from typing import Union, Tuple
 
 import torch
 from transformers import AutoTokenizer
 
 from staticvars.const import *
+
 
 def tokenize_with_mask(text: str, tokenizer, wrapper: Union[Tuple, str]):
     assert len(wrapper) == 2, "wrapper must be a tuple of two elements(begin_token, end_token)"
@@ -49,16 +50,13 @@ def tokenize_scene_token(
         scene_token_index=SCENE_TOKEN_INDEX
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
-    tokenizer_copy.add_tokens([scene_token], special_tokens=True)
+    tokenizer_copy.add_tokens([scene_token, REG_TOKEN, SEG_TOKEN], special_tokens=True)  # TODO: get special tokens from tokenizer
     temp_ids = tokenizer_copy(scene_token, add_special_tokens=False).input_ids[0]
 
     input_ids, mask_ids = tokenize_with_mask(instruction, tokenizer_copy, wrapper=(ROLES["reply"], REPLY_END_TOKEN))
     input_ids[input_ids == temp_ids] = scene_token_index
 
     target_ids = input_ids.clone()
-    target_ids[mask_ids == 1] = IGNORE_INDEX
+    target_ids[mask_ids != 1] = IGNORE_INDEX
 
     return input_ids, target_ids
-
-
-

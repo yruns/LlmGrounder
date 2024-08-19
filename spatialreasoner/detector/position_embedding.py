@@ -2,22 +2,23 @@
 Various positional encodings for the transformer.
 """
 import math
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
+
 from utils.pc_util import shift_scale_points
 
 
 class PositionEmbeddingCoordsSine(nn.Module):
     def __init__(
-        self,
-        temperature=10000,
-        normalize=False,
-        scale=None,
-        pos_type="fourier",
-        d_pos=None,
-        d_in=3,
-        gauss_scale=1.0,
+            self,
+            temperature=10000,
+            normalize=False,
+            scale=None,
+            pos_type="fourier",
+            d_pos=None,
+            d_in=3,
+            gauss_scale=1.0,
     ):
         super().__init__()
         self.temperature = temperature
@@ -54,7 +55,7 @@ class PositionEmbeddingCoordsSine(nn.Module):
         rems = num_channels - (ndim * xyz.shape[2])
 
         assert (
-            ndim % 2 == 0
+                ndim % 2 == 0
         ), f"Cannot handle odd sized ndim={ndim} where num_channels={num_channels} and xyz={xyz.shape}"
 
         final_embeds = []

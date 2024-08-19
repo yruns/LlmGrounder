@@ -1,14 +1,14 @@
 import time
-import math
-import torch
-import pandas as pd
 
-from torch.optim import Adam
+import math
+import pandas as pd
+import torch
 from accelerate import Accelerator
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-from torch.utils.data import random_split
 from peft import LoraConfig, get_peft_model
+from torch.optim import Adam
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
+from torch.utils.data import random_split
 from transformers import BertTokenizer, BertForSequenceClassification
 
 
@@ -21,13 +21,12 @@ class MyDataset(Dataset):
 
     def __getitem__(self, index):
         return self.data.iloc[index]["review"], self.data.iloc[index]["label"]
-    
+
     def __len__(self):
         return len(self.data)
 
 
 def prepare_dataloader():
-
     dataset = MyDataset()
 
     trainset, validset = random_split(dataset, lengths=[0.9, 0.1], generator=torch.Generator().manual_seed(42))
@@ -48,8 +47,8 @@ def prepare_dataloader():
 
     return trainloader, validloader
 
-def prepare_model_and_optimizer():
 
+def prepare_model_and_optimizer():
     model = BertForSequenceClassification.from_pretrained("/data3/ysh/huggingface/bert-base-chinese")
 
     lora_config = LoraConfig(target_modules=["query", "key", "value"])
@@ -93,7 +92,8 @@ def train(model, optimizer, trainloader, validloader, accelerator: Accelerator, 
     for ep in range(resume_epoch, epoch):
         model.train()
         if resume and ep == resume_epoch and resume_step != 0:
-            active_dataloader = accelerator.skip_first_batches(trainloader, resume_step * accelerator.gradient_accumulation_steps)
+            active_dataloader = accelerator.skip_first_batches(trainloader,
+                                                               resume_step * accelerator.gradient_accumulation_steps)
         else:
             active_dataloader = trainloader
         for batch in active_dataloader:
@@ -129,7 +129,6 @@ def train(model, optimizer, trainloader, validloader, accelerator: Accelerator, 
 
 
 def main():
-
     accelerator = Accelerator(log_with="tensorboard", project_dir="ckpts")
 
     accelerator.init_trackers("runs")

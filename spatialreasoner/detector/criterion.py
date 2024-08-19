@@ -1,14 +1,17 @@
-import torch
-import numpy as np
-import torch.nn.functional as F
-from torch import nn, Tensor
 from typing import Dict
-from utils.box_util import generalized_box3d_iou
-from trim.utils import comm
-from utils.misc import huber_loss
-from scipy.optimize import linear_sum_assignment
 
-GT_VOTE_FACTOR = 3 # number of GT votes per point
+import numpy as np
+import torch
+import torch.nn.functional as F
+from scipy.optimize import linear_sum_assignment
+from torch import nn
+
+from trim.utils import comm
+from utils.box_util import generalized_box3d_iou
+from utils.misc import huber_loss
+
+GT_VOTE_FACTOR = 3  # number of GT votes per point
+
 
 def nn_distance(pc1, pc2, l1smooth=False, delta=1.0, l1=False, return_distance=False):
     """
@@ -25,18 +28,18 @@ def nn_distance(pc1, pc2, l1smooth=False, delta=1.0, l1=False, return_distance=F
     """
     N = pc1.shape[1]
     M = pc2.shape[1]
-    pc1_expand_tile = pc1.unsqueeze(2).repeat(1,1,M,1)
-    pc2_expand_tile = pc2.unsqueeze(1).repeat(1,N,1,1)
+    pc1_expand_tile = pc1.unsqueeze(2).repeat(1, 1, M, 1)
+    pc2_expand_tile = pc2.unsqueeze(1).repeat(1, N, 1, 1)
     pc_diff = pc1_expand_tile - pc2_expand_tile
-    
+
     if l1smooth:
-        pc_dist = torch.sum(huber_loss(pc_diff, delta), dim=-1) # (B,N,M)
+        pc_dist = torch.sum(huber_loss(pc_diff, delta), dim=-1)  # (B,N,M)
     elif l1:
-        pc_dist = torch.sum(torch.abs(pc_diff), dim=-1) # (B,N,M)
+        pc_dist = torch.sum(torch.abs(pc_diff), dim=-1)  # (B,N,M)
     else:
-        pc_dist = torch.sum(pc_diff**2, dim=-1) # (B,N,M)
-    dist1, idx1 = torch.min(pc_dist, dim=2) # (B,N)
-    dist2, idx2 = torch.min(pc_dist, dim=1) # (B,M)
+        pc_dist = torch.sum(pc_diff ** 2, dim=-1)  # (B,N,M)
+    dist1, idx1 = torch.min(pc_dist, dim=2)  # (B,N)
+    dist2, idx2 = torch.min(pc_dist, dim=1)  # (B,M)
     if return_distance:
         return dist1, idx1, dist2, idx2, pc_dist
     else:
@@ -84,10 +87,10 @@ class Matcher(nn.Module):
         giou_mat = -outputs["gious"].detach()
 
         final_cost = (
-            self.cost_class * class_mat
-            + self.cost_objectness * objectness_mat
-            + self.cost_center * center_mat
-            + self.cost_giou * giou_mat
+                self.cost_class * class_mat
+                + self.cost_objectness * objectness_mat
+                + self.cost_center * center_mat
+                + self.cost_giou * giou_mat
         )
 
         final_cost = final_cost.detach().cpu().numpy()
@@ -123,7 +126,7 @@ class Matcher(nn.Module):
 class SetPredictionCriterion(nn.Module):
     def __init__(self, matcher, dataset_config, loss_weight_dict):
         super(SetPredictionCriterion, self).__init__()
-        
+
         self.dataset_config = dataset_config
         self.matcher = matcher
         self.loss_weight_dict = loss_weight_dict
@@ -181,7 +184,7 @@ class SetPredictionCriterion(nn.Module):
             targets["gt_box_sem_cls_label"], 1, assignments["per_prop_gt_inds"]
         )
         gt_box_label[assignments["proposal_matched_mask"].int() == 0] = (
-            pred_logits.shape[-1] - 1
+                pred_logits.shape[-1] - 1
         )
         loss = F.cross_entropy(
             pred_logits.transpose(2, 1),
@@ -200,7 +203,7 @@ class SetPredictionCriterion(nn.Module):
             gt_angle_label = targets["gt_angle_class_label"]
             gt_angle_residual = targets["gt_angle_residual_label"]
             gt_angle_residual_normalized = gt_angle_residual / (
-                np.pi / self.dataset_config.num_angle_bin
+                    np.pi / self.dataset_config.num_angle_bin
             )
 
             # # Non vectorized version
@@ -232,7 +235,7 @@ class SetPredictionCriterion(nn.Module):
                 angle_logits.transpose(2, 1), gt_angle_label, reduction="none"
             )
             angle_cls_loss = (
-                angle_cls_loss * assignments["proposal_matched_mask"]
+                    angle_cls_loss * assignments["proposal_matched_mask"]
             ).sum()
 
             gt_angle_residual_normalized = torch.gather(
@@ -250,7 +253,7 @@ class SetPredictionCriterion(nn.Module):
                 angle_residual_for_gt_class - gt_angle_residual_normalized, delta=1.0
             )
             angle_reg_loss = (
-                angle_reg_loss * assignments["proposal_matched_mask"]
+                    angle_reg_loss * assignments["proposal_matched_mask"]
             ).sum()
 
             angle_cls_loss /= targets["num_boxes"]
@@ -372,8 +375,8 @@ class SetPredictionCriterion(nn.Module):
         for k in self.loss_functions:
             loss_wt_key = k + "_weight"
             if (
-                loss_wt_key in self.loss_weight_dict
-                and self.loss_weight_dict[loss_wt_key] > 0
+                    loss_wt_key in self.loss_weight_dict
+                    and self.loss_weight_dict[loss_wt_key] > 0
             ) or loss_wt_key not in self.loss_weight_dict:
                 # only compute losses with loss_wt > 0
                 # certain losses like cardinality are only logged and have no loss weight
@@ -411,14 +414,13 @@ class SetPredictionCriterion(nn.Module):
 
 
 class VoteQueryCriterion(nn.Module):
-    
+
     def __init__(self, cfgs):
         super(VoteQueryCriterion, self).__init__()
         self.loss_dict = {
             'loss_vote': (self.loss_vote, 1),
         }
 
-    
     def loss_vote(self, outputs: Dict, targets: Dict) -> Dict:
         """ Compute vote loss: Match predicted votes to GT votes.
     
@@ -439,54 +441,51 @@ class VoteQueryCriterion(nn.Module):
             Then the loss for this seed point is:
                 min(d(v_i,c_j)) for i=1,2,3 and j=1,2,3
         """
-    
+
         # Load ground truth votes and assign them to seed points
         batch, num_seed, _ = outputs['seed_xyz'].shape
-        vote_xyz = outputs['vote_xyz'] # B,num_seed*vote_factor,3
-        seed_inds = outputs['seed_inds'].long() # B,num_seed in [0,num_points-1]
-    
+        vote_xyz = outputs['vote_xyz']  # B,num_seed*vote_factor,3
+        seed_inds = outputs['seed_inds'].long()  # B,num_seed in [0,num_points-1]
+
         # Get groundtruth votes for the seed points
         # vote_label_mask: Use gather to select B,num_seed from B,num_point
         #   non-object point has no GT vote mask = 0, object point has mask = 1
         # vote_label: Use gather to select B,num_seed,9 from B,num_point,9
         #   with inds in shape B,num_seed,9 and 9 = GT_VOTE_FACTOR * 3
         seed_gt_votes_mask = torch.gather(targets['vote_label_mask'], 1, seed_inds)
-        seed_inds_expand = seed_inds.view(batch,num_seed,1).repeat(1, 1, 3*GT_VOTE_FACTOR)
+        seed_inds_expand = seed_inds.view(batch, num_seed, 1).repeat(1, 1, 3 * GT_VOTE_FACTOR)
         seed_gt_votes = torch.gather(targets['vote_label'], 1, seed_inds_expand)
-        seed_gt_votes += outputs['seed_xyz'].repeat(1,1,3)
-    
+        seed_gt_votes += outputs['seed_xyz'].repeat(1, 1, 3)
+
         # Compute the min of min of distance
         vote_xyz_reshape = vote_xyz.view(batch * num_seed, -1, 3)
-        seed_gt_votes_reshape = seed_gt_votes.view(batch*num_seed, GT_VOTE_FACTOR, 3)
+        seed_gt_votes_reshape = seed_gt_votes.view(batch * num_seed, GT_VOTE_FACTOR, 3)
         # A predicted vote to no where is not penalized as long as there is a good vote near the GT vote.
         dist1, _, dist2, _ = nn_distance(vote_xyz_reshape, seed_gt_votes_reshape, l1=True)
         votes_dist, _ = torch.min(dist2, dim=1)
         votes_dist = votes_dist.view(batch, num_seed)
-        
+
         loss = torch.sum(
             votes_dist * seed_gt_votes_mask.float()
         ) / (torch.sum(seed_gt_votes_mask.float()) + 1e-6)
-        
+
         return {'loss_vote': loss}
 
-    
-    
     def forward(self, outputs: Dict, targets: Dict) -> Dict:
         # assignments = self.compute_label_assignment(outputs, targets)
-        
+
         loss = torch.zeros(1)[0].to(targets['point_clouds'].device)
         loss_dict = {}
         loss_intermidiate = {}
         for loss_name, (loss_fn, loss_weight) in self.loss_dict.items():
-            
             # loss_intermidiate = loss_fn(outputs, targets, assignments)
             loss_intermidiate = loss_fn(outputs, targets)
             loss_dict.update(loss_intermidiate)
-            
+
             loss += loss_weight * loss_intermidiate[loss_name]
-            
+
         loss *= 10
-        
+
         return loss, loss_intermidiate
 
 
@@ -494,9 +493,9 @@ class OverallCriterion(nn.Module):
     def __init__(self, args, dataset_config):
         super(OverallCriterion, self).__init__()
         matcher = Matcher(
-            cost_class=args.matcher_cls_cost, 
-            cost_giou=args.matcher_giou_cost, 
-            cost_center=args.matcher_center_cost, 
+            cost_class=args.matcher_cls_cost,
+            cost_giou=args.matcher_giou_cost,
+            cost_center=args.matcher_center_cost,
             cost_objectness=args.matcher_objectness_cost,
         )
         loss_weight_dict = {
@@ -517,13 +516,12 @@ class OverallCriterion(nn.Module):
         loss_dict = {}
         votenet_loss, votenet_loss_dict = self.vote_query_loss(votenet_outputs, targets)
         assignments, set_loss, set_loss_dict = self.set_prediction_loss(decoder_outputs, targets)
-        
+
         loss_dict.update(votenet_loss_dict)
         loss_dict.update(set_loss_dict)
-        
+
         return assignments, votenet_loss + set_loss, loss_dict
-    
+
 
 def build_criterion(args, dataset_config):
     return OverallCriterion(args, dataset_config)
-

@@ -1,7 +1,7 @@
 import argparse
-import math
 from os import path
 
+import math
 import torch.nn.functional as F
 import torch.optim
 import torch.optim
@@ -92,7 +92,7 @@ class Trainer(TrainerBase):
         optimizer_cls = (
             torch.optim.Adadelta
             if self.accelerator.state.deepspeed_plugin is None
-            or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
+               or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
             else DummyOptim
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
@@ -117,7 +117,8 @@ class Trainer(TrainerBase):
             )
         else:
             self.lr_scheduler = DummyScheduler(
-                self.optimizer, total_num_steps=max_train_steps_for_scheduler, warmup_num_steps=self.hparams.num_warmup_steps
+                self.optimizer, total_num_steps=max_train_steps_for_scheduler,
+                warmup_num_steps=self.hparams.num_warmup_steps
             )
 
     def configure_wandb(self):
@@ -156,7 +157,6 @@ class Trainer(TrainerBase):
                 self.comm_info["terminal_log"] = {"loss": reduced_loss}
                 # Anything you want to log in wandb
                 self.comm_info["wandb_log"] = {"loss": reduced_loss}
-
 
 
 def main(hparams):

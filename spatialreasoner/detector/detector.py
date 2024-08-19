@@ -1,38 +1,29 @@
-import math, os
 from functools import partial
 
+import math
 import numpy as np
 import torch
 import torch.nn as nn
+
 from third_party.pointnet2.pointnet2_modules import PointnetSAModuleVotes
-from third_party.pointnet2.pointnet2_utils import furthest_point_sample
-
-from utils.misc import huber_loss
 from utils.pc_util import scale_points, shift_scale_points
-from typing import Dict
-
-from .config import DetectorConfig
-from .criterion import build_criterion
 from .helpers import GenericMLP
-
-from .vote_query import VoteQuery
-
 from .position_embedding import PositionEmbeddingCoordsSine
-
 from .transformer import (
     MaskedTransformerEncoder, TransformerDecoder,
     TransformerDecoderLayer, TransformerEncoder,
     TransformerEncoderLayer
 )
+from .vote_query import VoteQuery
 
-    
+
 class BoxProcessor(object):
     """
     Class to convert 3DETR MLP head outputs into bounding boxes
     """
 
-    def __init__(self, scene_data_config):
-        self.scene_data_config = scene_data_config
+    def __init__(self, scannet_config):
+        self.scannet_config = scannet_config
 
     @staticmethod
     def compute_predicted_center(center_offset, query_xyz, point_cloud_dims):
@@ -57,7 +48,7 @@ class BoxProcessor(object):
             angle = angle_logits * 0 + angle_residual * 0
             angle = angle.squeeze(-1).clamp(min=0)
         else:
-            angle_per_cls = 2 * np.pi / self.scene_data_config.num_angle_bin
+            angle_per_cls = 2 * np.pi / self.scannet_config.num_angle_bin
             pred_angle_class = angle_logits.argmax(dim=-1).detach()
             angle_center = angle_per_cls * pred_angle_class
             angle = angle_center + angle_residual.gather(
@@ -68,44 +59,44 @@ class BoxProcessor(object):
         return angle
 
     def compute_objectness_and_cls_prob(self, cls_logits):
-        assert cls_logits.shape[-1] == self.scene_data_config.num_semcls + 1
+        assert cls_logits.shape[-1] == self.scannet_config.num_semcls + 1
         cls_prob = torch.nn.functional.softmax(cls_logits, dim=-1)
         objectness_prob = 1 - cls_prob[..., -1]
         return cls_prob[..., :-1], objectness_prob
 
     def box_parametrization_to_corners(
-        self, box_center_unnorm, box_size_unnorm, box_angle
+            self, box_center_unnorm, box_size_unnorm, box_angle
     ):
-        return self.scene_data_config.box_parametrization_to_corners(
+        return self.scannet_config.box_parametrization_to_corners(
             box_center_unnorm, box_size_unnorm, box_angle
         )
 
 
 class Vote2CapDETR(nn.Module):
-    
+
     def __init__(
-        self,
-        tokenizer,
-        encoder,
-        decoder,
-        scene_data_config,
-        encoder_dim=256,
-        decoder_dim=256,
-        position_embedding="fourier",
-        mlp_dropout=0.3,
-        num_queries=256,
-        criterion=None
+            self,
+            tokenizer,
+            encoder,
+            decoder,
+            scannet_config,
+            encoder_dim=256,
+            decoder_dim=256,
+            position_embedding="fourier",
+            mlp_dropout=0.3,
+            num_queries=256,
+            criterion=None
     ):
         super().__init__()
-        
+
         self.tokenizer = tokenizer
         self.encoder = encoder
-        
+
         if hasattr(self.encoder, "masking_radius"):
             hidden_dims = [encoder_dim]
         else:
             hidden_dims = [encoder_dim, encoder_dim]
-        
+
         self.encoder_to_decoder_projection = GenericMLP(
             input_dim=encoder_dim,
             hidden_dims=hidden_dims,
@@ -120,9 +111,9 @@ class Vote2CapDETR(nn.Module):
         self.pos_embedding = PositionEmbeddingCoordsSine(
             d_pos=decoder_dim, pos_type=position_embedding, normalize=True
         )
-        
+
         self.vote_query_generator = VoteQuery(decoder_dim, num_queries)
-        
+
         self.query_projection = GenericMLP(
             input_dim=decoder_dim,
             hidden_dims=[decoder_dim],
@@ -131,14 +122,12 @@ class Vote2CapDETR(nn.Module):
             output_use_activation=True,
             hidden_use_bias=True,
         )
-        
+
         self.decoder = decoder
-        self.build_mlp_heads(scene_data_config, decoder_dim, mlp_dropout)
+        self.build_mlp_heads(scannet_config, decoder_dim, mlp_dropout)
 
-        self.box_processor = BoxProcessor(scene_data_config)
+        self.box_processor = BoxProcessor(scannet_config)
         self.criterion = criterion
-        
-
 
     def build_mlp_heads(self, dataset_config, decoder_dim, mlp_dropout):
         mlp_func = partial(
@@ -170,7 +159,6 @@ class Vote2CapDETR(nn.Module):
         ]
         self.mlp_heads = nn.ModuleDict(mlp_heads)
 
-
     @staticmethod
     def _break_up_pc(pc):
         # pc may contain color/normals.
@@ -178,10 +166,9 @@ class Vote2CapDETR(nn.Module):
         features = pc[..., 3:].transpose(1, 2).contiguous() if pc.size(-1) > 3 else None
         return xyz, features
 
-
     def run_encoder(self, point_clouds):
         xyz, features = self._break_up_pc(point_clouds)
-        
+
         ## pointcloud tokenization
         # xyz: batch x npoints x 3
         # features: batch x channel x npoints
@@ -217,7 +204,6 @@ class Vote2CapDETR(nn.Module):
 
         return enc_features
 
-
     def get_box_predictions(self, query_xyz, point_cloud_dims, box_features):
         """
         Parameters:
@@ -240,7 +226,7 @@ class Vote2CapDETR(nn.Module):
         # mlp head outputs are (num_layers x batch) x noutput x nqueries, so transpose last two dims
         cls_logits = self.mlp_heads["sem_cls_head"](box_features).transpose(1, 2)
         center_offset = (
-            self.mlp_heads["center_head"](box_features).sigmoid().transpose(1, 2) - 0.5
+                self.mlp_heads["center_head"](box_features).sigmoid().transpose(1, 2) - 0.5
         )
         size_normalized = (
             self.mlp_heads["size_head"](box_features).sigmoid().transpose(1, 2)
@@ -259,7 +245,7 @@ class Vote2CapDETR(nn.Module):
             num_layers, batch, num_queries, -1
         )
         angle_residual = angle_residual_normalized * (
-            np.pi / angle_residual_normalized.shape[-1]
+                np.pi / angle_residual_normalized.shape[-1]
         )
 
         outputs = []
@@ -314,30 +300,29 @@ class Vote2CapDETR(nn.Module):
             "aux_outputs": aux_outputs,  # output from intermediate layers of decoder
         }
 
-    def forward(self, inputs, is_eval: bool=False):
-        
+    def forward(self, inputs, is_eval: bool = False):
+
         point_clouds = inputs["point_clouds"]
         point_cloud_dims = [
             inputs["point_cloud_dims_min"],
             inputs["point_cloud_dims_max"],
         ]
-        
+
         ## feature encoding
         # encoder features: npoints x batch x channel -> batch x channel x npoints
         enc_xyz, enc_features, enc_inds = self.run_encoder(point_clouds)
         enc_features = enc_features.permute(1, 2, 0)
-        
+
         ## vote query generation
         query_outputs = self.vote_query_generator(enc_xyz, enc_features)
         query_outputs['seed_inds'] = enc_inds
         query_xyz = query_outputs['query_xyz']
         query_features = query_outputs["query_features"]
-        
-        
+
         ## decoding
         pos_embed = self.pos_embedding(query_xyz, input_range=point_cloud_dims)
         query_embed = self.query_projection(pos_embed)
-        
+
         # batch x channel x npenc
         enc_features = self.encoder_to_decoder_projection(enc_features)
         enc_pos = self.pos_embedding(enc_xyz, input_range=point_cloud_dims)
@@ -347,32 +332,30 @@ class Vote2CapDETR(nn.Module):
         enc_pos = enc_pos.permute(2, 0, 1)
         query_embed = query_embed.permute(2, 0, 1)
         tgt = query_features.permute(2, 0, 1)
-        
+
         box_features = self.decoder(
             tgt, enc_features, query_pos=query_embed, pos=enc_pos
-        )[0]    # nlayers x nqueries x batch x channel
+        )[0]  # nlayers x nqueries x batch x channel
 
         box_predictions = self.get_box_predictions(
             query_xyz, point_cloud_dims, box_features
         )
-        
+
         if self.criterion is not None and is_eval is False:
             (
-                box_predictions['outputs']['assignments'], 
-                box_predictions['outputs']['loss'], 
+                box_predictions['outputs']['assignments'],
+                box_predictions['outputs']['loss'],
                 _
             ) = self.criterion(query_outputs, box_predictions, inputs)
-            
-        
+
         box_predictions['outputs'].update({
             'prop_features': box_features.permute(0, 2, 1, 3),  # nlayers x batch x nqueries x channel
-            'enc_features': enc_features.permute(1, 0, 2),      # batch x npoints x channel
-            'enc_xyz': enc_xyz,      # batch x npoints x 3
+            'enc_features': enc_features.permute(1, 0, 2),  # batch x npoints x channel
+            'enc_xyz': enc_xyz,  # batch x npoints x 3
             'query_xyz': query_xyz,  # batch x nqueries x 3
         })
-        
-        return box_predictions['outputs']
 
+        return box_predictions['outputs']
 
 
 def build_preencoder(cfg):
@@ -414,7 +397,7 @@ def build_encoder(cfg):
             mlp=[cfg.enc_dim, 256, 256, cfg.enc_dim],
             normalize_xyz=True,
         )
-        
+
         masking_radius = [math.pow(x, 2) for x in [0.4, 0.8, 1.2]]
         encoder = MaskedTransformerEncoder(
             encoder_layer=encoder_layer,
@@ -438,5 +421,3 @@ def build_decoder(cfg):
         decoder_layer, num_layers=cfg.dec_nlayers, return_intermediate=True
     )
     return decoder
-
-

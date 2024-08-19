@@ -1,12 +1,13 @@
-from trim.utils.events import EventStorage
-from trim.callbacks.misc import *
-from accelerate import Accelerator
+import weakref
 from typing import Union
 
-import weakref
+from accelerate import Accelerator
+
+from trim.callbacks.misc import *
+from trim.utils.events import EventStorage
+
 
 class TrainerBase(object):
-
     need_prepare_by_accelerator_objects = [
         "model", "train_loader", "val_loader", "optimizer", "lr_scheduler"
     ]
@@ -115,7 +116,6 @@ class TrainerBase(object):
         for obj_name, prepared_objs in zip(wait_prepare_obj_names, prepared_objs):
             setattr(self, obj_name, prepared_objs)
 
-
     def fit(self):
         self.setup()
         with EventStorage() as self.storage:
@@ -143,6 +143,3 @@ class TrainerBase(object):
                     self.on_training_epoch_end()
             # => after train
             self.on_training_phase_end()
-
-
-

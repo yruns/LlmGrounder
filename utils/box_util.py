@@ -5,9 +5,10 @@
 Collected and written by Charles R. Qi
 Last modified: Apr 2021 by Ishan Misra
 """
-import torch
 import numpy as np
+import torch
 from scipy.spatial import ConvexHull, Delaunay
+
 from utils.misc import to_list_1d, to_list_3d
 
 try:
@@ -93,7 +94,7 @@ def convex_hull_intersection(p1, p2):
     """
     inter_p = polygon_clip(p1, p2)
     if inter_p is not None:
-        try:    # for safety issue
+        try:  # for safety issue
             hull_inter = ConvexHull(inter_p)
             return inter_p, hull_inter.volume
         except:
@@ -388,7 +389,7 @@ def get_3d_box_batch(box_size, angle, center):
 
 
 def helper_computeIntersection(
-    cp1: torch.Tensor, cp2: torch.Tensor, s: torch.Tensor, e: torch.Tensor
+        cp1: torch.Tensor, cp2: torch.Tensor, s: torch.Tensor, e: torch.Tensor
 ):
     dc = [cp1[0] - cp2[0], cp1[1] - cp2[1]]
     dp = [s[0] - e[0], s[1] - e[1]]
@@ -518,11 +519,11 @@ def enclosing_box3d_vol(corners1, corners2):
 
 
 def generalized_box3d_iou_tensor(
-    corners1: torch.Tensor,
-    corners2: torch.Tensor,
-    nums_k2: torch.Tensor,
-    rotated_boxes: bool = True,
-    return_inter_vols_only: bool = False,
+        corners1: torch.Tensor,
+        corners2: torch.Tensor,
+        nums_k2: torch.Tensor,
+        rotated_boxes: bool = True,
+        return_inter_vols_only: bool = False,
 ):
     """
     Input:
@@ -563,7 +564,7 @@ def generalized_box3d_iou_tensor(
     non_rot_inter_areas = non_rot_inter_areas.view(B, K1, K2)
     if nums_k2 is not None:
         for b in range(B):
-            non_rot_inter_areas[b, :, nums_k2[b] :] = 0
+            non_rot_inter_areas[b, :, nums_k2[b]:] = 0
 
     enclosing_vols = enclosing_box3d_vol(corners1, corners2)
 
@@ -625,11 +626,11 @@ generalized_box3d_iou_tensor_jit = torch.jit.script(generalized_box3d_iou_tensor
 
 
 def generalized_box3d_iou_cython(
-    corners1: torch.Tensor,
-    corners2: torch.Tensor,
-    nums_k2: torch.Tensor,
-    rotated_boxes: bool = True,
-    return_inter_vols_only: bool = False,
+        corners1: torch.Tensor,
+        corners2: torch.Tensor,
+        nums_k2: torch.Tensor,
+        rotated_boxes: bool = True,
+        return_inter_vols_only: bool = False,
 ):
     """
     Input:
@@ -670,7 +671,7 @@ def generalized_box3d_iou_cython(
     non_rot_inter_areas = non_rot_inter_areas.view(B, K1, K2)
     if nums_k2 is not None:
         for b in range(B):
-            non_rot_inter_areas[b, :, nums_k2[b] :] = 0
+            non_rot_inter_areas[b, :, nums_k2[b]:] = 0
 
     enclosing_vols = enclosing_box3d_vol(corners1, corners2)
 
@@ -718,12 +719,12 @@ def generalized_box3d_iou_cython(
 
 
 def generalized_box3d_iou(
-    corners1: torch.Tensor,
-    corners2: torch.Tensor,
-    nums_k2: torch.Tensor,
-    rotated_boxes: bool = True,
-    return_inter_vols_only: bool = False,
-    needs_grad: bool = False,
+        corners1: torch.Tensor,
+        corners2: torch.Tensor,
+        nums_k2: torch.Tensor,
+        rotated_boxes: bool = True,
+        return_inter_vols_only: bool = False,
+        needs_grad: bool = False,
 ):
     if needs_grad is True or box_intersection is None:
         context = torch.enable_grad if needs_grad else torch.no_grad
@@ -757,7 +758,7 @@ def get_box3d_min_max_batch_tensor(corner):
     x_min, x_max = min_coord[:, 0], max_coord[:, 0]
     y_min, y_max = min_coord[:, 1], max_coord[:, 1]
     z_min, z_max = min_coord[:, 2], max_coord[:, 2]
-    
+
     return x_min, x_max, y_min, y_max, z_min, z_max
 
 
@@ -772,7 +773,7 @@ def box3d_iou_batch_tensor(corners1, corners2):
         iou: an tensor of 3D bounding box IoU (N)
 
     '''
-    
+
     x_min_1, x_max_1, y_min_1, y_max_1, z_min_1, z_max_1 = get_box3d_min_max_batch_tensor(corners1)
     x_min_2, x_max_2, y_min_2, y_max_2, z_min_2, z_max_2 = get_box3d_min_max_batch_tensor(corners2)
     xA = torch.max(x_min_1, x_min_2)

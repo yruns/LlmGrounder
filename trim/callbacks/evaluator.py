@@ -5,8 +5,6 @@ Author: Xiaoyang Wu (xiaoyang.wu.cs@gmail.com)
 Please cite our work if the code is helpful to you.
 """
 
-
-import numpy as np
 import torch
 
 from trim.callbacks.default import CallbackBase
@@ -53,4 +51,3 @@ class Evaluator(CallbackBase):
                                                      self.trainer.best_metric_value,
                                                      self.trainer.best_metric_epoch)
         )
-

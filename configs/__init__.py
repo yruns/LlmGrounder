@@ -5,5 +5,4 @@ Author: yruns
 
 
 """
-from .dataconfig import DataConfig
 from .globalconfig import GlobalConfig

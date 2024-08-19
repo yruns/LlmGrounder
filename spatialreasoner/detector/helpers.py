@@ -1,6 +1,7 @@
-import torch.nn as nn
-from functools import partial
 import copy
+from functools import partial
+
+import torch.nn as nn
 
 
 class BatchNormDim1Swap(nn.BatchNorm1d):
@@ -43,19 +44,19 @@ WEIGHT_INIT_DICT = {
 
 class GenericMLP(nn.Module):
     def __init__(
-        self,
-        input_dim,
-        hidden_dims,
-        output_dim,
-        norm_fn_name=None,
-        activation="relu",
-        use_conv=False,
-        dropout=None,
-        hidden_use_bias=False,
-        output_use_bias=True,
-        output_use_activation=False,
-        output_use_norm=False,
-        weight_init_name=None,
+            self,
+            input_dim,
+            hidden_dims,
+            output_dim,
+            norm_fn_name=None,
+            activation="relu",
+            use_conv=False,
+            dropout=None,
+            hidden_use_bias=False,
+            output_use_bias=True,
+            output_use_activation=False,
+            output_use_norm=False,
+            weight_init_name=None,
     ):
         super().__init__()
         activation = ACTIVATION_DICT[activation]

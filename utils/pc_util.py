@@ -5,16 +5,15 @@
 Author: Charles R. Qi and Or Litany
 """
 
-import os
 import sys
 import torch
 
 # Point cloud IO
 import numpy as np
-from plyfile import PlyData, PlyElement
 
 # Mesh IO
 import trimesh
+
 
 # ----------------------------------------
 # Point Cloud Sampling
@@ -61,8 +60,8 @@ def shift_scale_points(pred_xyz, src_range, dst_range=None):
     src_diff = src_range[1][:, None, :] - src_range[0][:, None, :]
     dst_diff = dst_range[1][:, None, :] - dst_range[0][:, None, :]
     prop_xyz = (
-        ((pred_xyz - src_range[0][:, None, :]) * dst_diff) / src_diff
-    ) + dst_range[0][:, None, :]
+                       ((pred_xyz - src_range[0][:, None, :]) * dst_diff) / src_diff
+               ) + dst_range[0][:, None, :]
     return prop_xyz
 
 

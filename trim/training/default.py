@@ -5,23 +5,14 @@ modified from Pointcept(https://github.com/Pointcept/Pointcept)
 Please cite our work if the code is helpful to you.
 """
 
-import argparse
 import multiprocessing as mp
 import os
-import random
-import sys
-
-from functools import partial
-
 import shutil
-import torch
 from os.path import join
-from torch.nn.parallel import DistributedDataParallel
-from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
+
+import torch
 
 import trim.utils.comm as comm
-from trim.training.collate_fn import point_collate_fn, collate_fn
 
 
 def worker_init_fn(worker_id, num_workers, rank, seed):
@@ -65,6 +56,7 @@ def save_checkpoint(state, is_best, save_path, filename='model_last.pth.tar'):
     if is_best:
         shutil.copyfile(filename, join(save_path, 'model_best.pth.tar'))
 
+
 def save_checkpoint_epoch(state, save_path, epoch):
     filename = join(save_path, f'model_epoch_{epoch}.pth.tar')
     torch.save(state, filename)
@@ -80,10 +72,10 @@ def load_state_dict(state_dict, model, logger, strict=True):
         for k, v in state_dict.items():
             if k.startswith('module.'):
                 # remove module
-                k = k[7:]   # module.xxx.xxx -> xxx.xxx
+                k = k[7:]  # module.xxx.xxx -> xxx.xxx
             else:
                 # add module
-                k = 'module.' + k   # xxx.xxx -> module.xxx.xxx
+                k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
             weight[k] = v
         load_state_info = model.load_state_dict(weight, strict=strict)
     logger.info(f"Missing keys: {load_state_info[0]}")

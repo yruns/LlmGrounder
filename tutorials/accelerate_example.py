@@ -1,15 +1,13 @@
 import argparse
-import json
-import math
-import os
 import random
 from os import path
 
+import math
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as T
-from accelerate import Accelerator, DistributedType, DeepSpeedPlugin
-from accelerate.utils import DummyOptim, DummyScheduler, set_seed
+from accelerate import Accelerator
+from accelerate.utils import DummyOptim, DummyScheduler
 from loguru import logger
 from torch import nn
 from torch.utils.data import DataLoader
@@ -37,12 +35,14 @@ STR_TO_DTYPE = {
     "bool": torch.bool,
 }
 
+
 def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
     """Convert string to torch.dtype"""
     if dtype_str not in STR_TO_DTYPE:
         raise ValueError(f"Unsupported dtype: {dtype_str}")
 
     return STR_TO_DTYPE[dtype_str]
+
 
 def convert_tensor_to_dtype(input_value, dtype):
     """Move input tensors to device"""
@@ -69,6 +69,7 @@ def convert_tensor_to_dtype(input_value, dtype):
         return input_value
 
     raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
+
 
 DATASETS_PATH = path.join(path.dirname(__file__), "..", "..", "..", "Datasets")
 
@@ -122,6 +123,7 @@ def evaluate(hparams, model, eval_dataloader, accelerator):
 
     return acc, test_loss
 
+
 def setup_dataloader(accelerator, hparams):
     # Get the dataset
     transform = T.Compose([T.ToTensor(), T.Normalize((0.1307,), (0.3081,))])
@@ -138,12 +140,13 @@ def setup_dataloader(accelerator, hparams):
 
     return train_dataloader, eval_dataloader
 
+
 def setup_optimizer_scheduler(hparams, optimizer_grouped_parameters, train_dataloader, accelerator):
     # Creates Dummy Optimizer if `optimizer` was specified in the config file else creates Adam Optimizer
     optimizer_cls = (
         torch.optim.Adadelta
         if accelerator.state.deepspeed_plugin is None
-        or "optimizer" not in accelerator.state.deepspeed_plugin.deepspeed_config
+           or "optimizer" not in accelerator.state.deepspeed_plugin.deepspeed_config
         else DummyOptim
     )
     optimizer = optimizer_cls(optimizer_grouped_parameters, lr=hparams.lr)
@@ -268,7 +271,6 @@ def main(hparams):
             starting_epoch = resume_step // num_update_steps_per_epoch
             resume_step -= starting_epoch * num_update_steps_per_epoch
 
-
     # update progress bar if resumed from checkpoint
     progress_bar.update(completed_steps)
 
@@ -299,7 +301,8 @@ def main(hparams):
 
                     reduced_loss = accelerator.reduce(loss)
                     if completed_steps % hparams.log_interval == 0 and accelerator.is_main_process:
-                        logger.info(f"Step {completed_steps}: loss {reduced_loss} , lr {optimizer.param_groups[0]['lr']}")
+                        logger.info(
+                            f"Step {completed_steps}: loss {reduced_loss} , lr {optimizer.param_groups[0]['lr']}")
 
             # We keep track of the loss at each epoch
             if hparams.with_tracking:
@@ -373,6 +376,7 @@ def main(hparams):
 
 if __name__ == "__main__":
     import os
+
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0,2"
 
     # Arguments can be passed in through the CLI as normal and will be parsed here
@@ -469,7 +473,6 @@ if __name__ == "__main__":
             "Only applicable when `--with_tracking` is passed."
         ),
     )
-
 
     hparams = parser.parse_args()
     main(hparams)

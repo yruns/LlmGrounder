@@ -11,7 +11,7 @@ SCENE_END_TOKEN = "<scene_end/>"
 
 REPLY_END_TOKEN = "</s>"
 
-IGNORE_INDEX = -100     # Which is default ignored by nn.CrossEntropyLoss()
+IGNORE_INDEX = -100  # Which is default ignored by nn.CrossEntropyLoss()
 
 TASK_TOKEN = "<task>"
 REG_TOKEN = "<reg>"

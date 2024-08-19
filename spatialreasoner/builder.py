@@ -5,14 +5,15 @@ Author: yruns
 """
 from spatialreasoner.detector.detector import *
 
-def build_mm_detector(scene_data_config):
-    cfg = DetectorConfig(scene_data_config)
+
+def build_mm_detector(scannet_config):
+    cfg = DetectorConfig(scannet_config)
 
     tokenizer = build_preencoder(cfg)
     encoder = build_encoder(cfg)
     decoder = build_decoder(cfg)
 
-    criterion = build_criterion(cfg, scene_data_config)
+    criterion = build_criterion(cfg, scannet_config)
 
     model = Vote2CapDETR(
         tokenizer,
@@ -26,6 +27,7 @@ def build_mm_detector(scene_data_config):
         criterion=criterion
     )
     return model
+
 
 def build_mm_segmentor():
     pass

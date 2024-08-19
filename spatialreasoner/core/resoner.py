@@ -6,20 +6,18 @@ Author: yruns
 Modified from https://github.com/haotian-liu/LLaVA/blob/main/llava/model/language_model/llava_llama.py
 
 """
-from abc import ABC
 from typing import *
 
 import torch
 from torch import nn
-
 from transformers import (
     AutoConfig, AutoModelForCausalLM,
     LlamaConfig, LlamaModel, LlamaForCausalLM, Cache
 )
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from spatialreasoner.builder import build_mm_detector
 from spatialreasoner.arch import SpatialReasonerMetaModel, SpatialReasonerMetaForCausalLM
+
 
 class SpatialReasonerConfig(LlamaConfig):
     model_type = "spatial_reasoner"
@@ -48,19 +46,19 @@ class SpatialReasonerForCausalLM(SpatialReasonerMetaForCausalLM, LlamaForCausalL
         return self.model
 
     def forward(
-        self,
-        input_ids: torch.LongTensor = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
-        inputs_embeds: Optional[torch.FloatTensor] = None,
-        labels: Optional[torch.LongTensor] = None,
-        use_cache: Optional[bool] = None,
-        output_attentions: Optional[bool] = None,
-        output_hidden_states: Optional[bool] = None,
-        return_dict: Optional[bool] = None,
-        cache_position: Optional[torch.LongTensor] = None,
-        scene_data_dict: Dict = None,
+            self,
+            input_ids: torch.LongTensor = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            position_ids: Optional[torch.LongTensor] = None,
+            past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
+            inputs_embeds: Optional[torch.FloatTensor] = None,
+            labels: Optional[torch.LongTensor] = None,
+            use_cache: Optional[bool] = None,
+            output_attentions: Optional[bool] = None,
+            output_hidden_states: Optional[bool] = None,
+            return_dict: Optional[bool] = None,
+            cache_position: Optional[torch.LongTensor] = None,
+            scene_data_dict: Dict = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         if inputs_embeds is None:
             (
@@ -91,7 +89,6 @@ class SpatialReasonerForCausalLM(SpatialReasonerMetaForCausalLM, LlamaForCausalL
             output_hidden_states=output_hidden_states,
             return_dict=return_dict
         )
-
 
 
 AutoConfig.register("spatial_reasoner", SpatialReasonerConfig)

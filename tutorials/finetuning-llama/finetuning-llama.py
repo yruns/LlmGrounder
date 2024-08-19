@@ -6,36 +6,20 @@ Author: yruns
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
-from collections import Counter
-import os
-
 import dataclasses
-import fire
+import os
 import random
+from warnings import warn
+
+import fire
 import torch
 import torch.optim as optim
-from peft import get_peft_model, PeftModel
-from torch.distributed.fsdp import (
-    FullyShardedDataParallel as FSDP,
-    ShardingStrategy
-)
-
-from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
-from torch.optim.lr_scheduler import StepLR
-from transformers import (
-    AutoTokenizer,
-    BitsAndBytesConfig,
-    LlamaForCausalLM,
-    LlamaConfig,
-)
-from transformers.models.llama.modeling_llama import LlamaDecoderLayer
-
+from accelerate.utils import is_xpu_available
 from llama_recipes.configs import fsdp_config as FSDP_CONFIG
-from llama_recipes.configs import train_config as TRAIN_CONFIG
 from llama_recipes.configs import quantization_config as QUANTIZATION_CONFIG
+from llama_recipes.configs import train_config as TRAIN_CONFIG
 from llama_recipes.data.concatenator import ConcatDataset
 from llama_recipes.policies import AnyPrecisionAdamW, apply_fsdp_checkpointing
-
 from llama_recipes.utils import fsdp_auto_wrap_policy
 from llama_recipes.utils.config_utils import (
     update_config,
@@ -44,7 +28,6 @@ from llama_recipes.utils.config_utils import (
     get_dataloader_kwargs,
 )
 from llama_recipes.utils.dataset_utils import get_preprocessed_dataset
-
 from llama_recipes.utils.fsdp_utils import hsdp_device_mesh
 from llama_recipes.utils.train_utils import (
     train,
@@ -55,8 +38,18 @@ from llama_recipes.utils.train_utils import (
     print_model_size,
     get_policies,
 )
-from accelerate.utils import is_xpu_available
-from warnings import warn
+from peft import get_peft_model, PeftModel
+from torch.distributed.fsdp import (
+    FullyShardedDataParallel as FSDP,
+    ShardingStrategy
+)
+from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
+from torch.optim.lr_scheduler import StepLR
+from transformers import (
+    AutoTokenizer,
+    LlamaForCausalLM,
+)
+from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 
 
 def setup_wandb(train_config, fsdp_config, **kwargs):

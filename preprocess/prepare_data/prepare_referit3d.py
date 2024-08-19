@@ -3,11 +3,12 @@ File: prepare_referit3d.py
 Date: 2024/8/6
 Author: yruns
 """
-import json
-import os.path as osp
-import pandas as pd
 import argparse
 import glob
+import json
+import os.path as osp
+
+import pandas as pd
 from tqdm import tqdm
 
 from utils.referit3d import ReferIt3DUtils
@@ -84,8 +85,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    referit3d_files = glob.glob(osp.join(args.root, r"*r3d.csv"))   # sr3d or nr3d
+    referit3d_files = glob.glob(osp.join(args.root, r"*r3d.csv"))  # sr3d or nr3d
     for referit3d_file in referit3d_files:
         process_referit3d(referit3d_file, args.save_path)
-
-

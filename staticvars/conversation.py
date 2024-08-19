@@ -5,10 +5,7 @@ Author: yruns
 """
 import dataclasses
 from enum import auto, Enum
-from typing import List, Tuple
-import base64
-from io import BytesIO
-from PIL import Image
+from typing import List
 
 
 class SeparatorStyle(Enum):

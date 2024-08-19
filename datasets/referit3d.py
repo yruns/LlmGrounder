@@ -7,30 +7,29 @@ Author: yruns
 """
 import json
 import os.path as osp
-
-import torch
-from torch.utils.data import default_collate
 from typing import *
 
+import torch
+from torch.utils.data import default_collate, DataLoader
 from transformers import AutoTokenizer
 
-from .scannet import ScanNetBaseDataset
+from staticvars.const import *
+from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
-from utils.collator import DataCollatorBase
-from staticvars.const import *
+from .scannet import ScanNetBaseDataset
 
 
 class ReferItDataset(ScanNetBaseDataset):
     def __init__(
-        self,
-        data_path: str,
-        scannet_config: Dict = None,
-        tokenizer: AutoTokenizer = None,
-        grounding_granularity: Literal["seg", "reg"] = "reg",
-        split: Literal["train", "val"] = "train",
+            self,
+            data_path: str,
+            scannet_config: Dict = None,
+            tokenizer: AutoTokenizer = None,
+            grounding_granularity: Literal["seg", "reg"] = "reg",
+            split: Literal["train", "val"] = "train",
     ):
-        super().__init__(**scannet_config)
+        super().__init__(split, **scannet_config)
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.grounding_granularity = grounding_granularity
@@ -65,7 +64,7 @@ class ReferIt3DCollator(DataCollatorBase):
     def collate(self, batch):
         input_ids, labels, scene_data_dict = tuple(
             [batch[key] for batch in batch]
-            for key in ("input_ids", "labels", "images")
+            for key in ("input_ids", "labels", "scene_data_dict")
         )
 
         input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -80,19 +79,18 @@ class ReferIt3DCollator(DataCollatorBase):
         )
 
         # Truncate if necessary
-        max_len = self.tokenizer.model_input_names
+        model_max_length = self.tokenizer.model_max_length
         input_ids, labels = (
-            input_ids[:, :max_len],
-            labels[:, :max_len]
+            input_ids[:, :model_max_length],
+            labels[:, :model_max_length]
         )
 
         # Construct attention_mask
         attention_mask = input_ids.ne(self.tokenizer.pad_token_id)
 
         # Makesure every sample has <scene>
-        assert all(scene_path is not None for scene_path in scene_data_dict), "Some samples do not have <scene>"
+        assert all(scene_data is not None for scene_data in scene_data_dict), "Some samples do not have <scene>"
         scene_data_dict = default_collate(scene_data_dict)
-
 
         return dict(
             input_ids=input_ids,
@@ -102,8 +100,24 @@ class ReferIt3DCollator(DataCollatorBase):
         )
 
 
+def build_dataloader(hparams, split: Literal["train", "val"]):
+    dataset = ReferItDataset(
+        data_path=hparams.data_path,
+        scannet_config=hparams.scannet_config,
+        tokenizer=hparams.tokenizer,
+        grounding_granularity=hparams.grounding_granularity,
+        split=split,
+    )
 
+    per_device_batch_size = hparams.per_device_train_batch_size \
+        if split == "train" else hparams.per_device_eval_batch_size
 
-
-
-
+    return DataLoader(
+        dataset=dataset,
+        batch_size=per_device_batch_size,
+        shuffle=(split == "train"),
+        num_workers=hparams.num_workers,
+        collate_fn=ReferIt3DCollator(
+            tokenizer=hparams.tokenizer,
+        ).collate,
+    )

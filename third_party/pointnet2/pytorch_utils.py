@@ -1,9 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 ''' Modified based on Ref: https://github.com/erikwijmans/Pointnet2_PyTorch '''
-import torch
-import torch.nn as nn
 from typing import List, Tuple
+
+import torch.nn as nn
+
 
 class SharedMLP(nn.Sequential):
 
@@ -256,8 +257,8 @@ class FC(nn.Sequential):
             if activation is not None:
                 self.add_module(name + 'activation', activation)
 
-def set_bn_momentum_default(bn_momentum):
 
+def set_bn_momentum_default(bn_momentum):
     def fn(m):
         if isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
             m.momentum = bn_momentum
@@ -291,5 +292,3 @@ class BNMomentumScheduler(object):
 
         self.last_epoch = epoch
         self.model.apply(self.setter(self.lmbd(epoch)))
-
-

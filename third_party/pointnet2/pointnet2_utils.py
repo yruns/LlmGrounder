@@ -8,11 +8,12 @@ from __future__ import (
     print_function,
     unicode_literals,
 )
+
 import torch
-from torch.autograd import Function
 import torch.nn as nn
+from torch.autograd import Function
+
 import pytorch_utils as pt_utils
-import sys
 
 try:
     import builtins
@@ -300,7 +301,8 @@ class QueryAndGroup(nn.Module):
         Maximum number of features to gather in the ball
     """
 
-    def __init__(self, radius, nsample, use_xyz=True, ret_grouped_xyz=False, normalize_xyz=False, sample_uniformly=False, ret_unique_cnt=False):
+    def __init__(self, radius, nsample, use_xyz=True, ret_grouped_xyz=False, normalize_xyz=False,
+                 sample_uniformly=False, ret_unique_cnt=False):
         # type: (QueryAndGroup, float, int, bool) -> None
         super(QueryAndGroup, self).__init__()
         self.radius, self.nsample, self.use_xyz = radius, nsample, use_xyz
@@ -309,7 +311,7 @@ class QueryAndGroup(nn.Module):
         self.sample_uniformly = sample_uniformly
         self.ret_unique_cnt = ret_unique_cnt
         if self.ret_unique_cnt:
-            assert(self.sample_uniformly)
+            assert (self.sample_uniformly)
 
     def forward(self, xyz, new_xyz, features=None):
         # type: (QueryAndGroup, torch.Tensor. torch.Tensor, torch.Tensor) -> Tuple[Torch.Tensor]
@@ -340,7 +342,6 @@ class QueryAndGroup(nn.Module):
                     sample_ind = torch.randint(0, num_unique, (self.nsample - num_unique,), dtype=torch.long)
                     all_ind = torch.cat((unique_ind, unique_ind[sample_ind]))
                     idx[i_batch, i_region, :] = all_ind
-
 
         xyz_trans = xyz.transpose(1, 2).contiguous()
         grouped_xyz = grouping_operation(xyz_trans, idx)  # (B, 3, npoint, nsample)

@@ -1,7 +1,9 @@
 import os.path
 
-from trim.utils.comm import is_main_process
 import wandb
+
+from trim.utils.comm import is_main_process
+
 
 class WandbWrapper(object):
 
@@ -50,5 +52,3 @@ class WandbWrapper(object):
     def finish(self):
         if is_main_process() and self.inited:
             wandb.finish()
-
-

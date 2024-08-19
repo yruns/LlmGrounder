@@ -6,6 +6,7 @@ Author: yruns
 
 """
 
+
 class GlobalConfig(object):
 
     @classmethod
@@ -17,5 +18,3 @@ class GlobalConfig(object):
         for attr in dir(cls):
             if not attr.startswith("__") and not callable(getattr(cls, attr)):
                 log(f"{attr}: {getattr(cls, attr)}")
-
-

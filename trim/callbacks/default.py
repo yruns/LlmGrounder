@@ -1,7 +1,7 @@
 from accelerate import Accelerator
 
-class CallbackBase(object):
 
+class CallbackBase(object):
     trainer = None
     accelerator: Accelerator
 
