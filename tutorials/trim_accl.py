@@ -97,7 +97,7 @@ class Trainer(TrainerBase):
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
 
-        # Scheduler and math around the number of engine steps.
+        # Scheduler and math around the number of training steps.
         num_update_steps_per_epoch_for_scheduler = math.ceil(
             len(self.train_loader) / self.accelerator.gradient_accumulation_steps)
         max_train_steps_for_scheduler = num_update_steps_per_epoch_for_scheduler * self.hparams.num_train_epochs
@@ -199,13 +199,13 @@ if __name__ == "__main__":
         type=int,
         default=1,
         metavar="N",
-        help="how many batches to wait before logging engine status",
+        help="how many batches to wait before logging training status",
     )
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
         default=32,
-        help="Batch size (per device) for the engine dataloader.",
+        help="Batch size (per device) for the training dataloader.",
     )
     parser.add_argument(
         "--per_device_eval_batch_size",
@@ -238,8 +238,8 @@ if __name__ == "__main__":
         type=int,
         default=None,
         help=(
-            "Optional input sequence length after tokenization. The engine dataset will be truncated in block of"
-            " this size for engine. Default to the model max input length for single sentence inputs (take into"
+            "Optional input sequence length after tokenization. The training dataset will be truncated in block of"
+            " this size for training. Default to the model max input length for single sentence inputs (take into"
             " account special tokens)."
         ),
     )
@@ -260,13 +260,13 @@ if __name__ == "__main__":
         type=str,
         # default=None,
         default="output/step_300",
-        help="If the engine should continue from a checkpoint folder.",
+        help="If the training should continue from a checkpoint folder.",
     )
-    # Whether to load the best model at the end of engine
+    # Whether to load the best model at the end of training
     parser.add_argument(
         "--load_best_model",
         action="store_true",
-        help="Whether to load the best model at the end of engine",
+        help="Whether to load the best model at the end of training",
     )
     parser.add_argument(
         "--with_tracking",

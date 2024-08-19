@@ -268,7 +268,7 @@ class Vote2CapDETR(nn.Module):
             )
 
             # below are not used in computing loss (only for matching/mAP eval)
-            # we compute them with no_grad() so that distributed engine does not complain about unused variables
+            # we compute them with no_grad() so that distributed training does not complain about unused variables
             with torch.no_grad():
                 (
                     semcls_prob,
@@ -291,7 +291,7 @@ class Vote2CapDETR(nn.Module):
             }
             outputs.append(box_prediction)
 
-        # intermediate decoder layer outputs are only used during engine
+        # intermediate decoder layer outputs are only used during training
         aux_outputs = outputs[:-1]
         outputs = outputs[-1]
 

@@ -142,7 +142,7 @@ class SetPredictionCriterion(nn.Module):
             "loss_center": self.loss_center,
             "loss_size": self.loss_size,
             "loss_giou": self.loss_giou,
-            # this isn't used during engine and is logged for debugging.
+            # this isn't used during training and is logged for debugging.
             # thus, this loss does not have a loss_weight associated with it.
             "loss_cardinality": self.loss_cardinality,
         }
@@ -397,7 +397,7 @@ class SetPredictionCriterion(nn.Module):
         targets["num_boxes"] = num_boxes
         targets[
             "num_boxes_replica"
-        ] = nactual_gt.sum().item()  # number of boxes on this worker for dist engine
+        ] = nactual_gt.sum().item()  # number of boxes on this worker for dist training
 
         assignments, loss, loss_dict = self.single_output_forward(outputs["outputs"], targets)
 

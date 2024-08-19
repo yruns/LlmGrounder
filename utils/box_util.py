@@ -15,7 +15,7 @@ try:
     from utils.box_intersection import box_intersection
 except ImportError:
     print(
-        "Could not import cythonized box intersection. Consider compiling box_intersection.pyx for faster engine."
+        "Could not import cythonized box intersection. Consider compiling box_intersection.pyx for faster training."
     )
     box_intersection = None
 
