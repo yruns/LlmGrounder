@@ -8,15 +8,11 @@ from typing import Optional
 
 import math
 import torch.optim
-import torch.utils.data
 from accelerate import Accelerator, DeepSpeedPlugin
 from accelerate.utils import DummyOptim, DummyScheduler
-from loguru import logger
 from transformers import (
     get_scheduler, AutoTokenizer, PreTrainedTokenizerBase
 )
-
-import scripts.v1.config as hparams
 
 from datasets.referit3d import build_dataloader
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
@@ -27,6 +23,7 @@ from trim.thirdparty.logging import logger
 from trim.engine import TrainerBase
 from trim.callbacks.misc import *
 from trim.utils import comm
+from trim.utils.config import setup_hparams, DictAction
 
 
 class Trainer(TrainerBase):
@@ -190,4 +187,17 @@ def main(hparams):
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--hparams-file", default=path.join(path.dirname(__file__), "config.py"),
+        type=str, help="path to hparams file"
+    )
+    parser.add_argument(
+        "--options", nargs="+", action=DictAction, help="custom options"
+    )
+    args = parser.parse_args()
+
+    hparams = setup_hparams(args.hparams_file, args.options)
     main(hparams)

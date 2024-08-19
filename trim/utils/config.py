@@ -42,14 +42,14 @@ class ConfigDict(Dict):
         raise ex
 
 
-def setup_config(file_path, options):
+def setup_hparams(file_path, options):
     # config name protocol: dataset_name/model_name-exp_name
-    cfg = Config.fromfile(file_path)
+    hparams = Config.fromfile(file_path)
 
     if options is not None:
-        cfg.merge_from_dict(options)
+        hparams.merge_from_dict(options)
 
-    return cfg
+    return hparams
 
 
 

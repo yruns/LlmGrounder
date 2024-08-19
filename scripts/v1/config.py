@@ -16,7 +16,7 @@ scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
-resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240819-233542/step_10"
+resume_from_checkpoint: Optional[str] = None
 
 # data
 num_workers: int = 0
