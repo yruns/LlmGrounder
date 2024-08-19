@@ -73,7 +73,7 @@ def parse_args():
         help="The configuration name of the dataset to use (via the datasets library).",
     )
     parser.add_argument(
-        "--train_file", type=str, default=None, help="A csv or a json file containing the training data."
+        "--train_file", type=str, default=None, help="A csv or a json file containing the engine data."
     )
     parser.add_argument(
         "--validation_file", type=str, default=None, help="A csv or a json file containing the validation data."
@@ -110,7 +110,7 @@ def parse_args():
         "--per_device_train_batch_size",
         type=int,
         default=8,
-        help="Batch size (per device) for the training dataloader.",
+        help="Batch size (per device) for the engine dataloader.",
     )
     parser.add_argument(
         "--per_device_eval_batch_size",
@@ -125,12 +125,12 @@ def parse_args():
         help="Initial learning rate (after the potential warmup period) to use.",
     )
     parser.add_argument("--weight_decay", type=float, default=0.0, help="Weight decay to use.")
-    parser.add_argument("--num_train_epochs", type=int, default=3, help="Total number of training epochs to perform.")
+    parser.add_argument("--num_train_epochs", type=int, default=3, help="Total number of engine epochs to perform.")
     parser.add_argument(
         "--max_train_steps",
         type=int,
         default=None,
-        help="Total number of training steps to perform. If provided, overrides num_train_epochs.",
+        help="Total number of engine steps to perform. If provided, overrides num_train_epochs.",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
@@ -149,12 +149,12 @@ def parse_args():
         "--num_warmup_steps", type=int, default=0, help="Number of steps for the warmup in the lr scheduler."
     )
     parser.add_argument("--output_dir", type=str, default=None, help="Where to store the final model.")
-    parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible training.")
+    parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible engine.")
     parser.add_argument(
         "--model_type",
         type=str,
         default=None,
-        help="Model type to use if training from scratch.",
+        help="Model type to use if engine from scratch.",
         choices=MODEL_TYPES,
     )
     parser.add_argument(
@@ -162,8 +162,8 @@ def parse_args():
         type=int,
         default=None,
         help=(
-            "Optional input sequence length after tokenization. The training dataset will be truncated in block of"
-            " this size for training. Default to the model max input length for single sentence inputs (take into"
+            "Optional input sequence length after tokenization. The engine dataset will be truncated in block of"
+            " this size for engine. Default to the model max input length for single sentence inputs (take into"
             " account special tokens)."
         ),
     )
@@ -174,7 +174,7 @@ def parse_args():
         help="The number of processes to use for the preprocessing.",
     )
     parser.add_argument(
-        "--overwrite_cache", type=bool, default=False, help="Overwrite the cached training and evaluation sets"
+        "--overwrite_cache", type=bool, default=False, help="Overwrite the cached engine and evaluation sets"
     )
     parser.add_argument(
         "--no_keep_linebreaks", action="store_true", help="Do not keep line breaks when using TXT files."
@@ -193,14 +193,14 @@ def parse_args():
         "--resume_from_checkpoint",
         type=str,
         default=None,
-        help="If the training should continue from a checkpoint folder.",
+        help="If the engine should continue from a checkpoint folder.",
     )
     # New Code #
-    # Whether to load the best model at the end of training
+    # Whether to load the best model at the end of engine
     parser.add_argument(
         "--load_best_model",
         action="store_true",
-        help="Whether to load the best model at the end of training",
+        help="Whether to load the best model at the end of engine",
     )
     parser.add_argument(
         "--with_tracking",
@@ -221,7 +221,7 @@ def parse_args():
 
     # Sanity checks
     if args.dataset_name is None and args.train_file is None and args.validation_file is None:
-        raise ValueError("Need either a dataset name or a training/validation file.")
+        raise ValueError("Need either a dataset name or a engine/validation file.")
     else:
         if args.train_file is not None:
             extension = args.train_file.split(".")[-1]
@@ -287,7 +287,7 @@ def main():
         datasets.utils.logging.set_verbosity_error()
         transformers.utils.logging.set_verbosity_error()
 
-    # If passed along, set the training seed now.
+    # If passed along, set the engine seed now.
     if args.seed is not None:
         set_seed(args.seed)
 
@@ -297,14 +297,14 @@ def main():
             os.makedirs(args.output_dir, exist_ok=True)
     accelerator.wait_for_everyone()
 
-    # Get the datasets: you can either provide your own CSV/JSON/TXT training and evaluation files (see below)
+    # Get the datasets: you can either provide your own CSV/JSON/TXT engine and evaluation files (see below)
     # or just provide the name of one of the public datasets available on the hub at https://huggingface.co/datasets/
     # (the dataset will be downloaded automatically from the datasets Hub).
     #
     # For CSV/JSON files, this scripts will use the column called 'text' or the first column if no column called
     # 'text' is found. You can easily tweak this behavior (see below).
     #
-    # In distributed training, the load_dataset function guarantee that only one local process can concurrently
+    # In distributed engine, the load_dataset function guarantee that only one local process can concurrently
     # download the dataset.
     if args.dataset_name is not None:
         # Downloading and loading a dataset from the hub.
@@ -352,7 +352,7 @@ def main():
 
     # Load pretrained model and tokenizer
     #
-    # In distributed training, the .from_pretrained methods guarantee that only one local process can concurrently
+    # In distributed engine, the .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
     if args.config_name:
         config = AutoConfig.from_pretrained(args.config_name)
@@ -454,9 +454,9 @@ def main():
     train_dataset = lm_datasets["train"]
     eval_dataset = lm_datasets["validation"]
 
-    # Log a few random samples from the training set:
+    # Log a few random samples from the engine set:
     for index in random.sample(range(len(train_dataset)), 3):
-        logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
+        logger.info(f"Sample {index} of the engine set: {train_dataset[index]}.")
 
     # DataLoaders creation:
     train_dataloader = DataLoader(
@@ -493,7 +493,7 @@ def main():
     if accelerator.distributed_type == DistributedType.XLA:
         model.tie_weights()
 
-    # Scheduler and math around the number of training steps.
+    # Scheduler and math around the number of engine steps.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
     overrode_max_train_steps = False
     if args.max_train_steps is None:
@@ -524,11 +524,11 @@ def main():
         [model, optimizer, train_dataloader, eval_dataloader, lr_scheduler]
     )
 
-    # We need to recalculate our total training steps as the size of the training dataloader may have changed.
+    # We need to recalculate our total engine steps as the size of the engine dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
     if overrode_max_train_steps:
         args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
-    # Afterwards we recalculate our number of training epochs
+    # Afterwards we recalculate our number of engine epochs
     args.num_train_epochs = math.ceil(args.max_train_steps / num_update_steps_per_epoch)
 
     # Figure out how many steps we should save the Accelerator states
@@ -549,7 +549,7 @@ def main():
             args.per_device_train_batch_size * accelerator.num_processes * accelerator.gradient_accumulation_steps
     )
 
-    logger.info("***** Running training *****")
+    logger.info("***** Running engine *****")
     logger.info(f"  Num examples = {len(train_dataset)}")
     logger.info(f"  Num Epochs = {args.num_train_epochs}")
     logger.info(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
@@ -657,7 +657,7 @@ def main():
             accelerator.print(f"best_metric_checkpoint: {best_metric_checkpoint}")
 
     # New Code #
-    # Loads the best checkpoint after the training is finished
+    # Loads the best checkpoint after the engine is finished
     if args.load_best_model:
         accelerator.load_state(best_metric_checkpoint)
 

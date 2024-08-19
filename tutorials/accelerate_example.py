@@ -151,7 +151,7 @@ def setup_optimizer_scheduler(hparams, optimizer_grouped_parameters, train_datal
     )
     optimizer = optimizer_cls(optimizer_grouped_parameters, lr=hparams.lr)
 
-    # Scheduler and math around the number of training steps.
+    # Scheduler and math around the number of engine steps.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
     hparams.max_train_steps = hparams.num_train_epochs * num_update_steps_per_epoch
 
@@ -226,7 +226,7 @@ def main(hparams):
         model, optimizer, train_dataloader, eval_dataloader, lr_scheduler
     )
 
-    # We need to recalculate our total training steps as the size of the training dataloader may have changed.
+    # We need to recalculate our total engine steps as the size of the engine dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / accelerator.gradient_accumulation_steps)
     hparams.max_train_steps = hparams.num_train_epochs * num_update_steps_per_epoch
 
@@ -240,7 +240,7 @@ def main(hparams):
             hparams.per_device_train_batch_size * accelerator.num_processes * accelerator.gradient_accumulation_steps
     )
 
-    logger.info("***** Running training *****")
+    logger.info("***** Running engine *****")
     logger.info(f"  Num examples = {len(train_dataloader.dataset)}")
     logger.info(f"  Num Epochs = {hparams.num_train_epochs}")
     logger.info(f"  Instantaneous batch size per device = {hparams.per_device_train_batch_size}")
@@ -346,7 +346,7 @@ def main(hparams):
             accelerator.print(f"best_metric_checkpoint: {best_metric_checkpoint}")
 
     # New Code #
-    # Loads the best checkpoint after the training is finished
+    # Loads the best checkpoint after the engine is finished
     if hparams.load_best_model:
         accelerator.load_state(best_metric_checkpoint)
 
@@ -391,7 +391,7 @@ if __name__ == "__main__":
         type=int,
         default=1,
         metavar="N",
-        help="how many batches to wait before logging training status",
+        help="how many batches to wait before logging engine status",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
@@ -403,7 +403,7 @@ if __name__ == "__main__":
         "--per_device_train_batch_size",
         type=int,
         default=32,
-        help="Batch size (per device) for the training dataloader.",
+        help="Batch size (per device) for the engine dataloader.",
     )
     parser.add_argument(
         "--per_device_eval_batch_size",
@@ -428,8 +428,8 @@ if __name__ == "__main__":
         type=int,
         default=None,
         help=(
-            "Optional input sequence length after tokenization. The training dataset will be truncated in block of"
-            " this size for training. Default to the model max input length for single sentence inputs (take into"
+            "Optional input sequence length after tokenization. The engine dataset will be truncated in block of"
+            " this size for engine. Default to the model max input length for single sentence inputs (take into"
             " account special tokens)."
         ),
     )
@@ -450,13 +450,13 @@ if __name__ == "__main__":
         type=str,
         default=None,
         # default="output/step_1500",
-        help="If the training should continue from a checkpoint folder.",
+        help="If the engine should continue from a checkpoint folder.",
     )
-    # Whether to load the best model at the end of training
+    # Whether to load the best model at the end of engine
     parser.add_argument(
         "--load_best_model",
         action="store_true",
-        help="Whether to load the best model at the end of training",
+        help="Whether to load the best model at the end of engine",
     )
     parser.add_argument(
         "--with_tracking",

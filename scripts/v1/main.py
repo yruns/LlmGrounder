@@ -3,15 +3,11 @@ File: main.py
 Date: 2024/8/19
 Author: yruns
 """
-import time
-start = time.time()
 from os import path
 from typing import Optional
 
 import math
 import torch.optim
-import torch.optim
-import torch.utils.data
 import torch.utils.data
 from accelerate import Accelerator, DeepSpeedPlugin
 from accelerate.utils import DummyOptim, DummyScheduler
@@ -20,7 +16,7 @@ from transformers import (
     get_scheduler, AutoTokenizer, PreTrainedTokenizerBase
 )
 
-import scripts.v1.grounder_reg as hparams
+import scripts.v1.config as hparams
 
 from datasets.referit3d import build_dataloader
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
@@ -28,7 +24,7 @@ from staticvars.const import REG_TOKEN
 
 from trim.thirdparty.logging import WandbWrapper
 from trim.thirdparty.logging import logger
-from trim import TrainerBase
+from trim.engine import TrainerBase
 from trim.callbacks.misc import *
 from trim.utils import comm
 
@@ -47,9 +43,6 @@ class Trainer(TrainerBase):
 
         self.tokenizer: Optional[PreTrainedTokenizerBase] = None
         self.compute_dtype = comm.convert_str_to_dtype(accelerator.mixed_precision)
-
-        end_time = time.time()
-        logger.info(f"### => Loading with {end_time - start} seconds")
 
     def configure_model(self):
         logger.info("### => Creating model ...")
@@ -107,7 +100,7 @@ class Trainer(TrainerBase):
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
 
-        # Scheduler and math around the number of training steps.
+        # Scheduler and math around the number of engine steps.
         num_update_steps_per_epoch_for_scheduler = math.ceil(
             len(self.train_loader) / self.accelerator.gradient_accumulation_steps)
         max_train_steps_for_scheduler = num_update_steps_per_epoch_for_scheduler * self.hparams.num_train_epochs

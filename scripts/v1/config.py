@@ -1,5 +1,5 @@
 """
-File: grounder_reg.py
+File: config.py
 Date: 2024/8/16
 Author: yruns
 """
@@ -68,6 +68,3 @@ log_project: str = "grounder_reg"
 log_tag: str = "test1"
 
 
-if __name__ == "__main__":
-    # print(Config.model.log_self())
-    pass

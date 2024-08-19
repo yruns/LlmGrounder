@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """
 This file contains primitives for multi-gpu communication.
-This is useful when doing distributed training.
+This is useful when doing distributed engine.
 Modified from detectron2(https://github.com/facebookresearch/detectron2)
 """
 
@@ -66,7 +66,7 @@ def reduce_average(tensor):
 def synchronize():
     """
     Helper function to synchronize (barrier) among all processes when
-    using distributed training
+    using distributed engine
     """
     accelerator.wait_for_everyone()
 

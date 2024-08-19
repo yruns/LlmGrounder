@@ -71,7 +71,7 @@ def setup_wandb(train_config, fsdp_config, **kwargs):
 
 
 def main(**kwargs):
-    # Update the configuration for the training and sharding process
+    # Update the configuration for the engine and sharding process
     train_config, fsdp_config = TRAIN_CONFIG(), FSDP_CONFIG()
     update_config((train_config, fsdp_config), **kwargs)
     # Set the seeds for reproducibility
@@ -202,7 +202,7 @@ def main(**kwargs):
 
     dataset_config = generate_dataset_config(train_config, kwargs)
 
-    # Load and preprocess the dataset for training and validation
+    # Load and preprocess the dataset for engine and validation
     dataset_train = get_preprocessed_dataset(
         tokenizer,
         dataset_config,
@@ -224,7 +224,7 @@ def main(**kwargs):
 
     train_dl_kwargs = get_dataloader_kwargs(train_config, dataset_train, tokenizer, "train")
 
-    # Create DataLoaders for the training and validation dataset
+    # Create DataLoaders for the engine and validation dataset
     train_dataloader = torch.utils.data.DataLoader(
         dataset_train,
         num_workers=train_config.num_workers_dataloader,
@@ -268,7 +268,7 @@ def main(**kwargs):
             weight_decay=train_config.weight_decay,
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
-    # Start the training process
+    # Start the engine process
     results = train(
         model,
         train_dataloader,

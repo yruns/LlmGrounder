@@ -8,10 +8,6 @@ Please cite our work if the code is helpful to you.
 import os
 import shutil
 import time
-from collections import OrderedDict
-
-import torch
-import torch.utils.data
 
 from trim.callbacks.default import CallbackBase
 from trim.utils.timer import Timer
@@ -167,7 +163,7 @@ class Resumer(CallbackBase):
         if self.checkpoint is not None:
             self.resume()
         else:
-            self.trainer.logger.info("=> No checkpoint given, training from scratch")
+            self.trainer.logger.info("=> No checkpoint given, engine from scratch")
 
     def resume(self):
         if not os.path.exists(self.checkpoint):
@@ -208,48 +204,48 @@ class CheckpointLoader(CallbackBase):
         self.replacement = replacement if replacement is not None else keywords
         self.strict = strict
 
-    def on_training_phase_start(self):
-        self.trainer.logger.info("=> Loading checkpoint & weight ...")
-        if self.trainer.cfg.weight and os.path.isfile(self.trainer.cfg.weight):
-            self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
-            checkpoint = torch.load(
-                self.trainer.cfg.weight,
-                map_location=lambda storage, loc: storage.cuda(),
-            )
-            self.trainer.logger.info(
-                f"Loading layer weights with keyword: {self.keywords}, "
-                f"replace keyword with: {self.replacement}"
-            )
-            weight = OrderedDict(
-                [
-                    (key.replace(self.keywords, self.replacement), value)
-                    for key, value in checkpoint["state_dict"].items()
-                    if self.keywords in key
-                ]
-            )
-            # weight = OrderedDict()
-            # for k, v in checkpoint["state_dict"].items():
-            #     if k.startswith('module.'):
-            #         # remove module
-            #         k = k[7:]  # module.xxx.xxx -> xxx.xxx
-            #     else:
-            #         # add module
-            #         k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
-            #     weight[k] = v
-            load_state_info = self.trainer.model.load_state_dict(
-                weight, strict=self.strict
-            )
-            self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
-            if self.trainer.cfg.resume:
-                self.trainer.logger.info(
-                    f"Resuming train at eval epoch: {checkpoint['epoch']}"
-                )
-                self.trainer.start_epoch = checkpoint["epoch"]
-                self.trainer.best_metric_value = checkpoint["best_metric_value"]
-                self.trainer.best_metric_epoch = checkpoint["epoch"]
-                self.trainer.optimizer.load_state_dict(checkpoint["optimizer"])
-                self.trainer.scheduler.load_state_dict(checkpoint["scheduler"])
-                if self.trainer.cfg.enable_amp:
-                    self.trainer.scaler.load_state_dict(checkpoint["scaler"])
-        else:
-            self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")
+    # def on_training_phase_start(self):
+    #     self.trainer.logger.info("=> Loading checkpoint & weight ...")
+    #     if self.trainer.cfg.weight and os.path.isfile(self.trainer.cfg.weight):
+    #         self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
+    #         checkpoint = torch.load(
+    #             self.trainer.cfg.weight,
+    #             map_location=lambda storage, loc: storage.cuda(),
+    #         )
+    #         self.trainer.logger.info(
+    #             f"Loading layer weights with keyword: {self.keywords}, "
+    #             f"replace keyword with: {self.replacement}"
+    #         )
+    #         weight = OrderedDict(
+    #             [
+    #                 (key.replace(self.keywords, self.replacement), value)
+    #                 for key, value in checkpoint["state_dict"].items()
+    #                 if self.keywords in key
+    #             ]
+    #         )
+    #         # weight = OrderedDict()
+    #         # for k, v in checkpoint["state_dict"].items():
+    #         #     if k.startswith('module.'):
+    #         #         # remove module
+    #         #         k = k[7:]  # module.xxx.xxx -> xxx.xxx
+    #         #     else:
+    #         #         # add module
+    #         #         k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
+    #         #     weight[k] = v
+    #         load_state_info = self.trainer.model.load_state_dict(
+    #             weight, strict=self.strict
+    #         )
+    #         self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
+    #         if self.trainer.cfg.resume:
+    #             self.trainer.logger.info(
+    #                 f"Resuming train at eval epoch: {checkpoint['epoch']}"
+    #             )
+    #             self.trainer.start_epoch = checkpoint["epoch"]
+    #             self.trainer.best_metric_value = checkpoint["best_metric_value"]
+    #             self.trainer.best_metric_epoch = checkpoint["epoch"]
+    #             self.trainer.optimizer.load_state_dict(checkpoint["optimizer"])
+    #             self.trainer.scheduler.load_state_dict(checkpoint["scheduler"])
+    #             if self.trainer.cfg.enable_amp:
+    #                 self.trainer.scaler.load_state_dict(checkpoint["scaler"])
+    #     else:
+    #         self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")

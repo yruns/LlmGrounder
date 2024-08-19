@@ -233,8 +233,8 @@ class CommonMetricPrinter(EventWriter):
         storage = get_event_storage()
         iteration = storage.iter
         if iteration == self._max_iter:
-            # This hook only reports training progress (loss, ETA, etc) but not other data,
-            # therefore do not write anything after training succeeds, even if this method
+            # This hook only reports engine progress (loss, ETA, etc) but not other data,
+            # therefore do not write anything after engine succeeds, even if this method
             # is called.
             return
 
