@@ -356,6 +356,11 @@ class Config:
     def text(self):
         return self._text
 
+    def try_get(self, name):
+        if hasattr(self._cfg_dict, name):
+            return getattr(self._cfg_dict, name)
+        return None
+
 
     def __repr__(self):
         return f"Config (path: {self.filename}): {self._cfg_dict.__repr__()}"

@@ -1,5 +1,5 @@
 """
-File: config.py
+File: hparams.py
 Date: 2024/8/16
 Author: yruns
 """
@@ -16,7 +16,7 @@ scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
-resume_from_checkpoint: Optional[str] = None
+
 
 # data
 num_workers: int = 0
@@ -38,15 +38,16 @@ scannet_config: Dict = dict(
 llm_name = "vicuna-7b-v1.3"
 model_max_length = 2048
 attn_implementation = "flash_attention_2"
-freeze_backbone = True
+freeze_llm_backbone = True
+freeze_mm_tower = True
 detector_name = "V-DETR"
 lora_config = dict(
-    enable=True,
+    enable=False,
     lora_r=8,
     lora_alpha=16,
     lora_dropout=0.05,
     bias="none",
-    lora_target_modules="q_proj,v_proj",
+    lora_target_modules="q_proj,v_proj,lm_head",
     task_type="CAUSAL_LM",
 )
 
@@ -71,7 +72,8 @@ lr_scheduler_type: Literal["linear", "cosine"] = "linear"
 gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
-save_freq: Union[str, int] = 300  # or "epoch"
+save_freq: Union[str, int] = 8  # or "epoch"
+resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240820-222727/step_8"
 
 # logging
 log_interval: int = 1

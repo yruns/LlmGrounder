@@ -16,7 +16,6 @@ from transformers import (
 from peft import LoraConfig, get_peft_model
 
 from datasets.referit3d import build_dataloader
-from scripts.v1.config import lora_config
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
 from staticvars.const import REG_TOKEN
 
@@ -25,14 +24,14 @@ from trim.thirdparty.logging import logger
 from trim.engine import TrainerBase
 from trim.callbacks.misc import *
 from trim.utils import comm
-from trim.utils.config import setup_hparams, DictAction
+from trim.utils.config import setup_hparams, DictAction, Config
 
 
 class Trainer(TrainerBase):
 
-    def __init__(self, hparams, accelerator: Accelerator, logger, debug=False, callbacks=None):
+    def __init__(self, hparams: Config, accelerator: Accelerator, logger, debug=False, callbacks=None):
         super().__init__()
-        self.hparams = hparams
+        self.hparams: Config = hparams
         self.accelerator: Accelerator = accelerator
         self.logger = logger
         self.max_epoch = hparams.num_train_epochs
@@ -89,26 +88,29 @@ class Trainer(TrainerBase):
         self.model.config.eos_token_id = self.tokenizer.eos_token_id
         self.model.config.bos_token_id = self.tokenizer.bos_token_id
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
+        self.model.resize_token_embeddings(len(self.tokenizer))
         ## Initialize vision modules
         self.model.model.initialize_vision_modules(self.hparams)
         self.model.config.tokenizer_padding_side = self.tokenizer.padding_side
         self.model.config.tokenizer_model_max_length = self.tokenizer.model_max_length
         self.model.config.compute_dtype = self.compute_dtype
-        self.model.reset_detector_precision(torch.float32)
 
-        # Freeze backbone(LLM)
-        if self.hparams.freeze_backbone:
-            self.model.model.requires_grad_(False)
-        # Gradient checkpointing
+        ## Freeze parameters
+        for name, param in self.model.named_parameters():
+            if "mm_" in name:              # MM tower
+                param.requires_grad = not self.hparams.freeze_mm_tower
+            elif "lm_head" not in name:    # LLM backbone(except lm_head)
+                param.requires_grad = not self.hparams.freeze_llm_backbone
+
+        ## Gradient checkpointing
         if self.hparams.gradient_checkpointing:
             self.model.enable_input_require_grads()
             self.model.gradient_checkpointing_enable()
 
-        # LoRA
+        ## LoRA
         if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
             lora_config = self.setup_lora_config(self.model, self.hparams.lora_config)
             self.model = get_peft_model(self.model, lora_config)
-        self.model.resize_token_embeddings(len(self.tokenizer))
 
         num_parameters = comm.count_parameters(self.model)
         logger.info(f"Number of learnable parameters: {num_parameters}")
@@ -116,7 +118,10 @@ class Trainer(TrainerBase):
 
     def on_training_phase_start(self):
         super().on_training_phase_start()
-
+        if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
+            self.model.base_model.model.reset_detector_precision(torch.float32)
+        else:
+            self.model.model.reset_detector_precision(torch.float32)
 
     def configure_dataloader(self):
         logger.info("### => Creating dataloader...")
@@ -228,7 +233,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--hparams-file", default=path.join(path.dirname(__file__), "config.py"),
+        "--hparams-file", default=path.join(path.dirname(__file__), "hparams.py"),
         type=str, help="path to hparams file"
     )
     parser.add_argument(

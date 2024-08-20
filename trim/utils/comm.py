@@ -72,12 +72,10 @@ def synchronize():
 
 
 def count_parameters(model):
-    # Unwrapped model
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 def str_parameters(model):
-    # Unwrapped model
     return list([n for n, p in model.named_parameters() if p.requires_grad])
 
 

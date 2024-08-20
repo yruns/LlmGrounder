@@ -119,6 +119,8 @@ class TrainerBase(object):
     def fit(self):
         self.setup()
         with EventStorage() as self.storage:
+            if self.debug:
+                self.num_update_steps_per_epoch = 10
             self.on_training_phase_start()
             self.logger.info(">>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>")
             for self.epoch in range(self.start_epoch, self.max_epoch):
@@ -126,11 +128,9 @@ class TrainerBase(object):
                 if self.debug:
                     from itertools import islice
                     self.data_iterator = enumerate(islice(self.train_loader, 10))
-                    self.num_update_steps_per_epoch = 10
                 else:
                     self.data_iterator = enumerate(self.train_loader)
-                if self.accelerator.sync_gradients:
-                    self.on_training_epoch_start()
+                self.on_training_epoch_start()
                 # => run_epoch
                 for batch_index, batch_data in self.data_iterator:
                     self.comm_info["iter"] = batch_index
@@ -140,7 +140,7 @@ class TrainerBase(object):
                     if self.accelerator.sync_gradients:
                         self.on_training_setp_end()
                 # => after epoch
-                if self.accelerator.sync_gradients:
-                    self.on_training_epoch_end()
+                # if self.accelerator.sync_gradients:
+                self.on_training_epoch_end()
             # => after train
             self.on_training_phase_end()

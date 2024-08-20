@@ -18,7 +18,7 @@ from transformers import (
     get_scheduler,
 )
 
-from trim import TrainerBase
+from trim.engine import TrainerBase
 from trim.callbacks.misc import *
 from trim.thirdparty.logging import WandbWrapper
 from trim.thirdparty.logging import logger
@@ -170,7 +170,7 @@ def main(hparams):
 
     accelerator = Accelerator(
         # mixed_precision="bf16",
-        gradient_accumulation_steps=2,
+        gradient_accumulation_steps=1,
         deepspeed_plugin=DeepSpeedPlugin(
             hf_ds_config="configs/zero_3_stage.json",
         )
@@ -178,7 +178,8 @@ def main(hparams):
 
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        # Resumer(checkpoint="output/step_600"),
+        # Resumer(checkpoint="output/step_300"),
+        Resumer(checkpoint="output/step_1800"),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=10),
         Evaluator(),
