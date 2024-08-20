@@ -119,17 +119,16 @@ class TrainerBase(object):
     def fit(self):
         self.setup()
         with EventStorage() as self.storage:
-            if self.debug:
-                from itertools import islice
-                self.data_iterator = enumerate(islice(self.train_loader, 10))
-                self.num_update_steps_per_epoch = 10
-            else:
-                self.data_iterator = enumerate(self.train_loader)
-
             self.on_training_phase_start()
             self.logger.info(">>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>")
             for self.epoch in range(self.start_epoch, self.max_epoch):
                 self.model.train()
+                if self.debug:
+                    from itertools import islice
+                    self.data_iterator = enumerate(islice(self.train_loader, 10))
+                    self.num_update_steps_per_epoch = 10
+                else:
+                    self.data_iterator = enumerate(self.train_loader)
                 if self.accelerator.sync_gradients:
                     self.on_training_epoch_start()
                 # => run_epoch

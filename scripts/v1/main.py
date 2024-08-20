@@ -13,8 +13,10 @@ from accelerate.utils import DummyOptim, DummyScheduler
 from transformers import (
     get_scheduler, AutoTokenizer, PreTrainedTokenizerBase
 )
+from peft import LoraConfig, get_peft_model
 
 from datasets.referit3d import build_dataloader
+from scripts.v1.config import lora_config
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
 from staticvars.const import REG_TOKEN
 
@@ -41,9 +43,33 @@ class Trainer(TrainerBase):
         self.tokenizer: Optional[PreTrainedTokenizerBase] = None
         self.compute_dtype = comm.convert_str_to_dtype(accelerator.mixed_precision)
 
+    @staticmethod
+    def setup_lora_config(model, lora_config):
+        """ Configure LoRA settings for the model. """
+        def find_proj_layers(model, target_modules):
+            """ Identify projection layers in the model for LoRA adaptation. """
+            linear_cls = torch.nn.Linear
+            lora_module_names = set()
+            for name, module in model.named_modules():
+                if (isinstance(module, linear_cls) and all(
+                        x not in name for x in ["mm_detector", "mm_projector"]
+                ) and any(x in name for x in target_modules)):
+                    lora_module_names.add(name)
+            return sorted(list(lora_module_names))
+
+        # Extracting LoRA target modules
+        lora_target_modules = lora_config.lora_target_modules.split(",")
+        lora_module_names = find_proj_layers(model, lora_target_modules)
+
+        # Configuring LoRA
+        lora_config = LoraConfig(
+            r=lora_config.lora_r, lora_alpha=lora_config.lora_alpha, target_modules=lora_module_names,
+            bias=lora_config.bias, task_type=lora_config.task_type, lora_dropout=lora_config.lora_dropout
+        )
+        return lora_config
+
     def configure_model(self):
         logger.info("### => Creating model ...")
-
         pretrained_model_path = str(path.join(self.hparams.pretrained_state_dir, self.hparams.llm_name))
         assert path.exists(pretrained_model_path), f"Pretrained model `{pretrained_model_path}` not exists"
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -59,7 +85,7 @@ class Trainer(TrainerBase):
             torch_dtype=self.compute_dtype,
             attn_implementation=self.hparams.attn_implementation,
         )
-        # Configure model tokens
+        ## Configure model tokens
         self.model.config.eos_token_id = self.tokenizer.eos_token_id
         self.model.config.bos_token_id = self.tokenizer.bos_token_id
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
@@ -68,17 +94,29 @@ class Trainer(TrainerBase):
         self.model.config.tokenizer_padding_side = self.tokenizer.padding_side
         self.model.config.tokenizer_model_max_length = self.tokenizer.model_max_length
         self.model.config.compute_dtype = self.compute_dtype
+        self.model.reset_detector_precision(torch.float32)
 
-        self.model.resize_token_embeddings(len(self.tokenizer))
-
+        # Freeze backbone(LLM)
         if self.hparams.freeze_backbone:
             self.model.model.requires_grad_(False)
+        # Gradient checkpointing
+        if self.hparams.gradient_checkpointing:
+            self.model.enable_input_require_grads()
+            self.model.gradient_checkpointing_enable()
+
+        # LoRA
+        if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
+            lora_config = self.setup_lora_config(self.model, self.hparams.lora_config)
+            self.model = get_peft_model(self.model, lora_config)
+        self.model.resize_token_embeddings(len(self.tokenizer))
+
         num_parameters = comm.count_parameters(self.model)
         logger.info(f"Number of learnable parameters: {num_parameters}")
+        self.accelerator.wait_for_everyone()
 
     def on_training_phase_start(self):
         super().on_training_phase_start()
-        self.model.reset_detector_precision(torch.float32)
+
 
     def configure_dataloader(self):
         logger.info("### => Creating dataloader...")
@@ -152,8 +190,7 @@ class Trainer(TrainerBase):
             self.optimizer.zero_grad()
 
             if self.accelerator.sync_gradients:
-                reduced_loss = self.accelerator.reduce(loss)
-
+                reduced_loss = self.accelerator.reduce(loss) / self.accelerator.num_processes
                 # Anything you want to log in terminal
                 self.comm_info["terminal_log"] = {"loss": reduced_loss}
                 # Anything you want to log in wandb

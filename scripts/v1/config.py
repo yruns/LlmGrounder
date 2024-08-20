@@ -40,11 +40,20 @@ model_max_length = 2048
 attn_implementation = "flash_attention_2"
 freeze_backbone = True
 detector_name = "V-DETR"
+lora_config = dict(
+    enable=True,
+    lora_r=8,
+    lora_alpha=16,
+    lora_dropout=0.05,
+    bias="none",
+    lora_target_modules="q_proj,v_proj",
+    task_type="CAUSAL_LM",
+)
 
 # train
 seed: int = 42
 gpus: List[int] = [0]
-batch_size: int = 4
+batch_size: int = 2
 gradient_accumulation_steps: int = 1
 
 assert (batch_size / len(gpus) / gradient_accumulation_steps).is_integer(), \
@@ -58,6 +67,8 @@ lr: float = 2e-5
 optimizer: Literal["adamw_torch"] = "adamw_torch"
 warmup_ratio: float = 0.00
 lr_scheduler_type: Literal["linear", "cosine"] = "linear"
+
+gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
 save_freq: Union[str, int] = 300  # or "epoch"
