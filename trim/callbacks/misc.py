@@ -203,11 +203,12 @@ class Resumer(CallbackBase):
 
         # Although I don't know why accelete does not restore the state of dataloader,
         # the following code can solve it
-        for i in range(starting_epoch):
-            self.trainer.logger.info(f"=> Skip epoch: {i + 1}")
-            for data, target in self.trainer.train_loader:
-                pass
-                # self.trainer.logger.info(f"data: {torch.mean(data)}")
+        if self.accelerator.num_processes > 1:
+            for i in range(starting_epoch):
+                self.trainer.logger.info(f"=> Skip epoch: {i + 1}")
+                for data, target in self.trainer.train_loader:
+                    pass
+                    # self.trainer.logger.info(f"data: {torch.mean(data)}")
 
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader

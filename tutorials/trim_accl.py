@@ -166,8 +166,6 @@ def main(hparams):
     hparams.log_tag = "init_1"
 
     comm.seed_everything(hparams.seed)
-    # from accelerate.utils import set_seed
-    # set_seed(hparams.seed)
     comm.copy_codebase(hparams.save_path)
 
     accelerator = Accelerator(
@@ -180,9 +178,12 @@ def main(hparams):
 
     logger.add(f"logs/{time.strftime('%Y-%m-%d_%H-%M-%S')}")
 
+    ### Start command:
+    ### python -m accelerate. commands.launch --num_processes=2 --main_process_port 10002 tutorials/trim_accl.py
+
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        Resumer(checkpoint="output/step_450"),
+        # Resumer(checkpoint="output/step_100"),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=1),
         Evaluator(),
