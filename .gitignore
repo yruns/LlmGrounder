@@ -9,6 +9,8 @@ resources/
 *.jpg
 *.log
 
+logs/
+
 
 test.py
 tmp.py

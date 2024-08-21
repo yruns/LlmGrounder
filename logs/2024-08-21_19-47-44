@@ -1,8 +1,0 @@
-2024-08-21 19:47:44.338 | INFO     | __main__:configure_model:71 - => creating model ...
-2024-08-21 19:47:44.339 | INFO     | __main__:configure_model:71 - => creating model ...
-2024-08-21 19:47:44.369 | INFO     | __main__:configure_model:74 - Number of parameters: 1199882
-2024-08-21 19:47:44.374 | INFO     | __main__:configure_model:74 - Number of parameters: 1199882
-2024-08-21 19:47:46.567 | INFO     | trim.callbacks.misc:on_training_phase_start:70 - Namespace(block_size=None, checkpointing_steps='300', gamma=0.7, load_best_model=False, log_project='accl_test', log_tag='init_1', lr=1.0, lr_scheduler_type='linear', num_train_epochs=8, num_warmup_steps=0, output_dir='./output', per_device_eval_batch_size=1, per_device_train_batch_size=196, preprocessing_num_workers=None, report_to='all', resume_from_checkpoint='output/step_300', save_path='output/', seed=1, weight_decay=0.0, with_tracking=False)
-2024-08-21 19:47:46.568 | INFO     | trim.engine.trainer:fit:125 - >>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>
-2024-08-21 19:47:47.249 | INFO     | trim.callbacks.misc:on_training_phase_start:70 - Namespace(block_size=None, checkpointing_steps='300', gamma=0.7, load_best_model=False, log_project='accl_test', log_tag='init_1', lr=1.0, lr_scheduler_type='linear', num_train_epochs=8, num_warmup_steps=0, output_dir='./output', per_device_eval_batch_size=1, per_device_train_batch_size=196, preprocessing_num_workers=None, report_to='all', resume_from_checkpoint='output/step_300', save_path='output/', seed=1, weight_decay=0.0, with_tracking=False)
-2024-08-21 19:47:47.250 | INFO     | trim.engine.trainer:fit:125 - >>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>
