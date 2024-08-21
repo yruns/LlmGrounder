@@ -1,0 +1,458 @@
+2024-08-21 22:07:41.044 | INFO     | __main__:configure_model:71 - => creating model ...
+2024-08-21 22:07:41.043 | INFO     | __main__:configure_model:71 - => creating model ...
+2024-08-21 22:07:41.082 | INFO     | __main__:configure_model:74 - Number of parameters: 1199882
+2024-08-21 22:07:41.085 | INFO     | __main__:configure_model:74 - Number of parameters: 1199882
+2024-08-21 22:07:43.234 | INFO     | trim.callbacks.misc:on_training_phase_start:70 - Namespace(block_size=None, checkpointing_steps='300', gamma=0.7, load_best_model=False, log_project='accl_test', log_tag='init_1', lr=1.0, lr_scheduler_type='linear', num_train_epochs=8, num_warmup_steps=0, output_dir='./output', per_device_eval_batch_size=1, per_device_train_batch_size=196, preprocessing_num_workers=None, report_to='all', resume_from_checkpoint='output/step_300', save_path='output/', seed=1, weight_decay=0.0, with_tracking=False)
+2024-08-21 22:07:43.234 | INFO     | trim.engine.trainer:fit:125 - >>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>
+2024-08-21 22:07:43.983 | INFO     | trim.callbacks.misc:on_training_phase_start:70 - Namespace(block_size=None, checkpointing_steps='300', gamma=0.7, load_best_model=False, log_project='accl_test', log_tag='init_1', lr=1.0, lr_scheduler_type='linear', num_train_epochs=8, num_warmup_steps=0, output_dir='./output', per_device_eval_batch_size=1, per_device_train_batch_size=196, preprocessing_num_workers=None, report_to='all', resume_from_checkpoint='output/step_300', save_path='output/', seed=1, weight_decay=0.0, with_tracking=False)
+2024-08-21 22:07:43.983 | INFO     | trim.engine.trainer:fit:125 - >>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>
+2024-08-21 22:07:45.266 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][1/77] Data 0.812 (0.812) Batch 2.031 (2.031) Remain 00:20:51 loss: 4.6114 data: -0.0020 Lr: 0.99838
+2024-08-21 22:07:45.266 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][1/77] Data 0.064 (0.064) Batch 1.282 (1.282) Remain 00:13:09 loss: 4.6114 data: 0.0166 Lr: 0.99838
+2024-08-21 22:07:45.342 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][2/77] Data 0.033 (0.033) Batch 0.077 (0.077) Remain 00:00:47 loss: 4.1277 data: -0.0047 Lr: 0.99675
+2024-08-21 22:07:45.342 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][2/77] Data 0.030 (0.030) Batch 0.077 (0.077) Remain 00:00:47 loss: 4.1277 data: 0.0051 Lr: 0.99675
+2024-08-21 22:07:45.414 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][3/77] Data 0.029 (0.031) Batch 0.072 (0.074) Remain 00:00:45 loss: 3.8914 data: 0.0001 Lr: 0.99513
+2024-08-21 22:07:45.414 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][3/77] Data 0.030 (0.030) Batch 0.072 (0.074) Remain 00:00:45 loss: 3.8914 data: -0.0145 Lr: 0.99513
+2024-08-21 22:07:45.481 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][4/77] Data 0.028 (0.030) Batch 0.067 (0.072) Remain 00:00:44 loss: 4.7848 data: 0.0074 Lr: 0.99351
+2024-08-21 22:07:45.481 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][4/77] Data 0.028 (0.029) Batch 0.067 (0.072) Remain 00:00:44 loss: 4.7848 data: 0.0131 Lr: 0.99351
+2024-08-21 22:07:45.550 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][5/77] Data 0.028 (0.029) Batch 0.069 (0.071) Remain 00:00:43 loss: 3.9613 data: -0.0012 Lr: 0.99188
+2024-08-21 22:07:45.551 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][5/77] Data 0.028 (0.029) Batch 0.069 (0.071) Remain 00:00:43 loss: 3.9613 data: -0.0104 Lr: 0.99188
+2024-08-21 22:07:45.617 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][6/77] Data 0.027 (0.029) Batch 0.067 (0.070) Remain 00:00:43 loss: 2.8284 data: -0.0134 Lr: 0.99026
+2024-08-21 22:07:45.618 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][6/77] Data 0.028 (0.029) Batch 0.067 (0.070) Remain 00:00:43 loss: 2.8284 data: 0.0012 Lr: 0.99026
+2024-08-21 22:07:45.687 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][7/77] Data 0.028 (0.029) Batch 0.069 (0.070) Remain 00:00:42 loss: 2.2284 data: 0.0075 Lr: 0.98864
+2024-08-21 22:07:45.687 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][7/77] Data 0.028 (0.028) Batch 0.069 (0.070) Remain 00:00:42 loss: 2.2284 data: 0.0025 Lr: 0.98864
+2024-08-21 22:07:45.754 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][8/77] Data 0.028 (0.029) Batch 0.067 (0.070) Remain 00:00:42 loss: 5.4430 data: 0.0156 Lr: 0.98701
+2024-08-21 22:07:45.754 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][8/77] Data 0.028 (0.028) Batch 0.067 (0.070) Remain 00:00:42 loss: 5.4430 data: 0.0018 Lr: 0.98701
+2024-08-21 22:07:45.820 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][9/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:42 loss: 3.2827 data: 0.0009 Lr: 0.98539
+2024-08-21 22:07:45.821 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][9/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:42 loss: 3.2827 data: -0.0080 Lr: 0.98539
+2024-08-21 22:07:45.890 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][10/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:42 loss: 2.2584 data: -0.0091 Lr: 0.98377
+2024-08-21 22:07:45.891 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][10/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:42 loss: 2.2584 data: 0.0137 Lr: 0.98377
+2024-08-21 22:07:45.963 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][11/77] Data 0.029 (0.028) Batch 0.072 (0.070) Remain 00:00:42 loss: 1.6397 data: 0.0052 Lr: 0.98214
+2024-08-21 22:07:45.963 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][11/77] Data 0.029 (0.028) Batch 0.072 (0.070) Remain 00:00:42 loss: 1.6397 data: -0.0144 Lr: 0.98214
+2024-08-21 22:07:46.034 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][12/77] Data 0.029 (0.028) Batch 0.072 (0.070) Remain 00:00:42 loss: 1.6751 data: -0.0045 Lr: 0.98052
+2024-08-21 22:07:46.034 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][12/77] Data 0.029 (0.028) Batch 0.071 (0.070) Remain 00:00:42 loss: 1.6751 data: 0.0194 Lr: 0.98052
+2024-08-21 22:07:46.101 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][13/77] Data 0.027 (0.028) Batch 0.067 (0.070) Remain 00:00:42 loss: 2.4881 data: -0.0132 Lr: 0.97890
+2024-08-21 22:07:46.101 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][13/77] Data 0.027 (0.028) Batch 0.067 (0.070) Remain 00:00:42 loss: 2.4881 data: -0.0004 Lr: 0.97890
+2024-08-21 22:07:46.170 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][14/77] Data 0.028 (0.028) Batch 0.069 (0.070) Remain 00:00:41 loss: 2.2921 data: -0.0047 Lr: 0.97727
+2024-08-21 22:07:46.170 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][14/77] Data 0.027 (0.028) Batch 0.069 (0.070) Remain 00:00:41 loss: 2.2921 data: -0.0052 Lr: 0.97727
+2024-08-21 22:07:46.241 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][15/77] Data 0.028 (0.028) Batch 0.071 (0.070) Remain 00:00:41 loss: 1.6107 data: -0.0027 Lr: 0.97565
+2024-08-21 22:07:46.241 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][15/77] Data 0.028 (0.028) Batch 0.071 (0.070) Remain 00:00:41 loss: 1.6107 data: 0.0123 Lr: 0.97565
+2024-08-21 22:07:46.314 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][16/77] Data 0.029 (0.028) Batch 0.073 (0.070) Remain 00:00:42 loss: 1.0816 data: 0.0051 Lr: 0.97403
+2024-08-21 22:07:46.314 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][16/77] Data 0.029 (0.028) Batch 0.073 (0.070) Remain 00:00:42 loss: 1.0816 data: 0.0022 Lr: 0.97403
+2024-08-21 22:07:46.385 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][17/77] Data 0.029 (0.028) Batch 0.071 (0.070) Remain 00:00:41 loss: 0.9845 data: -0.0046 Lr: 0.97240
+2024-08-21 22:07:46.385 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][17/77] Data 0.029 (0.028) Batch 0.071 (0.070) Remain 00:00:41 loss: 0.9845 data: 0.0012 Lr: 0.97240
+2024-08-21 22:07:46.451 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][18/77] Data 0.027 (0.028) Batch 0.066 (0.070) Remain 00:00:41 loss: 1.1675 data: -0.0046 Lr: 0.97078
+2024-08-21 22:07:46.451 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][18/77] Data 0.027 (0.028) Batch 0.066 (0.070) Remain 00:00:41 loss: 1.1675 data: -0.0073 Lr: 0.97078
+2024-08-21 22:07:46.517 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][19/77] Data 0.027 (0.028) Batch 0.066 (0.070) Remain 00:00:41 loss: 1.2291 data: 0.0046 Lr: 0.96916
+2024-08-21 22:07:46.517 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][19/77] Data 0.027 (0.028) Batch 0.066 (0.070) Remain 00:00:41 loss: 1.2291 data: 0.0016 Lr: 0.96916
+2024-08-21 22:07:46.583 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][20/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:41 loss: 1.3420 data: 0.0213 Lr: 0.96753
+2024-08-21 22:07:46.583 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][20/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:41 loss: 1.3420 data: 0.0002 Lr: 0.96753
+2024-08-21 22:07:46.653 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][21/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:41 loss: 1.1170 data: 0.0067 Lr: 0.96591
+2024-08-21 22:07:46.654 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][21/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:41 loss: 1.1170 data: -0.0068 Lr: 0.96591
+2024-08-21 22:07:46.725 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][22/77] Data 0.029 (0.028) Batch 0.071 (0.069) Remain 00:00:41 loss: 0.9686 data: -0.0177 Lr: 0.96429
+2024-08-21 22:07:46.725 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][22/77] Data 0.029 (0.028) Batch 0.071 (0.069) Remain 00:00:41 loss: 0.9686 data: -0.0010 Lr: 0.96429
+2024-08-21 22:07:46.789 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][23/77] Data 0.027 (0.028) Batch 0.064 (0.069) Remain 00:00:41 loss: 1.2158 data: -0.0053 Lr: 0.96266
+2024-08-21 22:07:46.789 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][23/77] Data 0.027 (0.028) Batch 0.064 (0.069) Remain 00:00:41 loss: 1.2158 data: 0.0092 Lr: 0.96266
+2024-08-21 22:07:46.854 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][24/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:40 loss: 1.0423 data: 0.0015 Lr: 0.96104
+2024-08-21 22:07:46.855 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][24/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 1.0423 data: -0.0083 Lr: 0.96104
+2024-08-21 22:07:46.922 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][25/77] Data 0.027 (0.028) Batch 0.068 (0.069) Remain 00:00:40 loss: 0.9768 data: 0.0146 Lr: 0.95942
+2024-08-21 22:07:46.922 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][25/77] Data 0.027 (0.028) Batch 0.068 (0.069) Remain 00:00:40 loss: 0.9768 data: 0.0073 Lr: 0.95942
+2024-08-21 22:07:46.988 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][26/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:40 loss: 0.9053 data: 0.0036 Lr: 0.95779
+2024-08-21 22:07:46.988 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][26/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:40 loss: 0.9053 data: -0.0063 Lr: 0.95779
+2024-08-21 22:07:47.055 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][27/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:40 loss: 0.6695 data: 0.0060 Lr: 0.95617
+2024-08-21 22:07:47.055 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][27/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:40 loss: 0.6695 data: -0.0078 Lr: 0.95617
+2024-08-21 22:07:47.126 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][28/77] Data 0.028 (0.028) Batch 0.071 (0.069) Remain 00:00:40 loss: 0.6255 data: -0.0034 Lr: 0.95455
+2024-08-21 22:07:47.127 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][28/77] Data 0.028 (0.028) Batch 0.071 (0.069) Remain 00:00:40 loss: 0.6255 data: 0.0087 Lr: 0.95455
+2024-08-21 22:07:47.199 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][29/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:40 loss: 0.7247 data: 0.0020 Lr: 0.95292
+2024-08-21 22:07:47.199 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][29/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:40 loss: 0.7247 data: -0.0066 Lr: 0.95292
+2024-08-21 22:07:47.274 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][30/77] Data 0.029 (0.028) Batch 0.074 (0.069) Remain 00:00:40 loss: 0.5310 data: -0.0166 Lr: 0.95130
+2024-08-21 22:07:47.274 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][30/77] Data 0.032 (0.028) Batch 0.074 (0.069) Remain 00:00:40 loss: 0.5310 data: 0.0025 Lr: 0.95130
+2024-08-21 22:07:47.339 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][31/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.6155 data: -0.0011 Lr: 0.94968
+2024-08-21 22:07:47.339 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][31/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.6155 data: -0.0099 Lr: 0.94968
+2024-08-21 22:07:47.404 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][32/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.7248 data: -0.0060 Lr: 0.94805
+2024-08-21 22:07:47.404 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][32/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.7248 data: 0.0004 Lr: 0.94805
+2024-08-21 22:07:47.469 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][33/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.7322 data: 0.0095 Lr: 0.94643
+2024-08-21 22:07:47.469 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][33/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:40 loss: 0.7322 data: 0.0082 Lr: 0.94643
+2024-08-21 22:07:47.535 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][34/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:40 loss: 0.6930 data: 0.0002 Lr: 0.94481
+2024-08-21 22:07:47.535 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][34/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:40 loss: 0.6930 data: -0.0063 Lr: 0.94481
+2024-08-21 22:07:47.601 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][35/77] Data 0.028 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.5311 data: -0.0063 Lr: 0.94318
+2024-08-21 22:07:47.601 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][35/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.5311 data: 0.0032 Lr: 0.94318
+2024-08-21 22:07:47.669 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][36/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.5760 data: 0.0109 Lr: 0.94156
+2024-08-21 22:07:47.669 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][36/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.5760 data: 0.0116 Lr: 0.94156
+2024-08-21 22:07:47.735 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][37/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.6859 data: -0.0038 Lr: 0.93994
+2024-08-21 22:07:47.735 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][37/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.6859 data: -0.0030 Lr: 0.93994
+2024-08-21 22:07:47.801 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][38/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.6535 data: 0.0153 Lr: 0.93831
+2024-08-21 22:07:47.801 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][38/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.6535 data: -0.0051 Lr: 0.93831
+2024-08-21 22:07:47.871 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][39/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:39 loss: 0.5287 data: 0.0052 Lr: 0.93669
+2024-08-21 22:07:47.872 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][39/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:39 loss: 0.5287 data: -0.0065 Lr: 0.93669
+2024-08-21 22:07:47.944 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][40/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:39 loss: 0.4808 data: -0.0181 Lr: 0.93506
+2024-08-21 22:07:47.944 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][40/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:39 loss: 0.4808 data: 0.0227 Lr: 0.93506
+2024-08-21 22:07:48.017 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][41/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:39 loss: 0.4874 data: 0.0090 Lr: 0.93344
+2024-08-21 22:07:48.017 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][41/77] Data 0.029 (0.028) Batch 0.073 (0.069) Remain 00:00:39 loss: 0.4874 data: -0.0145 Lr: 0.93344
+2024-08-21 22:07:48.084 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][42/77] Data 0.028 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.5183 data: -0.0162 Lr: 0.93182
+2024-08-21 22:07:48.084 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][42/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.5183 data: -0.0042 Lr: 0.93182
+2024-08-21 22:07:48.152 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][43/77] Data 0.028 (0.028) Batch 0.069 (0.069) Remain 00:00:39 loss: 0.5456 data: -0.0053 Lr: 0.93019
+2024-08-21 22:07:48.153 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][43/77] Data 0.027 (0.028) Batch 0.069 (0.069) Remain 00:00:39 loss: 0.5456 data: 0.0085 Lr: 0.93019
+2024-08-21 22:07:48.219 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][44/77] Data 0.028 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.6076 data: 0.0113 Lr: 0.92857
+2024-08-21 22:07:48.219 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][44/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.6076 data: -0.0014 Lr: 0.92857
+2024-08-21 22:07:48.285 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][45/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.6600 data: -0.0135 Lr: 0.92695
+2024-08-21 22:07:48.285 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][45/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:39 loss: 0.6600 data: 0.0041 Lr: 0.92695
+2024-08-21 22:07:48.353 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][46/77] Data 0.028 (0.028) Batch 0.068 (0.069) Remain 00:00:39 loss: 0.5291 data: 0.0038 Lr: 0.92532
+2024-08-21 22:07:48.353 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][46/77] Data 0.028 (0.028) Batch 0.068 (0.069) Remain 00:00:39 loss: 0.5291 data: 0.0097 Lr: 0.92532
+2024-08-21 22:07:48.421 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][47/77] Data 0.027 (0.028) Batch 0.068 (0.069) Remain 00:00:39 loss: 0.5262 data: -0.0026 Lr: 0.92370
+2024-08-21 22:07:48.421 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][47/77] Data 0.029 (0.028) Batch 0.068 (0.069) Remain 00:00:39 loss: 0.5262 data: 0.0149 Lr: 0.92370
+2024-08-21 22:07:48.486 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][48/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.5300 data: 0.0026 Lr: 0.92208
+2024-08-21 22:07:48.487 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][48/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.5300 data: 0.0116 Lr: 0.92208
+2024-08-21 22:07:48.552 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][49/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:38 loss: 0.4431 data: 0.0012 Lr: 0.92045
+2024-08-21 22:07:48.552 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][49/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:38 loss: 0.4431 data: 0.0008 Lr: 0.92045
+2024-08-21 22:07:48.619 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][50/77] Data 0.027 (0.028) Batch 0.067 (0.068) Remain 00:00:38 loss: 0.5008 data: 0.0113 Lr: 0.91883
+2024-08-21 22:07:48.619 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_50
+2024-08-21 22:07:48.619 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][50/77] Data 0.027 (0.028) Batch 0.067 (0.068) Remain 00:00:38 loss: 0.5008 data: 0.0039 Lr: 0.91883
+2024-08-21 22:07:48.619 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_50
+2024-08-21 22:07:48.650 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -228.29733276367188
+2024-08-21 22:07:48.650 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -228.29733276367188
+2024-08-21 22:07:48.651 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -113.20719909667969
+2024-08-21 22:07:48.651 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -115.09012603759766
+2024-08-21 22:07:48.720 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][51/77] Data 0.060 (0.028) Batch 0.102 (0.069) Remain 00:00:39 loss: 0.4220 data: 0.0059 Lr: 0.91721
+2024-08-21 22:07:48.720 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][51/77] Data 0.060 (0.029) Batch 0.101 (0.069) Remain 00:00:39 loss: 0.4220 data: 0.0113 Lr: 0.91721
+2024-08-21 22:07:48.787 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][52/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.4281 data: 0.0255 Lr: 0.91558
+2024-08-21 22:07:48.787 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][52/77] Data 0.027 (0.029) Batch 0.067 (0.069) Remain 00:00:39 loss: 0.4281 data: -0.0018 Lr: 0.91558
+2024-08-21 22:07:48.853 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][53/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.4881 data: -0.0151 Lr: 0.91396
+2024-08-21 22:07:48.853 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][53/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.4881 data: 0.0226 Lr: 0.91396
+2024-08-21 22:07:48.920 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][54/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3342 data: -0.0040 Lr: 0.91234
+2024-08-21 22:07:48.920 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][54/77] Data 0.028 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3342 data: -0.0010 Lr: 0.91234
+2024-08-21 22:07:48.987 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][55/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3765 data: 0.0194 Lr: 0.91071
+2024-08-21 22:07:48.987 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][55/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3765 data: 0.0157 Lr: 0.91071
+2024-08-21 22:07:49.057 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][56/77] Data 0.028 (0.028) Batch 0.071 (0.069) Remain 00:00:38 loss: 0.3309 data: -0.0027 Lr: 0.90909
+2024-08-21 22:07:49.057 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][56/77] Data 0.028 (0.028) Batch 0.071 (0.069) Remain 00:00:38 loss: 0.3309 data: -0.0060 Lr: 0.90909
+2024-08-21 22:07:49.124 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][57/77] Data 0.028 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3413 data: -0.0072 Lr: 0.90747
+2024-08-21 22:07:49.124 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][57/77] Data 0.029 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3413 data: -0.0121 Lr: 0.90747
+2024-08-21 22:07:49.190 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][58/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:38 loss: 0.3458 data: 0.0202 Lr: 0.90584
+2024-08-21 22:07:49.190 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][58/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:38 loss: 0.3458 data: -0.0011 Lr: 0.90584
+2024-08-21 22:07:49.255 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][59/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.3501 data: -0.0228 Lr: 0.90422
+2024-08-21 22:07:49.256 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][59/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.3501 data: -0.0205 Lr: 0.90422
+2024-08-21 22:07:49.323 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][60/77] Data 0.027 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3163 data: 0.0153 Lr: 0.90260
+2024-08-21 22:07:49.323 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][60/77] Data 0.028 (0.028) Batch 0.067 (0.069) Remain 00:00:38 loss: 0.3163 data: 0.0115 Lr: 0.90260
+2024-08-21 22:07:49.389 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][61/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.5064 data: 0.0110 Lr: 0.90097
+2024-08-21 22:07:49.389 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][61/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.5064 data: -0.0004 Lr: 0.90097
+2024-08-21 22:07:49.454 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][62/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:38 loss: 0.3786 data: 0.0010 Lr: 0.89935
+2024-08-21 22:07:49.454 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][62/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:38 loss: 0.3786 data: -0.0151 Lr: 0.89935
+2024-08-21 22:07:49.520 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][63/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.4915 data: 0.0141 Lr: 0.89773
+2024-08-21 22:07:49.520 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][63/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:38 loss: 0.4915 data: 0.0257 Lr: 0.89773
+2024-08-21 22:07:49.586 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][64/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:37 loss: 0.5098 data: 0.0234 Lr: 0.89610
+2024-08-21 22:07:49.586 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][64/77] Data 0.028 (0.028) Batch 0.066 (0.069) Remain 00:00:37 loss: 0.5098 data: -0.0081 Lr: 0.89610
+2024-08-21 22:07:49.655 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][65/77] Data 0.027 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.6171 data: 0.0046 Lr: 0.89448
+2024-08-21 22:07:49.656 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][65/77] Data 0.027 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.6171 data: -0.0014 Lr: 0.89448
+2024-08-21 22:07:49.725 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][66/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:37 loss: 0.4021 data: -0.0121 Lr: 0.89286
+2024-08-21 22:07:49.726 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][66/77] Data 0.029 (0.028) Batch 0.070 (0.069) Remain 00:00:37 loss: 0.4021 data: -0.0012 Lr: 0.89286
+2024-08-21 22:07:49.792 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][67/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:37 loss: 0.3341 data: -0.0150 Lr: 0.89123
+2024-08-21 22:07:49.792 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][67/77] Data 0.027 (0.028) Batch 0.066 (0.069) Remain 00:00:37 loss: 0.3341 data: 0.0110 Lr: 0.89123
+2024-08-21 22:07:49.861 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][68/77] Data 0.028 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.2954 data: -0.0077 Lr: 0.88961
+2024-08-21 22:07:49.861 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][68/77] Data 0.028 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.2954 data: -0.0059 Lr: 0.88961
+2024-08-21 22:07:49.931 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][69/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:37 loss: 0.3011 data: 0.0118 Lr: 0.88799
+2024-08-21 22:07:49.931 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][69/77] Data 0.028 (0.028) Batch 0.070 (0.069) Remain 00:00:37 loss: 0.3011 data: -0.0006 Lr: 0.88799
+2024-08-21 22:07:50.000 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][70/77] Data 0.028 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.3532 data: -0.0061 Lr: 0.88636
+2024-08-21 22:07:50.000 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][70/77] Data 0.028 (0.028) Batch 0.069 (0.069) Remain 00:00:37 loss: 0.3532 data: -0.0068 Lr: 0.88636
+2024-08-21 22:07:50.065 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][71/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:37 loss: 0.3228 data: 0.0023 Lr: 0.88474
+2024-08-21 22:07:50.065 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][71/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:37 loss: 0.3228 data: 0.0071 Lr: 0.88474
+2024-08-21 22:07:50.130 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][72/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:37 loss: 0.3640 data: -0.0090 Lr: 0.88312
+2024-08-21 22:07:50.130 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][72/77] Data 0.027 (0.028) Batch 0.065 (0.069) Remain 00:00:37 loss: 0.3640 data: -0.0034 Lr: 0.88312
+2024-08-21 22:07:50.195 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][73/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:37 loss: 0.3664 data: 0.0081 Lr: 0.88149
+2024-08-21 22:07:50.195 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][73/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:37 loss: 0.3664 data: -0.0024 Lr: 0.88149
+2024-08-21 22:07:50.260 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][74/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:37 loss: 0.2584 data: -0.0020 Lr: 0.87987
+2024-08-21 22:07:50.260 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][74/77] Data 0.027 (0.028) Batch 0.065 (0.068) Remain 00:00:37 loss: 0.2584 data: 0.0154 Lr: 0.87987
+2024-08-21 22:07:50.326 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][75/77] Data 0.027 (0.028) Batch 0.066 (0.068) Remain 00:00:37 loss: 0.2670 data: 0.0045 Lr: 0.87825
+2024-08-21 22:07:50.326 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][75/77] Data 0.027 (0.028) Batch 0.066 (0.068) Remain 00:00:37 loss: 0.2670 data: -0.0077 Lr: 0.87825
+2024-08-21 22:07:50.398 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][76/77] Data 0.028 (0.028) Batch 0.072 (0.068) Remain 00:00:37 loss: 0.4324 data: 0.0079 Lr: 0.87662
+2024-08-21 22:07:50.398 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][76/77] Data 0.031 (0.028) Batch 0.072 (0.068) Remain 00:00:37 loss: 0.4324 data: 0.0015 Lr: 0.87662
+2024-08-21 22:07:50.445 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][77/77] Data 0.032 (0.028) Batch 0.047 (0.068) Remain 00:00:36 loss: 0.3457 data: -0.0059 Lr: 0.87500
+2024-08-21 22:07:50.445 | INFO     | trim.callbacks.evaluator:eval:19 - >>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>
+2024-08-21 22:07:50.445 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [1/8][77/77] Data 0.032 (0.028) Batch 0.047 (0.068) Remain 00:00:36 loss: 0.3457 data: -0.0010 Lr: 0.87500
+2024-08-21 22:07:50.445 | INFO     | trim.callbacks.evaluator:eval:19 - >>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>
+2024-08-21 22:07:54.315 | INFO     | trim.callbacks.evaluator:eval:35 - Test set: Average loss: 0.0991, Accuracy: 0.9715
+2024-08-21 22:07:54.315 | INFO     | trim.callbacks.evaluator:eval:39 - <<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<
+2024-08-21 22:07:54.315 | INFO     | trim.callbacks.evaluator:eval:35 - Test set: Average loss: 0.0991, Accuracy: 0.9715
+2024-08-21 22:07:54.315 | INFO     | trim.callbacks.evaluator:eval:39 - <<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<
+2024-08-21 22:07:54.319 | INFO     | trim.callbacks.evaluator:eval:46 - New best metric!
+2024-08-21 22:07:54.319 | INFO     | trim.callbacks.evaluator:eval:46 - New best metric!
+2024-08-21 22:07:54.395 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][1/77] Data 0.042 (0.042) Batch 0.075 (0.075) Remain 00:00:40 loss: 0.3115 data: 0.0100 Lr: 0.87338
+2024-08-21 22:07:54.395 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][1/77] Data 0.043 (0.043) Batch 0.075 (0.075) Remain 00:00:40 loss: 0.3115 data: 0.0028 Lr: 0.87338
+2024-08-21 22:07:54.458 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][2/77] Data 0.023 (0.023) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3397 data: -0.0113 Lr: 0.87175
+2024-08-21 22:07:54.458 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][2/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3397 data: 0.0047 Lr: 0.87175
+2024-08-21 22:07:54.522 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][3/77] Data 0.021 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3496 data: -0.0137 Lr: 0.87013
+2024-08-21 22:07:54.522 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][3/77] Data 0.027 (0.025) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3496 data: 0.0043 Lr: 0.87013
+2024-08-21 22:07:54.588 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][4/77] Data 0.021 (0.022) Batch 0.065 (0.064) Remain 00:00:34 loss: 0.3691 data: 0.0291 Lr: 0.86851
+2024-08-21 22:07:54.588 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][4/77] Data 0.027 (0.026) Batch 0.065 (0.064) Remain 00:00:34 loss: 0.3691 data: -0.0114 Lr: 0.86851
+2024-08-21 22:07:54.652 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][5/77] Data 0.023 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.4020 data: 0.0033 Lr: 0.86688
+2024-08-21 22:07:54.652 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][5/77] Data 0.027 (0.026) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.4020 data: 0.0068 Lr: 0.86688
+2024-08-21 22:07:54.717 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][6/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2966 data: 0.0031 Lr: 0.86526
+2024-08-21 22:07:54.717 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][6/77] Data 0.027 (0.026) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2966 data: -0.0023 Lr: 0.86526
+2024-08-21 22:07:54.781 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][7/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2933 data: 0.0027 Lr: 0.86364
+2024-08-21 22:07:54.781 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][7/77] Data 0.027 (0.026) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2933 data: -0.0093 Lr: 0.86364
+2024-08-21 22:07:54.845 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][8/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2135 data: -0.0128 Lr: 0.86201
+2024-08-21 22:07:54.845 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][8/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2135 data: -0.0005 Lr: 0.86201
+2024-08-21 22:07:54.909 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][9/77] Data 0.023 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2647 data: -0.0067 Lr: 0.86039
+2024-08-21 22:07:54.909 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][9/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.2647 data: -0.0131 Lr: 0.86039
+2024-08-21 22:07:54.974 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][10/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3200 data: -0.0018 Lr: 0.85877
+2024-08-21 22:07:54.974 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][10/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3200 data: 0.0008 Lr: 0.85877
+2024-08-21 22:07:55.038 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][11/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3170 data: -0.0030 Lr: 0.85714
+2024-08-21 22:07:55.038 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][11/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:34 loss: 0.3170 data: -0.0072 Lr: 0.85714
+2024-08-21 22:07:55.102 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][12/77] Data 0.021 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2209 data: 0.0053 Lr: 0.85552
+2024-08-21 22:07:55.102 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][12/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2209 data: 0.0176 Lr: 0.85552
+2024-08-21 22:07:55.167 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][13/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2697 data: 0.0083 Lr: 0.85390
+2024-08-21 22:07:55.167 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][13/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2697 data: 0.0099 Lr: 0.85390
+2024-08-21 22:07:55.231 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][14/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2667 data: -0.0109 Lr: 0.85227
+2024-08-21 22:07:55.231 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][14/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2667 data: -0.0031 Lr: 0.85227
+2024-08-21 22:07:55.295 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][15/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2303 data: -0.0187 Lr: 0.85065
+2024-08-21 22:07:55.295 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][15/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2303 data: -0.0017 Lr: 0.85065
+2024-08-21 22:07:55.359 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][16/77] Data 0.023 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2853 data: -0.0092 Lr: 0.84903
+2024-08-21 22:07:55.359 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][16/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2853 data: -0.0074 Lr: 0.84903
+2024-08-21 22:07:55.423 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][17/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3329 data: 0.0063 Lr: 0.84740
+2024-08-21 22:07:55.423 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][17/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3329 data: 0.0055 Lr: 0.84740
+2024-08-21 22:07:55.486 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][18/77] Data 0.023 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3595 data: -0.0094 Lr: 0.84578
+2024-08-21 22:07:55.487 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][18/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3595 data: -0.0130 Lr: 0.84578
+2024-08-21 22:07:55.551 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][19/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2019 data: -0.0153 Lr: 0.84416
+2024-08-21 22:07:55.551 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][19/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2019 data: 0.0081 Lr: 0.84416
+2024-08-21 22:07:55.615 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][20/77] Data 0.021 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3837 data: -0.0177 Lr: 0.84253
+2024-08-21 22:07:55.615 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][20/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.3837 data: -0.0091 Lr: 0.84253
+2024-08-21 22:07:55.679 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][21/77] Data 0.022 (0.022) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2994 data: -0.0022 Lr: 0.84091
+2024-08-21 22:07:55.679 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][21/77] Data 0.027 (0.027) Batch 0.064 (0.064) Remain 00:00:33 loss: 0.2994 data: -0.0036 Lr: 0.84091
+2024-08-21 22:07:55.745 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][22/77] Data 0.023 (0.022) Batch 0.066 (0.064) Remain 00:00:33 loss: 0.2896 data: -0.0025 Lr: 0.83929
+2024-08-21 22:07:55.745 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][22/77] Data 0.027 (0.027) Batch 0.066 (0.064) Remain 00:00:33 loss: 0.2896 data: 0.0054 Lr: 0.83929
+2024-08-21 22:07:55.821 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][23/77] Data 0.023 (0.022) Batch 0.076 (0.065) Remain 00:00:33 loss: 0.2749 data: -0.0095 Lr: 0.83766
+2024-08-21 22:07:55.821 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_100
+2024-08-21 22:07:55.821 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][23/77] Data 0.038 (0.027) Batch 0.076 (0.065) Remain 00:00:33 loss: 0.2749 data: -0.0070 Lr: 0.83766
+2024-08-21 22:07:55.821 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_100
+2024-08-21 22:07:55.848 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -329.2174377441406
+2024-08-21 22:07:55.848 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -329.2174377441406
+2024-08-21 22:07:55.848 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -167.4967803955078
+2024-08-21 22:07:55.848 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -161.72067260742188
+2024-08-21 22:07:55.924 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][24/77] Data 0.060 (0.024) Batch 0.103 (0.066) Remain 00:00:34 loss: 0.2776 data: -0.0063 Lr: 0.83604
+2024-08-21 22:07:55.924 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][24/77] Data 0.055 (0.029) Batch 0.103 (0.066) Remain 00:00:34 loss: 0.2776 data: 0.0036 Lr: 0.83604
+2024-08-21 22:07:55.990 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][25/77] Data 0.028 (0.024) Batch 0.066 (0.066) Remain 00:00:34 loss: 0.2714 data: 0.0165 Lr: 0.83442
+2024-08-21 22:07:55.990 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][25/77] Data 0.027 (0.029) Batch 0.066 (0.066) Remain 00:00:34 loss: 0.2714 data: 0.0106 Lr: 0.83442
+2024-08-21 22:07:56.056 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][26/77] Data 0.027 (0.024) Batch 0.067 (0.066) Remain 00:00:34 loss: 0.2252 data: -0.0164 Lr: 0.83279
+2024-08-21 22:07:56.056 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][26/77] Data 0.023 (0.028) Batch 0.067 (0.066) Remain 00:00:34 loss: 0.2252 data: -0.0029 Lr: 0.83279
+2024-08-21 22:07:56.137 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][27/77] Data 0.039 (0.025) Batch 0.080 (0.067) Remain 00:00:34 loss: 0.3351 data: 0.0028 Lr: 0.83117
+2024-08-21 22:07:56.137 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][27/77] Data 0.022 (0.028) Batch 0.080 (0.067) Remain 00:00:34 loss: 0.3351 data: 0.0169 Lr: 0.83117
+2024-08-21 22:07:56.216 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][28/77] Data 0.035 (0.025) Batch 0.079 (0.067) Remain 00:00:34 loss: 0.2479 data: -0.0073 Lr: 0.82955
+2024-08-21 22:07:56.216 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][28/77] Data 0.021 (0.028) Batch 0.079 (0.067) Remain 00:00:34 loss: 0.2479 data: -0.0012 Lr: 0.82955
+2024-08-21 22:07:56.299 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][29/77] Data 0.035 (0.025) Batch 0.083 (0.068) Remain 00:00:34 loss: 0.3185 data: -0.0012 Lr: 0.82792
+2024-08-21 22:07:56.299 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][29/77] Data 0.021 (0.028) Batch 0.083 (0.068) Remain 00:00:34 loss: 0.3185 data: -0.0033 Lr: 0.82792
+2024-08-21 22:07:56.384 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][30/77] Data 0.021 (0.027) Batch 0.086 (0.069) Remain 00:00:34 loss: 0.2141 data: -0.0072 Lr: 0.82630
+2024-08-21 22:07:56.385 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][30/77] Data 0.037 (0.026) Batch 0.086 (0.069) Remain 00:00:34 loss: 0.2141 data: -0.0090 Lr: 0.82630
+2024-08-21 22:07:56.454 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][31/77] Data 0.035 (0.026) Batch 0.070 (0.069) Remain 00:00:34 loss: 0.3065 data: 0.0136 Lr: 0.82468
+2024-08-21 22:07:56.455 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][31/77] Data 0.021 (0.027) Batch 0.070 (0.069) Remain 00:00:34 loss: 0.3065 data: -0.0186 Lr: 0.82468
+2024-08-21 22:07:56.520 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][32/77] Data 0.027 (0.026) Batch 0.066 (0.069) Remain 00:00:34 loss: 0.2163 data: 0.0071 Lr: 0.82305
+2024-08-21 22:07:56.520 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][32/77] Data 0.022 (0.027) Batch 0.066 (0.069) Remain 00:00:34 loss: 0.2163 data: -0.0037 Lr: 0.82305
+2024-08-21 22:07:56.585 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][33/77] Data 0.027 (0.026) Batch 0.064 (0.068) Remain 00:00:34 loss: 0.2258 data: 0.0149 Lr: 0.82143
+2024-08-21 22:07:56.585 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][33/77] Data 0.022 (0.027) Batch 0.064 (0.068) Remain 00:00:34 loss: 0.2258 data: -0.0027 Lr: 0.82143
+2024-08-21 22:07:56.649 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][34/77] Data 0.027 (0.026) Batch 0.065 (0.068) Remain 00:00:34 loss: 0.2747 data: 0.0117 Lr: 0.81981
+2024-08-21 22:07:56.649 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][34/77] Data 0.022 (0.027) Batch 0.065 (0.068) Remain 00:00:34 loss: 0.2747 data: -0.0164 Lr: 0.81981
+2024-08-21 22:07:56.713 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][35/77] Data 0.027 (0.026) Batch 0.064 (0.068) Remain 00:00:34 loss: 0.1938 data: 0.0046 Lr: 0.81818
+2024-08-21 22:07:56.713 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][35/77] Data 0.021 (0.026) Batch 0.064 (0.068) Remain 00:00:34 loss: 0.1938 data: 0.0049 Lr: 0.81818
+2024-08-21 22:07:56.776 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][36/77] Data 0.027 (0.026) Batch 0.063 (0.068) Remain 00:00:34 loss: 0.2868 data: -0.0107 Lr: 0.81656
+2024-08-21 22:07:56.776 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][36/77] Data 0.021 (0.026) Batch 0.063 (0.068) Remain 00:00:34 loss: 0.2868 data: -0.0141 Lr: 0.81656
+2024-08-21 22:07:56.839 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][37/77] Data 0.027 (0.026) Batch 0.063 (0.068) Remain 00:00:34 loss: 0.2064 data: -0.0088 Lr: 0.81494
+2024-08-21 22:07:56.839 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][37/77] Data 0.022 (0.026) Batch 0.063 (0.068) Remain 00:00:34 loss: 0.2064 data: 0.0044 Lr: 0.81494
+2024-08-21 22:07:56.902 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][38/77] Data 0.027 (0.026) Batch 0.063 (0.068) Remain 00:00:34 loss: 0.2366 data: 0.0169 Lr: 0.81331
+2024-08-21 22:07:56.902 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][38/77] Data 0.021 (0.026) Batch 0.062 (0.068) Remain 00:00:34 loss: 0.2366 data: 0.0043 Lr: 0.81331
+2024-08-21 22:07:56.964 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][39/77] Data 0.027 (0.026) Batch 0.063 (0.068) Remain 00:00:33 loss: 0.2553 data: 0.0070 Lr: 0.81169
+2024-08-21 22:07:56.964 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][39/77] Data 0.021 (0.026) Batch 0.063 (0.068) Remain 00:00:33 loss: 0.2553 data: 0.0037 Lr: 0.81169
+2024-08-21 22:07:57.027 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][40/77] Data 0.027 (0.026) Batch 0.063 (0.067) Remain 00:00:33 loss: 0.1793 data: 0.0044 Lr: 0.81006
+2024-08-21 22:07:57.027 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][40/77] Data 0.021 (0.026) Batch 0.063 (0.067) Remain 00:00:33 loss: 0.1793 data: -0.0223 Lr: 0.81006
+2024-08-21 22:07:57.091 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][41/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.2726 data: 0.0002 Lr: 0.80844
+2024-08-21 22:07:57.092 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][41/77] Data 0.021 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.2726 data: 0.0003 Lr: 0.80844
+2024-08-21 22:07:57.156 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][42/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.2645 data: -0.0108 Lr: 0.80682
+2024-08-21 22:07:57.156 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][42/77] Data 0.022 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.2645 data: -0.0043 Lr: 0.80682
+2024-08-21 22:07:57.221 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][43/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.4162 data: -0.0178 Lr: 0.80519
+2024-08-21 22:07:57.221 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][43/77] Data 0.023 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.4162 data: -0.0002 Lr: 0.80519
+2024-08-21 22:07:57.285 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][44/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.4579 data: -0.0085 Lr: 0.80357
+2024-08-21 22:07:57.285 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][44/77] Data 0.022 (0.025) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.4579 data: 0.0022 Lr: 0.80357
+2024-08-21 22:07:57.349 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][45/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.2613 data: -0.0076 Lr: 0.80195
+2024-08-21 22:07:57.349 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][45/77] Data 0.021 (0.025) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.2613 data: -0.0029 Lr: 0.80195
+2024-08-21 22:07:57.413 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][46/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.2857 data: -0.0116 Lr: 0.80032
+2024-08-21 22:07:57.413 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][46/77] Data 0.022 (0.025) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.2857 data: 0.0039 Lr: 0.80032
+2024-08-21 22:07:57.493 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][47/77] Data 0.034 (0.025) Batch 0.079 (0.067) Remain 00:00:33 loss: 0.2820 data: 0.0109 Lr: 0.79870
+2024-08-21 22:07:57.493 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][47/77] Data 0.027 (0.026) Batch 0.080 (0.067) Remain 00:00:33 loss: 0.2820 data: -0.0083 Lr: 0.79870
+2024-08-21 22:07:57.557 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][48/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:33 loss: 0.1797 data: -0.0018 Lr: 0.79708
+2024-08-21 22:07:57.557 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][48/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:33 loss: 0.1797 data: 0.0121 Lr: 0.79708
+2024-08-21 22:07:57.631 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][49/77] Data 0.027 (0.026) Batch 0.074 (0.067) Remain 00:00:33 loss: 0.3115 data: -0.0057 Lr: 0.79545
+2024-08-21 22:07:57.631 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][49/77] Data 0.034 (0.026) Batch 0.074 (0.067) Remain 00:00:33 loss: 0.3115 data: -0.0056 Lr: 0.79545
+2024-08-21 22:07:57.697 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][50/77] Data 0.027 (0.026) Batch 0.066 (0.067) Remain 00:00:33 loss: 0.2653 data: -0.0177 Lr: 0.79383
+2024-08-21 22:07:57.697 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][50/77] Data 0.027 (0.026) Batch 0.066 (0.067) Remain 00:00:33 loss: 0.2653 data: -0.0059 Lr: 0.79383
+2024-08-21 22:07:57.762 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][51/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1849 data: 0.0019 Lr: 0.79221
+2024-08-21 22:07:57.762 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][51/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1849 data: 0.0120 Lr: 0.79221
+2024-08-21 22:07:57.827 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][52/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1924 data: -0.0249 Lr: 0.79058
+2024-08-21 22:07:57.827 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][52/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1924 data: 0.0017 Lr: 0.79058
+2024-08-21 22:07:57.892 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][53/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.2057 data: -0.0014 Lr: 0.78896
+2024-08-21 22:07:57.892 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][53/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.2057 data: 0.0034 Lr: 0.78896
+2024-08-21 22:07:57.956 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][54/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2757 data: 0.0218 Lr: 0.78734
+2024-08-21 22:07:57.956 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][54/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2757 data: 0.0069 Lr: 0.78734
+2024-08-21 22:07:58.021 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][55/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1861 data: 0.0029 Lr: 0.78571
+2024-08-21 22:07:58.021 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][55/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.1861 data: 0.0152 Lr: 0.78571
+2024-08-21 22:07:58.085 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][56/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2821 data: 0.0070 Lr: 0.78409
+2024-08-21 22:07:58.085 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][56/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2821 data: -0.0028 Lr: 0.78409
+2024-08-21 22:07:58.150 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][57/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.2690 data: 0.0044 Lr: 0.78247
+2024-08-21 22:07:58.150 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][57/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:32 loss: 0.2690 data: -0.0048 Lr: 0.78247
+2024-08-21 22:07:58.214 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][58/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.1549 data: 0.0036 Lr: 0.78084
+2024-08-21 22:07:58.214 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][58/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.1549 data: 0.0017 Lr: 0.78084
+2024-08-21 22:07:58.278 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][59/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2709 data: -0.0058 Lr: 0.77922
+2024-08-21 22:07:58.278 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][59/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2709 data: 0.0104 Lr: 0.77922
+2024-08-21 22:07:58.342 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][60/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2061 data: 0.0062 Lr: 0.77760
+2024-08-21 22:07:58.343 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][60/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:32 loss: 0.2061 data: -0.0078 Lr: 0.77760
+2024-08-21 22:07:58.405 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][61/77] Data 0.027 (0.027) Batch 0.063 (0.067) Remain 00:00:32 loss: 0.1888 data: -0.0027 Lr: 0.77597
+2024-08-21 22:07:58.405 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][61/77] Data 0.027 (0.026) Batch 0.063 (0.067) Remain 00:00:32 loss: 0.1888 data: 0.0060 Lr: 0.77597
+2024-08-21 22:07:58.469 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][62/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.1642 data: 0.0132 Lr: 0.77435
+2024-08-21 22:07:58.469 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][62/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.1642 data: -0.0130 Lr: 0.77435
+2024-08-21 22:07:58.533 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][63/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.2061 data: 0.0036 Lr: 0.77273
+2024-08-21 22:07:58.533 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][63/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.2061 data: 0.0162 Lr: 0.77273
+2024-08-21 22:07:58.599 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][64/77] Data 0.027 (0.027) Batch 0.066 (0.067) Remain 00:00:31 loss: 0.1776 data: 0.0171 Lr: 0.77110
+2024-08-21 22:07:58.599 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][64/77] Data 0.027 (0.026) Batch 0.066 (0.067) Remain 00:00:31 loss: 0.1776 data: 0.0150 Lr: 0.77110
+2024-08-21 22:07:58.663 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][65/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.2602 data: -0.0064 Lr: 0.76948
+2024-08-21 22:07:58.663 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][65/77] Data 0.029 (0.026) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.2602 data: 0.0033 Lr: 0.76948
+2024-08-21 22:07:58.728 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][66/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.1954 data: 0.0051 Lr: 0.76786
+2024-08-21 22:07:58.728 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][66/77] Data 0.027 (0.026) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.1954 data: 0.0126 Lr: 0.76786
+2024-08-21 22:07:58.792 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][67/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.1953 data: -0.0006 Lr: 0.76623
+2024-08-21 22:07:58.792 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][67/77] Data 0.027 (0.026) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.1953 data: 0.0009 Lr: 0.76623
+2024-08-21 22:07:58.859 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][68/77] Data 0.027 (0.027) Batch 0.066 (0.067) Remain 00:00:31 loss: 0.2198 data: -0.0102 Lr: 0.76461
+2024-08-21 22:07:58.859 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][68/77] Data 0.027 (0.026) Batch 0.066 (0.067) Remain 00:00:31 loss: 0.2198 data: -0.0143 Lr: 0.76461
+2024-08-21 22:07:58.926 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][69/77] Data 0.027 (0.027) Batch 0.068 (0.067) Remain 00:00:31 loss: 0.2180 data: -0.0094 Lr: 0.76299
+2024-08-21 22:07:58.926 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][69/77] Data 0.028 (0.026) Batch 0.068 (0.067) Remain 00:00:31 loss: 0.2180 data: 0.0056 Lr: 0.76299
+2024-08-21 22:07:58.994 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][70/77] Data 0.027 (0.027) Batch 0.067 (0.067) Remain 00:00:31 loss: 0.1950 data: 0.0183 Lr: 0.76136
+2024-08-21 22:07:58.994 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][70/77] Data 0.027 (0.026) Batch 0.067 (0.067) Remain 00:00:31 loss: 0.1950 data: -0.0179 Lr: 0.76136
+2024-08-21 22:07:59.061 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][71/77] Data 0.027 (0.027) Batch 0.067 (0.067) Remain 00:00:31 loss: 0.1495 data: 0.0079 Lr: 0.75974
+2024-08-21 22:07:59.061 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][71/77] Data 0.027 (0.026) Batch 0.067 (0.067) Remain 00:00:31 loss: 0.1495 data: 0.0003 Lr: 0.75974
+2024-08-21 22:07:59.134 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][72/77] Data 0.030 (0.027) Batch 0.073 (0.067) Remain 00:00:31 loss: 0.1181 data: -0.0032 Lr: 0.75812
+2024-08-21 22:07:59.134 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][72/77] Data 0.030 (0.026) Batch 0.073 (0.067) Remain 00:00:31 loss: 0.1181 data: 0.0072 Lr: 0.75812
+2024-08-21 22:07:59.208 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][73/77] Data 0.028 (0.027) Batch 0.075 (0.067) Remain 00:00:31 loss: 0.1487 data: -0.0001 Lr: 0.75649
+2024-08-21 22:07:59.208 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][73/77] Data 0.023 (0.026) Batch 0.074 (0.067) Remain 00:00:31 loss: 0.1487 data: -0.0136 Lr: 0.75649
+2024-08-21 22:07:59.209 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_150
+2024-08-21 22:07:59.209 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_150
+2024-08-21 22:07:59.230 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -389.8766784667969
+2024-08-21 22:07:59.231 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -389.8766784667969
+2024-08-21 22:07:59.231 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -205.44168090820312
+2024-08-21 22:07:59.231 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -184.4349822998047
+2024-08-21 22:07:59.296 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][74/77] Data 0.050 (0.027) Batch 0.088 (0.067) Remain 00:00:31 loss: 0.3242 data: 0.0015 Lr: 0.75487
+2024-08-21 22:07:59.296 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][74/77] Data 0.043 (0.026) Batch 0.088 (0.067) Remain 00:00:31 loss: 0.3242 data: -0.0041 Lr: 0.75487
+2024-08-21 22:07:59.361 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][75/77] Data 0.027 (0.027) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.2713 data: 0.0104 Lr: 0.75325
+2024-08-21 22:07:59.361 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][75/77] Data 0.022 (0.026) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.2713 data: -0.0017 Lr: 0.75325
+2024-08-21 22:07:59.425 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][76/77] Data 0.027 (0.027) Batch 0.064 (0.067) Remain 00:00:31 loss: 0.1116 data: -0.0117 Lr: 0.75162
+2024-08-21 22:07:59.425 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][76/77] Data 0.023 (0.026) Batch 0.065 (0.067) Remain 00:00:31 loss: 0.1116 data: 0.0095 Lr: 0.75162
+2024-08-21 22:07:59.466 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][77/77] Data 0.030 (0.027) Batch 0.041 (0.067) Remain 00:00:30 loss: 0.2556 data: -0.0051 Lr: 0.75000
+2024-08-21 22:07:59.467 | INFO     | trim.callbacks.evaluator:eval:19 - >>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>
+2024-08-21 22:07:59.466 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [2/8][77/77] Data 0.025 (0.026) Batch 0.041 (0.067) Remain 00:00:30 loss: 0.2556 data: -0.0003 Lr: 0.75000
+2024-08-21 22:07:59.467 | INFO     | trim.callbacks.evaluator:eval:19 - >>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:35 - Test set: Average loss: 0.0550, Accuracy: 0.9822
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:35 - Test set: Average loss: 0.0550, Accuracy: 0.9822
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:39 - <<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:39 - <<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:46 - New best metric!
+2024-08-21 22:08:03.348 | INFO     | trim.callbacks.evaluator:eval:46 - New best metric!
+2024-08-21 22:08:03.442 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][1/77] Data 0.056 (0.056) Batch 0.093 (0.093) Remain 00:00:43 loss: 0.2136 data: -0.0045 Lr: 0.74838
+2024-08-21 22:08:03.442 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][1/77] Data 0.044 (0.044) Batch 0.093 (0.093) Remain 00:00:43 loss: 0.2136 data: -0.0011 Lr: 0.74838
+2024-08-21 22:08:03.507 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][2/77] Data 0.027 (0.027) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2959 data: 0.0096 Lr: 0.74675
+2024-08-21 22:08:03.507 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][2/77] Data 0.022 (0.022) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2959 data: 0.0084 Lr: 0.74675
+2024-08-21 22:08:03.571 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][3/77] Data 0.027 (0.027) Batch 0.064 (0.065) Remain 00:00:29 loss: 0.2031 data: -0.0070 Lr: 0.74513
+2024-08-21 22:08:03.571 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][3/77] Data 0.021 (0.021) Batch 0.064 (0.065) Remain 00:00:29 loss: 0.2031 data: 0.0068 Lr: 0.74513
+2024-08-21 22:08:03.636 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][4/77] Data 0.027 (0.027) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.1909 data: 0.0159 Lr: 0.74351
+2024-08-21 22:08:03.636 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][4/77] Data 0.021 (0.021) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.1909 data: 0.0033 Lr: 0.74351
+2024-08-21 22:08:03.701 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][5/77] Data 0.027 (0.027) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.1837 data: -0.0087 Lr: 0.74188
+2024-08-21 22:08:03.701 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][5/77] Data 0.021 (0.021) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.1837 data: 0.0059 Lr: 0.74188
+2024-08-21 22:08:03.768 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][6/77] Data 0.028 (0.027) Batch 0.067 (0.065) Remain 00:00:29 loss: 0.3020 data: 0.0066 Lr: 0.74026
+2024-08-21 22:08:03.768 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][6/77] Data 0.022 (0.021) Batch 0.067 (0.065) Remain 00:00:29 loss: 0.3020 data: 0.0003 Lr: 0.74026
+2024-08-21 22:08:03.832 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][7/77] Data 0.027 (0.027) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2612 data: 0.0009 Lr: 0.73864
+2024-08-21 22:08:03.833 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][7/77] Data 0.021 (0.021) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2612 data: -0.0049 Lr: 0.73864
+2024-08-21 22:08:03.896 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][8/77] Data 0.027 (0.027) Batch 0.063 (0.065) Remain 00:00:29 loss: 0.2464 data: 0.0145 Lr: 0.73701
+2024-08-21 22:08:03.896 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][8/77] Data 0.021 (0.021) Batch 0.063 (0.065) Remain 00:00:29 loss: 0.2464 data: 0.0171 Lr: 0.73701
+2024-08-21 22:08:03.959 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][9/77] Data 0.027 (0.027) Batch 0.063 (0.065) Remain 00:00:29 loss: 0.1910 data: -0.0157 Lr: 0.73539
+2024-08-21 22:08:03.959 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][9/77] Data 0.022 (0.021) Batch 0.063 (0.065) Remain 00:00:29 loss: 0.1910 data: 0.0071 Lr: 0.73539
+2024-08-21 22:08:04.024 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][10/77] Data 0.027 (0.027) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2163 data: -0.0009 Lr: 0.73377
+2024-08-21 22:08:04.024 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][10/77] Data 0.021 (0.021) Batch 0.065 (0.065) Remain 00:00:29 loss: 0.2163 data: -0.0004 Lr: 0.73377
+2024-08-21 22:08:04.099 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][11/77] Data 0.031 (0.028) Batch 0.075 (0.066) Remain 00:00:29 loss: 0.2322 data: 0.0062 Lr: 0.73214
+2024-08-21 22:08:04.099 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][11/77] Data 0.023 (0.021) Batch 0.075 (0.066) Remain 00:00:29 loss: 0.2322 data: -0.0147 Lr: 0.73214
+2024-08-21 22:08:04.177 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][12/77] Data 0.034 (0.028) Batch 0.078 (0.067) Remain 00:00:30 loss: 0.1798 data: 0.0201 Lr: 0.73052
+2024-08-21 22:08:04.177 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][12/77] Data 0.021 (0.021) Batch 0.078 (0.067) Remain 00:00:30 loss: 0.1798 data: 0.0268 Lr: 0.73052
+2024-08-21 22:08:04.250 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][13/77] Data 0.033 (0.028) Batch 0.073 (0.067) Remain 00:00:30 loss: 0.1602 data: 0.0123 Lr: 0.72890
+2024-08-21 22:08:04.251 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][13/77] Data 0.021 (0.021) Batch 0.073 (0.067) Remain 00:00:30 loss: 0.1602 data: -0.0012 Lr: 0.72890
+2024-08-21 22:08:04.319 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][14/77] Data 0.027 (0.028) Batch 0.068 (0.067) Remain 00:00:30 loss: 0.2479 data: -0.0102 Lr: 0.72727
+2024-08-21 22:08:04.319 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][14/77] Data 0.021 (0.021) Batch 0.068 (0.067) Remain 00:00:30 loss: 0.2479 data: -0.0023 Lr: 0.72727
+2024-08-21 22:08:04.381 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][15/77] Data 0.027 (0.028) Batch 0.062 (0.067) Remain 00:00:30 loss: 0.1776 data: -0.0138 Lr: 0.72565
+2024-08-21 22:08:04.381 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][15/77] Data 0.021 (0.021) Batch 0.062 (0.067) Remain 00:00:30 loss: 0.1776 data: -0.0008 Lr: 0.72565
+2024-08-21 22:08:04.445 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][16/77] Data 0.027 (0.028) Batch 0.064 (0.067) Remain 00:00:29 loss: 0.2279 data: 0.0008 Lr: 0.72403
+2024-08-21 22:08:04.445 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][16/77] Data 0.021 (0.021) Batch 0.064 (0.067) Remain 00:00:29 loss: 0.2279 data: -0.0084 Lr: 0.72403
+2024-08-21 22:08:04.507 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][17/77] Data 0.027 (0.028) Batch 0.062 (0.067) Remain 00:00:29 loss: 0.1685 data: 0.0065 Lr: 0.72240
+2024-08-21 22:08:04.507 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][17/77] Data 0.022 (0.021) Batch 0.062 (0.067) Remain 00:00:29 loss: 0.1685 data: 0.0021 Lr: 0.72240
+2024-08-21 22:08:04.569 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][18/77] Data 0.027 (0.028) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.2306 data: 0.0004 Lr: 0.72078
+2024-08-21 22:08:04.569 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][18/77] Data 0.021 (0.021) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.2306 data: -0.0179 Lr: 0.72078
+2024-08-21 22:08:04.631 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][19/77] Data 0.027 (0.028) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.2545 data: -0.0039 Lr: 0.71916
+2024-08-21 22:08:04.631 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][19/77] Data 0.022 (0.021) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.2545 data: 0.0078 Lr: 0.71916
+2024-08-21 22:08:04.694 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][20/77] Data 0.027 (0.028) Batch 0.063 (0.066) Remain 00:00:29 loss: 0.1645 data: -0.0017 Lr: 0.71753
+2024-08-21 22:08:04.694 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][20/77] Data 0.021 (0.021) Batch 0.063 (0.066) Remain 00:00:29 loss: 0.1645 data: 0.0066 Lr: 0.71753
+2024-08-21 22:08:04.757 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][21/77] Data 0.027 (0.028) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.1854 data: -0.0026 Lr: 0.71591
+2024-08-21 22:08:04.757 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][21/77] Data 0.021 (0.021) Batch 0.062 (0.066) Remain 00:00:29 loss: 0.1854 data: 0.0077 Lr: 0.71591
+2024-08-21 22:08:04.822 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][22/77] Data 0.027 (0.028) Batch 0.066 (0.066) Remain 00:00:28 loss: 0.1406 data: -0.0002 Lr: 0.71429
+2024-08-21 22:08:04.822 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][22/77] Data 0.021 (0.021) Batch 0.066 (0.066) Remain 00:00:28 loss: 0.1406 data: -0.0077 Lr: 0.71429
+2024-08-21 22:08:04.885 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][23/77] Data 0.021 (0.021) Batch 0.062 (0.066) Remain 00:00:28 loss: 0.1735 data: 0.0054 Lr: 0.71266
+2024-08-21 22:08:04.885 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][23/77] Data 0.027 (0.028) Batch 0.063 (0.066) Remain 00:00:28 loss: 0.1735 data: -0.0122 Lr: 0.71266
+2024-08-21 22:08:04.952 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][24/77] Data 0.031 (0.028) Batch 0.068 (0.066) Remain 00:00:28 loss: 0.2092 data: 0.0237 Lr: 0.71104
+2024-08-21 22:08:04.953 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][24/77] Data 0.022 (0.021) Batch 0.068 (0.066) Remain 00:00:28 loss: 0.2092 data: 0.0091 Lr: 0.71104
+2024-08-21 22:08:05.017 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][25/77] Data 0.027 (0.028) Batch 0.065 (0.066) Remain 00:00:28 loss: 0.2242 data: -0.0124 Lr: 0.70942
+2024-08-21 22:08:05.017 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][25/77] Data 0.022 (0.021) Batch 0.065 (0.066) Remain 00:00:28 loss: 0.2242 data: 0.0053 Lr: 0.70942
+2024-08-21 22:08:05.082 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][26/77] Data 0.027 (0.028) Batch 0.065 (0.066) Remain 00:00:28 loss: 0.1785 data: 0.0091 Lr: 0.70779
+2024-08-21 22:08:05.082 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][26/77] Data 0.022 (0.021) Batch 0.065 (0.066) Remain 00:00:28 loss: 0.1785 data: 0.0113 Lr: 0.70779
+2024-08-21 22:08:05.148 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][27/77] Data 0.027 (0.028) Batch 0.066 (0.066) Remain 00:00:28 loss: 0.2285 data: -0.0085 Lr: 0.70617
+2024-08-21 22:08:05.148 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][27/77] Data 0.022 (0.021) Batch 0.066 (0.066) Remain 00:00:28 loss: 0.2285 data: -0.0077 Lr: 0.70617
+2024-08-21 22:08:05.215 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][28/77] Data 0.027 (0.028) Batch 0.067 (0.066) Remain 00:00:28 loss: 0.1934 data: -0.0011 Lr: 0.70455
+2024-08-21 22:08:05.215 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][28/77] Data 0.027 (0.022) Batch 0.067 (0.066) Remain 00:00:28 loss: 0.1934 data: 0.0013 Lr: 0.70455
+2024-08-21 22:08:05.293 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][29/77] Data 0.027 (0.028) Batch 0.078 (0.066) Remain 00:00:28 loss: 0.2147 data: 0.0135 Lr: 0.70292
+2024-08-21 22:08:05.294 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][29/77] Data 0.032 (0.022) Batch 0.078 (0.066) Remain 00:00:28 loss: 0.2147 data: -0.0093 Lr: 0.70292
+2024-08-21 22:08:05.379 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][30/77] Data 0.028 (0.028) Batch 0.086 (0.067) Remain 00:00:28 loss: 0.1482 data: 0.0096 Lr: 0.70130
+2024-08-21 22:08:05.380 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][30/77] Data 0.037 (0.022) Batch 0.086 (0.067) Remain 00:00:28 loss: 0.1482 data: -0.0269 Lr: 0.70130
+2024-08-21 22:08:05.469 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][31/77] Data 0.028 (0.028) Batch 0.090 (0.068) Remain 00:00:29 loss: 0.2001 data: 0.0054 Lr: 0.69968
+2024-08-21 22:08:05.470 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][31/77] Data 0.037 (0.023) Batch 0.090 (0.068) Remain 00:00:29 loss: 0.2001 data: 0.0053 Lr: 0.69968
+2024-08-21 22:08:05.551 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][32/77] Data 0.036 (0.028) Batch 0.082 (0.068) Remain 00:00:29 loss: 0.1763 data: -0.0337 Lr: 0.69805
+2024-08-21 22:08:05.552 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][32/77] Data 0.027 (0.023) Batch 0.082 (0.068) Remain 00:00:29 loss: 0.1763 data: -0.0045 Lr: 0.69805
+2024-08-21 22:08:05.636 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][33/77] Data 0.027 (0.028) Batch 0.085 (0.069) Remain 00:00:29 loss: 0.2317 data: -0.0012 Lr: 0.69643
+2024-08-21 22:08:05.636 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][33/77] Data 0.034 (0.023) Batch 0.085 (0.069) Remain 00:00:29 loss: 0.2317 data: 0.0139 Lr: 0.69643
+2024-08-21 22:08:05.715 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][34/77] Data 0.037 (0.028) Batch 0.079 (0.069) Remain 00:00:29 loss: 0.1964 data: 0.0190 Lr: 0.69481
+2024-08-21 22:08:05.715 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][34/77] Data 0.028 (0.024) Batch 0.079 (0.069) Remain 00:00:29 loss: 0.1964 data: 0.0132 Lr: 0.69481
+2024-08-21 22:08:05.804 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][35/77] Data 0.028 (0.028) Batch 0.089 (0.069) Remain 00:00:29 loss: 0.1908 data: -0.0044 Lr: 0.69318
+2024-08-21 22:08:05.805 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][35/77] Data 0.038 (0.024) Batch 0.089 (0.069) Remain 00:00:29 loss: 0.1908 data: 0.0115 Lr: 0.69318
+2024-08-21 22:08:05.897 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][36/77] Data 0.035 (0.029) Batch 0.093 (0.070) Remain 00:00:29 loss: 0.1780 data: -0.0074 Lr: 0.69156
+2024-08-21 22:08:05.897 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][36/77] Data 0.040 (0.024) Batch 0.093 (0.070) Remain 00:00:29 loss: 0.1780 data: -0.0134 Lr: 0.69156
+2024-08-21 22:08:05.969 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][37/77] Data 0.027 (0.029) Batch 0.072 (0.070) Remain 00:00:29 loss: 0.2041 data: -0.0128 Lr: 0.68994
+2024-08-21 22:08:05.969 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][37/77] Data 0.032 (0.025) Batch 0.072 (0.070) Remain 00:00:29 loss: 0.2041 data: -0.0070 Lr: 0.68994
+2024-08-21 22:08:06.038 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][38/77] Data 0.027 (0.029) Batch 0.069 (0.070) Remain 00:00:29 loss: 0.2760 data: 0.0128 Lr: 0.68831
+2024-08-21 22:08:06.038 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][38/77] Data 0.028 (0.025) Batch 0.069 (0.070) Remain 00:00:29 loss: 0.2760 data: 0.0175 Lr: 0.68831
+2024-08-21 22:08:06.115 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][39/77] Data 0.030 (0.029) Batch 0.077 (0.070) Remain 00:00:29 loss: 0.2248 data: 0.0293 Lr: 0.68669
+2024-08-21 22:08:06.115 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][39/77] Data 0.032 (0.025) Batch 0.077 (0.070) Remain 00:00:29 loss: 0.2248 data: 0.0159 Lr: 0.68669
+2024-08-21 22:08:06.180 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][40/77] Data 0.027 (0.025) Batch 0.065 (0.070) Remain 00:00:29 loss: 0.2363 data: -0.0013 Lr: 0.68506
+2024-08-21 22:08:06.180 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][40/77] Data 0.027 (0.029) Batch 0.066 (0.070) Remain 00:00:29 loss: 0.2363 data: -0.0067 Lr: 0.68506
+2024-08-21 22:08:06.260 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][41/77] Data 0.032 (0.025) Batch 0.080 (0.070) Remain 00:00:29 loss: 0.2019 data: -0.0098 Lr: 0.68344
+2024-08-21 22:08:06.261 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][41/77] Data 0.031 (0.029) Batch 0.080 (0.070) Remain 00:00:29 loss: 0.2019 data: -0.0067 Lr: 0.68344
+2024-08-21 22:08:06.332 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][42/77] Data 0.028 (0.029) Batch 0.071 (0.070) Remain 00:00:29 loss: 0.2643 data: 0.0099 Lr: 0.68182
+2024-08-21 22:08:06.332 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][42/77] Data 0.028 (0.025) Batch 0.072 (0.070) Remain 00:00:29 loss: 0.2643 data: -0.0034 Lr: 0.68182
+2024-08-21 22:08:06.402 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][43/77] Data 0.027 (0.029) Batch 0.070 (0.070) Remain 00:00:29 loss: 0.1316 data: -0.0086 Lr: 0.68019
+2024-08-21 22:08:06.402 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][43/77] Data 0.027 (0.025) Batch 0.070 (0.070) Remain 00:00:29 loss: 0.1316 data: -0.0002 Lr: 0.68019
+2024-08-21 22:08:06.473 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][44/77] Data 0.028 (0.029) Batch 0.071 (0.070) Remain 00:00:29 loss: 0.2312 data: 0.0017 Lr: 0.67857
+2024-08-21 22:08:06.473 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][44/77] Data 0.033 (0.025) Batch 0.071 (0.070) Remain 00:00:29 loss: 0.2312 data: 0.0015 Lr: 0.67857
+2024-08-21 22:08:06.538 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][45/77] Data 0.027 (0.028) Batch 0.065 (0.070) Remain 00:00:29 loss: 0.1491 data: -0.0113 Lr: 0.67695
+2024-08-21 22:08:06.538 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][45/77] Data 0.027 (0.025) Batch 0.065 (0.070) Remain 00:00:29 loss: 0.1491 data: -0.0039 Lr: 0.67695
+2024-08-21 22:08:06.603 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][46/77] Data 0.027 (0.028) Batch 0.065 (0.070) Remain 00:00:29 loss: 0.2151 data: -0.0087 Lr: 0.67532
+2024-08-21 22:08:06.603 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_200
+2024-08-21 22:08:06.603 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][46/77] Data 0.027 (0.025) Batch 0.065 (0.070) Remain 00:00:29 loss: 0.2151 data: -0.0039 Lr: 0.67532
+2024-08-21 22:08:06.603 | INFO     | trim.callbacks.misc:save_checkpoint:149 - => Saving checkpoint to: step_200
+2024-08-21 22:08:06.630 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -464.5378112792969
+2024-08-21 22:08:06.630 | INFO     | trim.callbacks.misc:save_checkpoint:155 - ### Model weight: -464.5378112792969
+2024-08-21 22:08:06.630 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -216.15464782714844
+2024-08-21 22:08:06.631 | INFO     | trim.callbacks.misc:save_checkpoint:157 - ### Optimizer weight: -248.3831787109375
+2024-08-21 22:08:06.698 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][47/77] Data 0.055 (0.029) Batch 0.095 (0.071) Remain 00:00:29 loss: 0.1503 data: 0.0070 Lr: 0.67370
+2024-08-21 22:08:06.698 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][47/77] Data 0.055 (0.026) Batch 0.095 (0.071) Remain 00:00:29 loss: 0.1503 data: 0.0089 Lr: 0.67370
+2024-08-21 22:08:06.764 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][48/77] Data 0.027 (0.029) Batch 0.066 (0.071) Remain 00:00:29 loss: 0.1808 data: -0.0072 Lr: 0.67208
+2024-08-21 22:08:06.764 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][48/77] Data 0.027 (0.026) Batch 0.066 (0.071) Remain 00:00:29 loss: 0.1808 data: -0.0044 Lr: 0.67208
+2024-08-21 22:08:06.834 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][49/77] Data 0.028 (0.029) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1795 data: 0.0042 Lr: 0.67045
+2024-08-21 22:08:06.834 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][49/77] Data 0.028 (0.026) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1795 data: 0.0119 Lr: 0.67045
+2024-08-21 22:08:06.904 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][50/77] Data 0.028 (0.029) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1591 data: -0.0272 Lr: 0.66883
+2024-08-21 22:08:06.904 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][50/77] Data 0.028 (0.026) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1591 data: -0.0082 Lr: 0.66883
+2024-08-21 22:08:06.974 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][51/77] Data 0.028 (0.029) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1483 data: -0.0063 Lr: 0.66721
+2024-08-21 22:08:06.974 | INFO     | trim.callbacks.misc:on_training_step_end:101 - Train: [3/8][51/77] Data 0.028 (0.026) Batch 0.070 (0.071) Remain 00:00:29 loss: 0.1483 data: 0.0005 Lr: 0.66721

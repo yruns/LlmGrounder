@@ -122,7 +122,7 @@ class CheckpointSaver(CallbackBase):
     It is recommended to set these values in the `Evaluator` callback.
     """
 
-    def __init__(self, save_freq, save_last_only=True):
+    def __init__(self, save_freq, save_last_only=False):
         self.save_freq = save_freq
         self.save_lastest_only = save_last_only
         self.checkpointing_steps = None
@@ -200,12 +200,22 @@ class Resumer(CallbackBase):
         self.trainer.resume_step = resume_step
         self.trainer.completed_steps = completed_steps
         self.trainer.start_epoch = starting_epoch
+
+        # Although I don't know why accelete does not restore the state of dataloader,
+        # the following code can solve it
+        for i in range(starting_epoch):
+            self.trainer.logger.info(f"=> Skip epoch: {i + 1}")
+            for data, target in self.trainer.train_loader:
+                pass
+                # self.trainer.logger.info(f"data: {torch.mean(data)}")
+
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader
         self.trainer.train_loader = \
             self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step * self.accelerator.gradient_accumulation_steps)
 
     def on_training_epoch_end(self):
+        # We need to reset the train_loader in next epoch
         if self.stored_train_loader is not None:
             self.trainer.train_loader = self.stored_train_loader
             self.stored_train_loader = None

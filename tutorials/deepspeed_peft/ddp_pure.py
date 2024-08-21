@@ -102,6 +102,9 @@ def initialize_deepspeed(model, trainset, total_num_steps):
         model=model, model_parameters=model.parameters(), config=ds_config
     )
 
+    model_engine.save_checkpoint()
+    model_engine.load_checkpoint()
+
     return model_engine, optimizer, trainloader, scheduler
 
 def train(model_engine, optimizer, trainloader, validloader, resume, epoch=3, log_step=10):

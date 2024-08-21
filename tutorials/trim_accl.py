@@ -153,7 +153,7 @@ class Trainer(TrainerBase):
                 #     self.logger.info(f"Step {self.completed_steps}: loss {reduced_loss}")
 
                 # Anything you want to log in terminal
-                self.comm_info["terminal_log"] = {"loss": reduced_loss}
+                self.comm_info["terminal_log"] = {"loss": reduced_loss, "data": torch.mean(data)}
                 # Anything you want to log in wandb
                 self.comm_info["wandb_log"] = {"loss": reduced_loss}
 
@@ -166,6 +166,8 @@ def main(hparams):
     hparams.log_tag = "init_1"
 
     comm.seed_everything(hparams.seed)
+    # from accelerate.utils import set_seed
+    # set_seed(hparams.seed)
     comm.copy_codebase(hparams.save_path)
 
     accelerator = Accelerator(
@@ -176,13 +178,15 @@ def main(hparams):
         )
     )
 
+    logger.add(f"logs/{time.strftime('%Y-%m-%d_%H-%M-%S')}")
+
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        Resumer(checkpoint="output/step_100"),
+        Resumer(checkpoint="output/step_450"),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=1),
         Evaluator(),
-        CheckpointSaver(save_freq=50),
+        CheckpointSaver(save_freq=50, save_last_only=False),
     ])
     trainer.fit()
 
