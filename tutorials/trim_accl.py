@@ -178,7 +178,7 @@ def main(hparams):
 
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        Resumer(checkpoint="output/step_50"),
+        Resumer(checkpoint="output/step_100"),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=1),
         Evaluator(),
