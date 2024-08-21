@@ -1,7 +1,7 @@
 import argparse
+import math
 from os import path
 
-import math
 import torch.nn.functional as F
 import torch.optim
 import torch.optim
@@ -92,7 +92,7 @@ class Trainer(TrainerBase):
         optimizer_cls = (
             torch.optim.Adadelta
             if self.accelerator.state.deepspeed_plugin is None
-               or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
+            or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
             else DummyOptim
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
@@ -117,8 +117,7 @@ class Trainer(TrainerBase):
             )
         else:
             self.lr_scheduler = DummyScheduler(
-                self.optimizer, total_num_steps=max_train_steps_for_scheduler,
-                warmup_num_steps=self.hparams.num_warmup_steps
+                self.optimizer, total_num_steps=max_train_steps_for_scheduler, warmup_num_steps=self.hparams.num_warmup_steps
             )
 
     def configure_wandb(self):
@@ -159,6 +158,7 @@ class Trainer(TrainerBase):
                 self.comm_info["wandb_log"] = {"loss": reduced_loss}
 
 
+
 def main(hparams):
     """Main function."""
     hparams.save_path = "output/"
@@ -170,7 +170,7 @@ def main(hparams):
 
     accelerator = Accelerator(
         # mixed_precision="bf16",
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=2,
         deepspeed_plugin=DeepSpeedPlugin(
             hf_ds_config="configs/zero_3_stage.json",
         )
@@ -178,12 +178,11 @@ def main(hparams):
 
     from trim.callbacks.evaluator import Evaluator
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
-        # Resumer(checkpoint="output/step_300"),
-        Resumer(checkpoint="output/step_1800"),
+        Resumer(checkpoint="output/step_50"),
         IterationTimer(warmup_iter=1),
-        InformationWriter(log_interval=10),
+        InformationWriter(log_interval=1),
         Evaluator(),
-        CheckpointSaver(save_freq=300),
+        CheckpointSaver(save_freq=50),
     ])
     trainer.fit()
 
@@ -196,16 +195,9 @@ if __name__ == "__main__":
     parser.add_argument("--gamma", type=float, default=0.7, metavar="M", help="Learning rate step gamma (default: 0.7)")
     parser.add_argument("--seed", type=int, default=1, metavar="S", help="random seed (default: 1)")
     parser.add_argument(
-        "--log-interval",
-        type=int,
-        default=1,
-        metavar="N",
-        help="how many batches to wait before logging training status",
-    )
-    parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
-        default=32,
+        default=196,
         help="Batch size (per device) for the training dataloader.",
     )
     parser.add_argument(
@@ -216,13 +208,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--weight_decay", type=float, default=0.0, help="Weight decay to use.")
-
-    parser.add_argument(
-        "--gradient_accumulation_steps",
-        type=int,
-        default=1,
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
-    )
     parser.add_argument(
         "--lr_scheduler_type",
         type=str,

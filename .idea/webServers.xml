@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="15847dc2-41e3-4810-8eb7-3fa0c122ce2d" name="LMM-Grounder">
+        <fileTransfer accessType="SFTP" host="223.0.15.42" port="22" sshConfigId="bd291c44-39d4-48a6-8221-4c3a8195065a" sshConfig="shyue@a800sh" />
+      </webServer>
+    </option>
+  </component>
+</project>

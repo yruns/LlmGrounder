@@ -47,6 +47,8 @@ def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
 def convert_tensor_to_dtype(input_value, dtype):
     """Move input tensors to device"""
     if isinstance(dtype, str):
+        if dtype == "no":
+            return input_value
         dtype = convert_str_to_dtype(dtype)
 
     if isinstance(input_value, torch.Tensor):
@@ -198,16 +200,13 @@ def main(hparams):
     #     zero_stage=2,
     #     gradient_accumulation_steps=hparams.gradient_accumulation_steps,
     # )
+    from accelerate import DeepSpeedPlugin
 
-    accelerator = (
-        Accelerator(
-            log_with=hparams.report_to,
-            project_dir=hparams.output_dir,
-            # deepspeed_plugin=df_plugin,
-            gradient_accumulation_steps=hparams.gradient_accumulation_steps,
+    accelerator = Accelerator(
+        gradient_accumulation_steps=1,
+        deepspeed_plugin=DeepSpeedPlugin(
+            hf_ds_config="/data2/shyue/ysh/paper-code/lang-point/LMM-Grounder/configs/zero_3_stage.json",
         )
-        if hparams.with_tracking
-        else Accelerator(gradient_accumulation_steps=hparams.gradient_accumulation_steps)
     )
 
     if accelerator.is_main_process:
@@ -281,7 +280,7 @@ def main(hparams):
 
         # skip new `skip_first_batches` to skip the batches when resuming from ckpt
         if hparams.resume_from_checkpoint and epoch == starting_epoch and resume_step is not None:
-            active_dataloader = accelerator.skip_first_batches(train_dataloader, resume_step)
+            active_dataloader = accelerator.skip_first_batches(train_dataloader, resume_step * accelerator.gradient_accumulation_steps)
         else:
             active_dataloader = train_dataloader
         for step, (data, target) in enumerate(active_dataloader):
@@ -302,7 +301,7 @@ def main(hparams):
                     reduced_loss = accelerator.reduce(loss)
                     if completed_steps % hparams.log_interval == 0 and accelerator.is_main_process:
                         logger.info(
-                            f"Step {completed_steps}: loss {reduced_loss} , lr {optimizer.param_groups[0]['lr']}")
+                            f"Step {completed_steps}/{step}: loss {reduced_loss}, data: {torch.sum(data)}, lr {optimizer.param_groups[0]['lr']}")
 
             # We keep track of the loss at each epoch
             if hparams.with_tracking:
@@ -393,11 +392,24 @@ if __name__ == "__main__":
         metavar="N",
         help="how many batches to wait before logging training status",
     )
+    # parser.add_argument(
+    #     "--gradient_accumulation_steps",
+    #     type=int,
+    #     default=2,
+    #     help="Number of updates steps to accumulate before performing a backward/update pass.",
+    # )
     parser.add_argument(
-        "--gradient_accumulation_steps",
-        type=int,
-        default=2,
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
+        "--checkpointing_steps",
+        type=str,
+        default="300",
+        help="Whether the various states should be saved at the end of every n steps, or 'epoch' for each epoch.",
+    )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        type=str,
+        # default=None,
+        # default="output/step_300",
+        help="If the training should continue from a checkpoint folder.",
     )
     parser.add_argument(
         "--per_device_train_batch_size",
@@ -439,19 +451,7 @@ if __name__ == "__main__":
         default=None,
         help="The number of processes to use for the preprocessing.",
     )
-    parser.add_argument(
-        "--checkpointing_steps",
-        type=str,
-        default="300",
-        help="Whether the various states should be saved at the end of every n steps, or 'epoch' for each epoch.",
-    )
-    parser.add_argument(
-        "--resume_from_checkpoint",
-        type=str,
-        default=None,
-        # default="output/step_1500",
-        help="If the training should continue from a checkpoint folder.",
-    )
+
     # Whether to load the best model at the end of training
     parser.add_argument(
         "--load_best_model",

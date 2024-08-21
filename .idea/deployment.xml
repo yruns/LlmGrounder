@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="LMM-Grounder" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="LMM-Grounder">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/data2/shyue/ysh/paper-code/lang-point/LMM-Grounder" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/third_party" />
+            <excludedPath local="true" path="$PROJECT_DIR$/data/referit3d" />
+            <excludedPath local="true" path="$PROJECT_DIR$/base_grounder" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="shyue@a800sh (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/data2/shyue/ysh/paper-code/lang-point/LMM-Grounder" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

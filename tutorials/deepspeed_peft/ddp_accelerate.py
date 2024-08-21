@@ -96,7 +96,7 @@ def train(model, optimizer, trainloader, validloader, accelerator: Accelerator, 
                                                                resume_step * accelerator.gradient_accumulation_steps)
         else:
             active_dataloader = trainloader
-        for batch in active_dataloader:
+        for idx, batch in enumerate(active_dataloader):
             with accelerator.accumulate(model):
                 optimizer.zero_grad()
                 output = model(**batch)
@@ -109,7 +109,9 @@ def train(model, optimizer, trainloader, validloader, accelerator: Accelerator, 
 
                     if global_step % log_step == 0:
                         loss = accelerator.reduce(loss, "mean")
-                        accelerator.print(f"ep: {ep}, global_step: {global_step}, loss: {loss.item()}")
+                        d = torch.sum(batch["input_ids"])
+                        # accelerator.print(f"ep: {ep}, global_step: {global_step}, loss: {loss.item()}")
+                        accelerator.print(f"ep: {ep}, global_step: {global_step}, loss: {loss.item()}, data: {d}")
                         accelerator.log({"loss": loss.item()}, global_step)
 
                     if global_step % 50 == 0 and global_step != 0:
@@ -129,7 +131,15 @@ def train(model, optimizer, trainloader, validloader, accelerator: Accelerator, 
 
 
 def main():
-    accelerator = Accelerator(log_with="tensorboard", project_dir="ckpts")
+    from accelerate import DeepSpeedPlugin
+
+    accelerator = Accelerator(
+        project_dir="ckpts",
+        gradient_accumulation_steps=2,
+        deepspeed_plugin=DeepSpeedPlugin(
+            hf_ds_config="/data2/shyue/ysh/paper-code/lang-point/LMM-Grounder/configs/zero_3_stage.json",
+        )
+    )
 
     accelerator.init_trackers("runs")
 
@@ -139,7 +149,7 @@ def main():
 
     model, optimizer, trainloader, validloader = accelerator.prepare(model, optimizer, trainloader, validloader)
 
-    train(model, optimizer, trainloader, validloader, accelerator, resume=None)
+    train(model, optimizer, trainloader, validloader, accelerator, resume="ckpts/step_100")
 
 
 if __name__ == "__main__":

@@ -5,12 +5,20 @@ Author: Xiaoyang Wu (xiaoyang.wu.cs@gmail.com)
 Please cite our work if the code is helpful to you.
 """
 
+import glob
 import os
 import shutil
+import sys
 import time
+from collections import OrderedDict
 
-from trim.callbacks.default import CallbackBase
-from trim.utils.timer import Timer
+import torch
+import torch.utils.data
+
+from deeper.utils.timer import Timer
+from deeper.utils import comm
+
+from deeper.callbacks.default import CallbackBase
 
 
 class IterationTimer(CallbackBase):
@@ -125,14 +133,12 @@ class CheckpointSaver(CallbackBase):
     def __init__(self, save_freq, save_last_only=True):
         self.save_freq = save_freq
         self.save_lastest_only = save_last_only
-        self.checkpointing_steps = None
         self.last_checkpoint = None
 
-    def on_training_phase_start(self):
-        if isinstance(self.save_freq, int):
+        if isinstance(save_freq, int):
             # step based
-            self.checkpointing_steps = self.save_freq
-        elif isinstance(self.save_freq, str) and self.save_freq == "epoch":
+            self.checkpointing_steps = save_freq
+        elif isinstance(save_freq, str) and save_freq == "epoch":
             # epoch based
             self.checkpointing_steps = self.trainer.num_update_steps_per_epoch
 
@@ -150,12 +156,6 @@ class CheckpointSaver(CallbackBase):
         output_dir = os.path.join(self.trainer.output_dir, output_dir)
         self.accelerator.save_state(output_dir)
 
-        import torch
-        from ..utils import comm
-        self.trainer.logger.info(f"### Model weight: {comm.sum_model_parameters(self.trainer.model)}")
-        # self.trainer.logger.info(f"### Optimizer weight: {self.trainer.optimizer.param_groups}")
-        self.trainer.logger.info(f"### Optimizer weight: {torch.sum(list(self.trainer.optimizer.state.keys())[0])}")
-
         if self.save_lastest_only and self.last_checkpoint is not None and self.accelerator.is_main_process:
             shutil.rmtree(self.last_checkpoint)
             self.last_checkpoint = output_dir
@@ -171,7 +171,7 @@ class Resumer(CallbackBase):
         if self.checkpoint is not None:
             self.resume()
         else:
-            self.trainer.logger.info("=> No checkpoint given, engine from scratch")
+            self.trainer.logger.info("=> No checkpoint given, training from scratch")
 
     def resume(self):
         if not os.path.exists(self.checkpoint):
@@ -179,17 +179,12 @@ class Resumer(CallbackBase):
         self.trainer.logger.info(f"=> Resuming from checkpoint: {self.checkpoint}")
         self.accelerator.load_state(self.checkpoint)
 
-        import torch
-        from ..utils import comm
-        self.trainer.logger.info(f"### Model weight: {comm.sum_model_parameters(self.trainer.model)}")
-        self.trainer.logger.info(f"### Optimizer weight: {torch.sum(list(self.trainer.optimizer.state.keys())[0])}")
-
         path = os.path.basename(self.checkpoint)
         training_difference = os.path.splitext(path)[0]
 
         resume_step = 0
         if "epoch" in training_difference:
-            starting_epoch = int(training_difference.replace("epoch_", ""))
+            starting_epoch = int(training_difference.replace("epoch_", "")) + 1
             completed_steps = starting_epoch * self.trainer.num_update_steps_per_epoch
         else:
             resume_step = int(training_difference.replace("step_", ""))
@@ -203,7 +198,7 @@ class Resumer(CallbackBase):
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader
         self.trainer.train_loader = \
-            self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step * self.accelerator.gradient_accumulation_steps)
+            self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step)
 
     def on_training_epoch_end(self):
         if self.stored_train_loader is not None:
@@ -217,48 +212,48 @@ class CheckpointLoader(CallbackBase):
         self.replacement = replacement if replacement is not None else keywords
         self.strict = strict
 
-    # def on_training_phase_start(self):
-    #     self.trainer.logger.info("=> Loading checkpoint & weight ...")
-    #     if self.trainer.cfg.weight and os.path.isfile(self.trainer.cfg.weight):
-    #         self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
-    #         checkpoint = torch.load(
-    #             self.trainer.cfg.weight,
-    #             map_location=lambda storage, loc: storage.cuda(),
-    #         )
-    #         self.trainer.logger.info(
-    #             f"Loading layer weights with keyword: {self.keywords}, "
-    #             f"replace keyword with: {self.replacement}"
-    #         )
-    #         weight = OrderedDict(
-    #             [
-    #                 (key.replace(self.keywords, self.replacement), value)
-    #                 for key, value in checkpoint["state_dict"].items()
-    #                 if self.keywords in key
-    #             ]
-    #         )
-    #         # weight = OrderedDict()
-    #         # for k, v in checkpoint["state_dict"].items():
-    #         #     if k.startswith('module.'):
-    #         #         # remove module
-    #         #         k = k[7:]  # module.xxx.xxx -> xxx.xxx
-    #         #     else:
-    #         #         # add module
-    #         #         k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
-    #         #     weight[k] = v
-    #         load_state_info = self.trainer.model.load_state_dict(
-    #             weight, strict=self.strict
-    #         )
-    #         self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
-    #         if self.trainer.cfg.resume:
-    #             self.trainer.logger.info(
-    #                 f"Resuming train at eval epoch: {checkpoint['epoch']}"
-    #             )
-    #             self.trainer.start_epoch = checkpoint["epoch"]
-    #             self.trainer.best_metric_value = checkpoint["best_metric_value"]
-    #             self.trainer.best_metric_epoch = checkpoint["epoch"]
-    #             self.trainer.optimizer.load_state_dict(checkpoint["optimizer"])
-    #             self.trainer.scheduler.load_state_dict(checkpoint["scheduler"])
-    #             if self.trainer.cfg.enable_amp:
-    #                 self.trainer.scaler.load_state_dict(checkpoint["scaler"])
-    #     else:
-    #         self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")
+    def on_training_phase_start(self):
+        self.trainer.logger.info("=> Loading checkpoint & weight ...")
+        if self.trainer.cfg.weight and os.path.isfile(self.trainer.cfg.weight):
+            self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
+            checkpoint = torch.load(
+                self.trainer.cfg.weight,
+                map_location=lambda storage, loc: storage.cuda(),
+            )
+            self.trainer.logger.info(
+                f"Loading layer weights with keyword: {self.keywords}, "
+                f"replace keyword with: {self.replacement}"
+            )
+            weight = OrderedDict(
+                [
+                    (key.replace(self.keywords, self.replacement), value)
+                    for key, value in checkpoint["state_dict"].items()
+                    if self.keywords in key
+                ]
+            )
+            # weight = OrderedDict()
+            # for k, v in checkpoint["state_dict"].items():
+            #     if k.startswith('module.'):
+            #         # remove module
+            #         k = k[7:]  # module.xxx.xxx -> xxx.xxx
+            #     else:
+            #         # add module
+            #         k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
+            #     weight[k] = v
+            load_state_info = self.trainer.model.load_state_dict(
+                weight, strict=self.strict
+            )
+            self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
+            if self.trainer.cfg.resume:
+                self.trainer.logger.info(
+                    f"Resuming train at eval epoch: {checkpoint['epoch']}"
+                )
+                self.trainer.start_epoch = checkpoint["epoch"]
+                self.trainer.best_metric_value = checkpoint["best_metric_value"]
+                self.trainer.best_metric_epoch = checkpoint["epoch"]
+                self.trainer.optimizer.load_state_dict(checkpoint["optimizer"])
+                self.trainer.scheduler.load_state_dict(checkpoint["scheduler"])
+                if self.trainer.cfg.enable_amp:
+                    self.trainer.scaler.load_state_dict(checkpoint["scaler"])
+        else:
+            self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")
