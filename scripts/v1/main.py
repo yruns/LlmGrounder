@@ -51,7 +51,7 @@ class Trainer(TrainerBase):
             lora_module_names = set()
             for name, module in model.named_modules():
                 if (isinstance(module, linear_cls) and all(
-                        x not in name for x in ["mm_detector", "mm_projector"]
+                        x not in name for x in ["pointcloud_tower", "point_projector"]
                 ) and any(x in name for x in target_modules)):
                     lora_module_names.add(name)
             return sorted(list(lora_module_names))
@@ -90,7 +90,7 @@ class Trainer(TrainerBase):
         self.model.config.pad_token_id = self.tokenizer.pad_token_id
         self.model.resize_token_embeddings(len(self.tokenizer))
         ## Initialize vision modules
-        self.model.model.initialize_vision_modules(self.hparams)
+        self.model.model.initialize_pointcloud_tower(self.hparams)
         self.model.config.tokenizer_padding_side = self.tokenizer.padding_side
         self.model.config.tokenizer_model_max_length = self.tokenizer.model_max_length
         self.model.config.compute_dtype = self.compute_dtype
@@ -116,12 +116,12 @@ class Trainer(TrainerBase):
         logger.info(f"Number of learnable parameters: {num_parameters}")
         self.accelerator.wait_for_everyone()
 
-    def on_training_phase_start(self):
-        super().on_training_phase_start()
-        if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
-            self.model.base_model.model.reset_detector_precision(torch.float32)
-        else:
-            self.model.model.reset_detector_precision(torch.float32)
+    # def on_training_phase_start(self):
+    #     super().on_training_phase_start()
+    #     if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
+    #         self.model.base_model.model.reset_pointcloud_tower_precision(torch.float32)
+    #     else:
+    #         self.model.model.reset_pointcloud_tower_precision(torch.float32)
 
     def configure_dataloader(self):
         logger.info("### => Creating dataloader...")

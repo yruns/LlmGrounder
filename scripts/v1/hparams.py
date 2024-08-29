@@ -22,16 +22,10 @@ output_dir: str = f"output/grounder_reg_{now}"
 num_workers: int = 0
 dataset_name: Literal["referit3d"] = "referit3d"
 grounding_granularity: Literal["reg", "seg"] = "reg"
-scannet_config: Dict = dict(
-    num_points=40000,
-    use_color=False,
-    use_normal=False,
-    use_multiview=False,
-    use_height=False,
-    augment=False,
-    use_random_cuboid=True,
-    random_cuboid_min_points=30000
-)
+
+from configs.mask3d_conf import mask3d_cfg
+pointcloud_tower_cfg: Dict = mask3d_cfg
+pointcloud_output_dim: int = 256
 
 # model
 # llm_name="Meta-Llama-3.1-8B-Instruct"

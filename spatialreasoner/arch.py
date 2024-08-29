@@ -10,7 +10,7 @@ import torch
 from torch import nn
 from transformers import Cache
 
-from spatialreasoner.builder import build_mm_detector
+from spatialreasoner.builder import build_pointcloud_tower
 from staticvars.const import SCENE_TOKEN_INDEX, IGNORE_INDEX
 
 
@@ -19,22 +19,25 @@ class SpatialReasonerMetaModel:
     def __init__(self, config):
         super(SpatialReasonerMetaModel, self).__init__(config)
         self.config = config
-        self.mm_detector = None
-        self.mm_projector = None
+        self.pointcloud_tower = None
+        self.pointcloud_projector = None
 
-    def initialize_vision_modules(self, hparms):
-        scannet_config = getattr(hparms, "scannet_config")
-        self.mm_detector, detector_cfg = build_mm_detector(scannet_config)
-        self.mm_projector = nn.Linear(
-            detector_cfg.enc_dim,
+    def initialize_pointcloud_tower(self, hparms):
+        pointcloud_tower_cfg = getattr(hparms, "pointcloud_tower_cfg")
+        self.pointcloud_tower = build_pointcloud_tower(pointcloud_tower_cfg)
+        self.pointcloud_projector = nn.Linear(
+            pointcloud_tower_cfg["model"]["hidden_dim"],
             self.config.hidden_size,
         )
 
-    def get_detector(self):
-        return getattr(self, "mm_detector", None)
+    def get_pointcloud_tower(self):
+        return getattr(self, "pointcloud_tower", None)
 
-    def reset_detector_precision(self, precision: torch.dtype):
-        setattr(self, "mm_detector", self.get_detector().to(dtype=precision))
+    def get_pointcloud_projector(self):
+        return getattr(self, "pointcloud_projector", None)
+
+    def reset_pointcloud_tower_precision(self, precision: torch.dtype):
+        setattr(self, "pointcloud_tower", self.get_pointcloud_tower().to(dtype=precision))
 
 
 class SpatialReasonerMetaForCausalLM(ABC):
@@ -45,14 +48,17 @@ class SpatialReasonerMetaForCausalLM(ABC):
         pass
 
     def reset_detector_precision(self, precision: torch.dtype):
-        self.get_model().reset_detector_precision(precision)
+        self.get_model().reset_pointcloud_tower_precision(precision)
 
-    def get_detector(self):
-        return self.get_model().get_detector()
+    def get_pointcloud_tower(self):
+        return self.get_model().get_pointcloud_tower()
+
+    def get_pointcloud_projector(self):
+        return self.get_model().get_pointcloud_projector()
 
     def encode_scene(self, scene_data_dict: Dict):
-        scene_features = self.get_detector().encode_scene(scene_data_dict).to(getattr(self.config, "compute_dtype"))
-        return self.get_model().mm_projector(scene_features)
+        scene_features = self.get_pointcloud_tower().encode_scene(scene_data_dict).to(getattr(self.config, "compute_dtype"))
+        return self.get_pointcloud_projector()(scene_features)
 
     def prepare_for_multimodal(
             self,
@@ -62,8 +68,8 @@ class SpatialReasonerMetaForCausalLM(ABC):
             labels: Optional[torch.LongTensor] = None,
             scene_data_dict: Dict = None
     ):
-        # mm_detector = self.get_detector()
-        # assert mm_detector is not None, "Please provide a mm_detector"
+        # pointcloud_tower = self.get_detector()
+        # assert pointcloud_tower is not None, "Please provide a pointcloud_tower"
 
         device = input_ids.device
         embed_tokens_fn = self.get_model().embed_tokens

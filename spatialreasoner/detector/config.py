@@ -3,15 +3,15 @@ from datasets.scannet import DatasetConfig
 
 class DetectorConfig:
 
-    def __init__(self, scannet_config):
+    def __init__(self, mask3d_cfg):
         self.dataset_config = DatasetConfig()
         self.num_class = self.dataset_config.num_semcls
 
         # preencoder: Set Abstraction Layer
         self.in_channel = (
-                3 * (int(scannet_config["use_color"]) + int(scannet_config["use_normal"])) +
-                1 * int(scannet_config["use_height"]) +
-                128 * int(scannet_config["use_multiview"])
+                3 * (int(mask3d_cfg["use_color"]) + int(mask3d_cfg["use_normal"])) +
+                1 * int(mask3d_cfg["use_height"]) +
+                128 * int(mask3d_cfg["use_multiview"])
         )
         self.preenc_npoints = 2048
 

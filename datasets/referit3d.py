@@ -10,26 +10,25 @@ import os.path as osp
 from typing import *
 
 import torch
-from torch.utils.data import default_collate, DataLoader
+from torch.utils.data import default_collate, DataLoader, Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
 from staticvars.const import *
 from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
-from .scannet import ScanNetBaseDataset
 
 
-class ReferItDataset(ScanNetBaseDataset):
+class ReferItDataset(Dataset):
     def __init__(
             self,
             data_path: str,
-            scannet_config: Dict = None,
+            mask3d_cfg: Dict = None,
             tokenizer: PreTrainedTokenizerBase = None,
             grounding_granularity: Literal["seg", "reg"] = "reg",
             split: Literal["train", "val"] = "train",
     ):
-        super().__init__(split, **scannet_config)
+        super().__init__()
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.grounding_granularity = grounding_granularity
@@ -114,7 +113,7 @@ class ReferIt3DCollator(DataCollatorBase):
 def build_dataloader(hparams, split: Literal["train", "val"]):
     dataset = ReferItDataset(
         data_path=hparams.data_path,
-        scannet_config=hparams.scannet_config,
+        mask3d_cfg=hparams.mask3d_cfg,
         tokenizer=hparams.tokenizer,
         grounding_granularity=hparams.grounding_granularity,
         split=split,

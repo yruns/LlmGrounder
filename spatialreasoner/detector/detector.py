@@ -22,8 +22,8 @@ class BoxProcessor(object):
     Class to convert 3DETR MLP head outputs into bounding boxes
     """
 
-    def __init__(self, scannet_config):
-        self.scannet_config = scannet_config
+    def __init__(self, mask3d_cfg):
+        self.mask3d_cfg = mask3d_cfg
 
     @staticmethod
     def compute_predicted_center(center_offset, query_xyz, point_cloud_dims):
@@ -48,7 +48,7 @@ class BoxProcessor(object):
             angle = angle_logits * 0 + angle_residual * 0
             angle = angle.squeeze(-1).clamp(min=0)
         else:
-            angle_per_cls = 2 * np.pi / self.scannet_config.num_angle_bin
+            angle_per_cls = 2 * np.pi / self.mask3d_cfg.num_angle_bin
             pred_angle_class = angle_logits.argmax(dim=-1).detach()
             angle_center = angle_per_cls * pred_angle_class
             angle = angle_center + angle_residual.gather(
@@ -59,7 +59,7 @@ class BoxProcessor(object):
         return angle
 
     def compute_objectness_and_cls_prob(self, cls_logits):
-        assert cls_logits.shape[-1] == self.scannet_config.num_semcls + 1
+        assert cls_logits.shape[-1] == self.mask3d_cfg.num_semcls + 1
         cls_prob = torch.nn.functional.softmax(cls_logits, dim=-1)
         objectness_prob = 1 - cls_prob[..., -1]
         return cls_prob[..., :-1], objectness_prob
@@ -67,7 +67,7 @@ class BoxProcessor(object):
     def box_parametrization_to_corners(
             self, box_center_unnorm, box_size_unnorm, box_angle
     ):
-        return self.scannet_config.box_parametrization_to_corners(
+        return self.mask3d_cfg.box_parametrization_to_corners(
             box_center_unnorm, box_size_unnorm, box_angle
         )
 
@@ -79,7 +79,7 @@ class Vote2CapDETR(nn.Module):
             tokenizer,
             encoder,
             decoder,
-            scannet_config,
+            mask3d_cfg,
             encoder_dim=256,
             decoder_dim=256,
             position_embedding="fourier",
@@ -124,9 +124,9 @@ class Vote2CapDETR(nn.Module):
         )
 
         self.decoder = decoder
-        self.build_mlp_heads(scannet_config, decoder_dim, mlp_dropout)
+        self.build_mlp_heads(mask3d_cfg, decoder_dim, mlp_dropout)
 
-        self.box_processor = BoxProcessor(scannet_config)
+        self.box_processor = BoxProcessor(mask3d_cfg)
         self.criterion = criterion
 
     def build_mlp_heads(self, dataset_config, decoder_dim, mlp_dropout):
