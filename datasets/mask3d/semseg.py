@@ -137,18 +137,14 @@ class Mask3DDataset(Dataset):
         self.noise_rate = noise_rate
         self.resample_points = resample_points
 
-        # loading database files
-        self._data = []
+        # loading scan_database files
+        scan_database = []
         for database_path in self.data_dir:
             database_path = Path(database_path)
             if not (database_path / f"{mode}_database.json").exists():
                 raise RuntimeError(f"generate {database_path}/{mode}_database.json first")
-            self._data.extend(
+            scan_database.extend(
                 self._load_json(database_path / f"{mode}_database.json")
-            )
-        if data_percent < 1.0:
-            self._data = sample(
-                self._data, int(len(self._data) * data_percent)
             )
         labels = self._load_json(Path(label_db_filepath))
 
@@ -191,8 +187,12 @@ class Mask3DDataset(Dataset):
         if add_colors:
             self.normalize_color = A.Normalize(mean=color_mean, std=color_std)
 
-
-
+        # Construct scan_id to scan_data mapping
+        self.scan_database = dict()
+        for data in scan_database:
+            scan_id = data["raw_filepath"].split("/")[-2]
+            self.scan_database[scan_id] = deepcopy(data)
+          
 
     @staticmethod
     def _load_json(json_path):
@@ -202,19 +202,9 @@ class Mask3DDataset(Dataset):
         raise NotImplementedError
 
     def _get_scan_data(self, scan_id):
-        pass
+        scan_data = self.scan_database[scan_id]
 
-    def __getitem__(self, idx: int):
-        idx = idx % len(self.data)
-        if self.is_tta:
-            idx = idx % len(self.data)
-
-        if self.cache_data:
-            points = self.data[idx]["data"]
-        else:
-            assert not self.on_crops, "you need caching if on crops"
-            points = np.load(self.data[idx]["filepath"].replace("../../", ""))
-
+        points = np.load(scan_data["filepath"])
         if "train" in self.mode and self.dataset_name in ["s3dis", "stpls3d"]:
             inds = self.random_cuboid(points)
             points = points[inds]
@@ -441,38 +431,26 @@ class Mask3DDataset(Dataset):
                 features = np.hstack((features, coordinates))
 
         # if self.task != "semantic_segmentation":
-        if self.data[idx]["raw_filepath"].split("/")[-2] in [
+        if scan_data["raw_filepath"].split("/")[-2] in [
             "scene0636_00",
             "scene0154_00",
         ]:
             return self.__getitem__(0)
 
-        if self.dataset_name == "stpls3d":
-            if labels.shape[1] != 1:  # only segments --> test set!
-                if np.unique(labels[:, -2]).shape[0] < 2:
-                    print("NO INSTANCES")
-                    return self.__getitem__(0)
-            return (
-                coordinates,
-                features,
-                labels,
-                self.data[idx]["scene"],
-                raw_color,
-                raw_normals,
-                raw_coordinates,
-                idx,
-            )
-        else:
-            return (
-                coordinates,
-                features,
-                labels,
-                self.data[idx]["raw_filepath"].split("/")[-2],
-                raw_color,
-                raw_normals,
-                raw_coordinates,
-                idx,
-            )
+        return (
+            coordinates,
+            features,
+            labels,
+            scan_id,
+            raw_color,
+            raw_normals,
+            raw_coordinates,
+        )
+
+
+    def __getitem__(self, idx):
+        raise RuntimeError("You should not call this function directly")
+
 
     @staticmethod
     def splitPointCloud(cloud, size=50.0, stride=50, inner_core=-1):
@@ -536,10 +514,6 @@ class Mask3DDataset(Dataset):
 
         return torch.tensor(output_colors)
 
-    @property
-    def data(self):
-        """database file containing information about preproscessed dataset"""
-        return self._data
 
     @property
     def label_info(self):

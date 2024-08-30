@@ -1,15 +1,18 @@
 import statistics
 
 import MinkowskiEngine as ME
+from torch import nn
 
 from .metrics import IoU
+
 
 from trim.utils import comm
 
 
-class Mask3DSegmentor(object):
+class Mask3DSegmentor(nn.Module):
 
     def __init__(self, config):
+        super().__init__()
         self.config = config
 
         self.decoder_id = config["general"]["decoder_id"]
@@ -61,7 +64,7 @@ class Mask3DSegmentor(object):
         self.labels_info = dict()
 
 
-    def encode_scene(self, batch, batch_idx, is_eval):
+    def encode_scene(self, batch, is_eval, device, dtype):
         data, target, file_names = batch
 
         if data.features.shape[0] > self.config.general.max_batch_size:
@@ -80,7 +83,7 @@ class Mask3DSegmentor(object):
         data = ME.SparseTensor(
             coordinates=data.coordinates,
             features=data.features,
-            device=data.device,
+            device=device,
         )
 
         encoder_out, mask_features = self.model.encode_scene(

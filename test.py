@@ -1,8 +1,5 @@
-import json
-import yaml
-import time
+import addict
 
+a = dict(a=1, b=2)
 
-data = json.load(open("data/processed/scannet200/label_database.json"))
-
-print(data)
+print(a.a)

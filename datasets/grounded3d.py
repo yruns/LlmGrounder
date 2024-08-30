@@ -29,12 +29,12 @@ class Grounded3DDataset(Mask3DDataset):
             grounding_granularity: Literal["seg", "reg"] = "reg",
             split: Literal["train", "val"] = "train",
     ):
-        super().__init__()
+        super(Grounded3DDataset, self).__init__(**mask3d_cfg)
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.grounding_granularity = grounding_granularity
         self.split = split
-        self.database = json.load(open(osp.join(self.data_path, f"groundedscenecaption_format_{self.split}.json"), "r"))
+        self.database = json.load(open(osp.join(self.data_path, f"nr3d_{self.split}.json"), "r"))
 
         self.tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
         original_tokenizer_len = len(self.tokenizer_copy)
@@ -47,7 +47,7 @@ class Grounded3DDataset(Mask3DDataset):
         self.scene_token_id = self.tokenizer_copy(SCENE_TOKEN, add_special_tokens=False).input_ids[0]
 
     def __len__(self):
-        return len(self.data)
+        return len(self.database)
 
     def __getitem__(self, idx):
         data = self.database[idx]
@@ -70,7 +70,12 @@ class Grounded3DDataset(Mask3DDataset):
         )
 
 
-class ReferIt3DCollator(DataCollatorBase):
+class Grounded3DCollator(DataCollatorBase):
+
+    def __init__(self, tokenizer: PreTrainedTokenizerBase, mask3d_collate: Callable):
+        super(Grounded3DCollator, self).__init__()
+        self.tokenizer = tokenizer
+        self.mask3d_collate = mask3d_collate
 
     def collate(self, batch):
         input_ids, labels, scene_data_dict = tuple(
@@ -101,7 +106,7 @@ class ReferIt3DCollator(DataCollatorBase):
 
         # Makesure every sample has <scene>
         assert all(scene_data is not None for scene_data in scene_data_dict), "Some samples do not have <scene>"
-        scene_data_dict = default_collate(scene_data_dict)
+        scene_data_dict = self.mask3d_collate(scene_data_dict)
 
         return dict(
             input_ids=input_ids,
@@ -112,9 +117,11 @@ class ReferIt3DCollator(DataCollatorBase):
 
 
 def build_dataloader(hparams, split: Literal["train", "val"]):
+    mask3d_data_cfg = hparams.mask3d_cfg["data"]
+
     dataset = Grounded3DDataset(
         data_path=hparams.data_path,
-        mask3d_cfg=hparams.mask3d_cfg,
+        mask3d_cfg=mask3d_data_cfg[f"{split}_dataset"],
         tokenizer=hparams.tokenizer,
         grounding_granularity=hparams.grounding_granularity,
         split=split,
@@ -123,12 +130,15 @@ def build_dataloader(hparams, split: Literal["train", "val"]):
     per_device_batch_size = hparams.per_device_train_batch_size \
         if split == "train" else hparams.per_device_eval_batch_size
 
+    from .mask3d.utils import VoxelizeCollate
+
     return DataLoader(
         dataset=dataset,
         batch_size=per_device_batch_size,
         shuffle=(split == "train"),
         num_workers=hparams.num_workers,
-        collate_fn=ReferIt3DCollator(
+        collate_fn=Grounded3DCollator(
             tokenizer=hparams.tokenizer,
+            mask3d_collate=VoxelizeCollate(mask3d_data_cfg[f"{split}_collation"]),
         ).collate,
     )

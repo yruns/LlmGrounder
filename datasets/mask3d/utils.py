@@ -4,6 +4,8 @@ import MinkowskiEngine as ME
 import numpy as np
 import torch
 
+from trim.utils.comm import DataBase
+
 
 class VoxelizeCollate:
     def __init__(
@@ -60,162 +62,6 @@ class VoxelizeCollate:
         )
 
 
-class VoxelizeCollateMerge:
-    def __init__(
-            self,
-            ignore_label=255,
-            voxel_size=1,
-            mode="test",
-            scenes=2,
-            small_crops=False,
-            very_small_crops=False,
-            batch_instance=False,
-            make_one_pc_noise=False,
-            place_nearby=False,
-            place_far=False,
-            proba=1,
-            probing=False,
-            task="instance_segmentation",
-    ):
-        assert task in [
-            "instance_segmentation",
-            "semantic_segmentation",
-        ], "task not known"
-        self.task = task
-        self.mode = mode
-        self.scenes = scenes
-        self.small_crops = small_crops
-        self.very_small_crops = very_small_crops
-        self.ignore_label = ignore_label
-        self.voxel_size = voxel_size
-        self.batch_instance = batch_instance
-        self.make_one_pc_noise = make_one_pc_noise
-        self.place_nearby = place_nearby
-        self.place_far = place_far
-        self.proba = proba
-        self.probing = probing
-
-    def __call__(self, batch):
-        if (
-                ("train" in self.mode)
-                and (not self.make_one_pc_noise)
-                and (self.proba > random())
-        ):
-            if self.small_crops or self.very_small_crops:
-                batch = make_crops(batch)
-            if self.very_small_crops:
-                batch = make_crops(batch)
-            if self.batch_instance:
-                batch = batch_instances(batch)
-            new_batch = []
-            for i in range(0, len(batch), self.scenes):
-                batch_coordinates = []
-                batch_features = []
-                batch_labels = []
-
-                batch_filenames = ""
-                batch_raw_color = []
-                batch_raw_normals = []
-
-                offset_instance_id = 0
-                offset_segment_id = 0
-
-                for j in range(min(len(batch[i:]), self.scenes)):
-                    batch_coordinates.append(batch[i + j][0])
-                    batch_features.append(batch[i + j][1])
-
-                    if j == 0:
-                        batch_filenames = batch[i + j][3]
-                    else:
-                        batch_filenames = (
-                                batch_filenames + f"+{batch[i + j][3]}"
-                        )
-
-                    batch_raw_color.append(batch[i + j][4])
-                    batch_raw_normals.append(batch[i + j][5])
-
-                    # make instance ids and segment ids unique
-                    # take care that -1 instances stay at -1
-                    batch_labels.append(
-                        batch[i + j][2]
-                        + [0, offset_instance_id, offset_segment_id]
-                    )
-                    batch_labels[-1][batch[i + j][2][:, 1] == -1, 1] = -1
-
-                    max_instance_id, max_segment_id = batch[i + j][2].max(
-                        axis=0
-                    )[1:]
-                    offset_segment_id = offset_segment_id + max_segment_id + 1
-                    offset_instance_id = (
-                            offset_instance_id + max_instance_id + 1
-                    )
-
-                if (len(batch_coordinates) == 2) and self.place_nearby:
-                    border = batch_coordinates[0][:, 0].max()
-                    border -= batch_coordinates[1][:, 0].min()
-                    batch_coordinates[1][:, 0] += border
-                elif (len(batch_coordinates) == 2) and self.place_far:
-                    batch_coordinates[1] += (
-                            np.random.uniform((-10, -10, -10), (10, 10, 10)) * 200
-                    )
-                new_batch.append(
-                    (
-                        np.vstack(batch_coordinates),
-                        np.vstack(batch_features),
-                        np.concatenate(batch_labels),
-                        batch_filenames,
-                        np.vstack(batch_raw_color),
-                        np.vstack(batch_raw_normals),
-                    )
-                )
-            # TODO WHAT ABOUT POINT2SEGMENT AND SO ON ...
-            batch = new_batch
-        elif ("train" in self.mode) and self.make_one_pc_noise:
-            new_batch = []
-            for i in range(0, len(batch), 2):
-                if (i + 1) < len(batch):
-                    new_batch.append(
-                        [
-                            np.vstack((batch[i][0], batch[i + 1][0])),
-                            np.vstack((batch[i][1], batch[i + 1][1])),
-                            np.concatenate(
-                                (
-                                    batch[i][2],
-                                    np.full_like(
-                                        batch[i + 1][2], self.ignore_label
-                                    ),
-                                )
-                            ),
-                        ]
-                    )
-                    new_batch.append(
-                        [
-                            np.vstack((batch[i][0], batch[i + 1][0])),
-                            np.vstack((batch[i][1], batch[i + 1][1])),
-                            np.concatenate(
-                                (
-                                    np.full_like(
-                                        batch[i][2], self.ignore_label
-                                    ),
-                                    batch[i + 1][2],
-                                )
-                            ),
-                        ]
-                    )
-                else:
-                    new_batch.append([batch[i][0], batch[i][1], batch[i][2]])
-            batch = new_batch
-        # return voxelize(batch, self.ignore_label, self.voxel_size, self.probing, self.mode)
-        return voxelize(
-            batch,
-            self.ignore_label,
-            self.voxel_size,
-            self.probing,
-            self.mode,
-            task=self.task,
-        )
-
-
 def batch_instances(batch):
     new_batch = []
     for sample in batch:
@@ -251,8 +97,7 @@ def voxelize(
         original_colors,
         original_normals,
         original_coordinates,
-        idx,
-    ) = ([], [], [], [], [], [], [], [], [])
+    ) = ([], [], [], [], [], [], [], [])
     voxelization_dict = {
         "ignore_label": ignore_label,
         # "quantization_size": self.voxel_size,
@@ -263,7 +108,6 @@ def voxelize(
     full_res_coords = []
 
     for sample in batch:
-        idx.append(sample[7])
         original_coordinates.append(sample[6])
         original_labels.append(sample[2])
         full_res_coords.append(sample[0])
@@ -304,7 +148,7 @@ def voxelize(
 
     if probing:
         return (
-            NoGpu(
+            Mask3DData(
                 coordinates,
                 features,
                 original_labels,
@@ -401,7 +245,7 @@ def voxelize(
 
     if "train" not in mode:
         return (
-            NoGpu(
+            Mask3DData(
                 coordinates,
                 features,
                 original_labels,
@@ -411,14 +255,13 @@ def voxelize(
                 original_colors,
                 original_normals,
                 original_coordinates,
-                idx,
             ),
             target,
             [sample[3] for sample in batch],
         )
     else:
         return (
-            NoGpu(
+            Mask3DData(
                 coordinates,
                 features,
                 original_labels,
@@ -593,7 +436,7 @@ def make_crops(batch):
     return new_batch
 
 
-class NoGpu:
+class Mask3DData(DataBase):
     def __init__(
             self,
             coordinates,
@@ -605,7 +448,6 @@ class NoGpu:
             original_colors=None,
             original_normals=None,
             original_coordinates=None,
-            idx=None,
     ):
         """helper class to prevent gpu loading on lightning"""
         self.coordinates = coordinates
@@ -617,24 +459,5 @@ class NoGpu:
         self.original_colors = original_colors
         self.original_normals = original_normals
         self.original_coordinates = original_coordinates
-        self.idx = idx
 
 
-class NoGpuMask:
-    def __init__(
-            self,
-            coordinates,
-            features,
-            original_labels=None,
-            inverse_maps=None,
-            masks=None,
-            labels=None,
-    ):
-        """helper class to prevent gpu loading on lightning"""
-        self.coordinates = coordinates
-        self.features = features
-        self.original_labels = original_labels
-        self.inverse_maps = inverse_maps
-
-        self.masks = masks
-        self.labels = labels

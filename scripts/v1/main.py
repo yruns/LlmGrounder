@@ -14,8 +14,6 @@ from transformers import (
     get_scheduler, AutoTokenizer, PreTrainedTokenizerBase
 )
 
-from datasets.referit3d import build_dataloader
-from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
 from staticvars.const import REG_TOKEN
 
 from trim.thirdparty.logging import WandbWrapper
@@ -79,6 +77,7 @@ class Trainer(TrainerBase):
         self.tokenizer.add_tokens([REG_TOKEN], special_tokens=True)
         self.hparams.tokenizer = self.tokenizer
 
+        from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
         self.model = SpatialReasonerForCausalLM.from_pretrained(
             pretrained_model_path,
             torch_dtype=self.compute_dtype,
@@ -117,15 +116,17 @@ class Trainer(TrainerBase):
         logger.info(f"Number of learnable parameters: {num_parameters}")
         self.accelerator.wait_for_everyone()
 
-    # def on_training_phase_start(self):
-    #     super().on_training_phase_start()
-    #     if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
-    #         self.model.base_model.model.reset_pointcloud_tower_precision(torch.float32)
-    #     else:
-    #         self.model.model.reset_pointcloud_tower_precision(torch.float32)
+    def on_training_phase_start(self):
+        super().on_training_phase_start()
+        # Because Mask3D(MinkowskiEngine) not implemented for 'BFloat16'
+        if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
+            self.model.base_model.model.reset_pointcloud_tower_precision(torch.float32)
+        else:
+            self.model.model.reset_pointcloud_tower_precision(torch.float32)
 
     def configure_dataloader(self):
         logger.info("### => Creating dataloader...")
+        from datasets.grounded3d import build_dataloader
 
         self.train_loader = build_dataloader(self.hparams, split="train")
         self.val_loader = build_dataloader(self.hparams, split="val")
@@ -136,7 +137,7 @@ class Trainer(TrainerBase):
         optimizer_cls = (
             torch.optim.AdamW
             if self.accelerator.state.deepspeed_plugin is None
-               or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
+            or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
             else DummyOptim
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)

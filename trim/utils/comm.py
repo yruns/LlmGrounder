@@ -111,7 +111,11 @@ def move_tensor_to_device(input_value, device):
             input_value[key] = move_tensor_to_device(input_value[key], device)
         return input_value
 
-    raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
+    if isinstance(input_value, DataBase):
+        for key in input_value.__dict__.keys():
+            input_value.__dict__[key] = convert_tensor_to_dtype(input_value.__dict__[key], device)
+
+    return input_value
 
 
 STR_TO_DTYPE = {
@@ -133,6 +137,8 @@ STR_TO_DTYPE = {
     "bool": torch.bool,
 }
 
+class DataBase:
+    pass
 
 def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
     """Convert string to torch.dtype"""
@@ -149,20 +155,23 @@ def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str], ignore_
             return input_value
         dtype = convert_str_to_dtype(dtype)
 
+    # Tensor
     if isinstance(input_value, torch.Tensor):
         if input_value.dtype in [torch.int8, torch.int16, torch.int32, torch.int64, torch.uint8, torch.bool]:
             return input_value
         return input_value.to(dtype)
 
-    # convert tuple to list
+    # Tuple
     if isinstance(input_value, tuple):
         return tuple(convert_tensor_to_dtype(list(input_value), dtype))
 
+    # List
     if isinstance(input_value, list):
         for i in range(len(input_value)):
             input_value[i] = convert_tensor_to_dtype(input_value[i], dtype)
         return input_value
 
+    # Dict
     if isinstance(input_value, dict):
         for key in input_value.keys():
             if ignore_keys is not None and key in ignore_keys:
@@ -170,7 +179,13 @@ def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str], ignore_
             input_value[key] = convert_tensor_to_dtype(input_value[key], dtype)
         return input_value
 
-    raise NotImplementedError(f"Unsupported input type: {type(input_value)}")
+    if isinstance(input_value, DataBase):
+        for key in input_value.__dict__.keys():
+            input_value.__dict__[key] = convert_tensor_to_dtype(input_value.__dict__[key], dtype)
+
+    return input_value
+
+
 
 
 def copy_codebase(save_path, exclude_dirs=None):

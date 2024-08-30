@@ -15,8 +15,6 @@ class DataCollatorBase(object):
     Collator for data collation.
     """
 
-    tokenizer: PreTrainedTokenizerBase
-
     @abstractmethod
     def collate(self, batch):
         pass

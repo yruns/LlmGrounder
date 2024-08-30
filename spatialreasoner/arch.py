@@ -14,7 +14,7 @@ from spatialreasoner.builder import build_pointcloud_tower
 from staticvars.const import SCENE_TOKEN_INDEX, IGNORE_INDEX
 
 
-class SpatialReasonerMetaModel:
+class SpatialReasonerMetaModel(nn.Module):
 
     def __init__(self, config):
         super(SpatialReasonerMetaModel, self).__init__(config)
@@ -40,7 +40,7 @@ class SpatialReasonerMetaModel:
         setattr(self, "pointcloud_tower", self.get_pointcloud_tower().to(dtype=precision))
 
 
-class SpatialReasonerMetaForCausalLM(ABC):
+class SpatialReasonerMetaForCausalLM(nn.Module):
     config: Dict
 
     @abstractmethod
@@ -56,8 +56,13 @@ class SpatialReasonerMetaForCausalLM(ABC):
     def get_pointcloud_projector(self):
         return self.get_model().get_pointcloud_projector()
 
-    def encode_scene(self, scene_data_dict: Dict):
-        scene_features = self.get_pointcloud_tower().encode_scene(scene_data_dict).to(getattr(self.config, "compute_dtype"))
+    def encode_scene(self, scene_data_dict: Dict, device):
+        dtype = getattr(self.config, "compute_dtype")
+        scene_features = (
+             self.get_pointcloud_tower()
+             .encode_scene(scene_data_dict, is_eval=not self.training, device=device, dtype=dtype)
+             .to(dtype)
+        )
         return self.get_pointcloud_projector()(scene_features)
 
     def prepare_for_multimodal(
@@ -75,7 +80,7 @@ class SpatialReasonerMetaForCausalLM(ABC):
         embed_tokens_fn = self.get_model().embed_tokens
 
         ### => Encode Scene
-        scene_enc_features = self.encode_scene(scene_data_dict)
+        scene_enc_features = self.encode_scene(scene_data_dict, device)
 
         # if position_ids is None:
         #     position_ids = torch.range(0, input_ids.shape[1], device=device)

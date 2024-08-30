@@ -7,7 +7,7 @@ from .modules.resnet_block import BasicBlock, Bottleneck
 from MinkowskiEngine import MinkowskiNetwork
 
 
-class Model(MinkowskiNetwork):
+class Model(MinkowskiNetwork, nn.Module):
     """
     Base network for all sparse convnet
 
