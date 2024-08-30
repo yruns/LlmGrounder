@@ -20,7 +20,7 @@ from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
 
 
-class ReferItDataset(Dataset):
+class Grounded3DDataset(Mask3DDataset):
     def __init__(
             self,
             data_path: str,
@@ -34,7 +34,7 @@ class ReferItDataset(Dataset):
         self.tokenizer = tokenizer
         self.grounding_granularity = grounding_granularity
         self.split = split
-        self.data = json.load(open(osp.join(self.data_path, f"nr3d_{self.split}.json"), "r"))
+        self.database = json.load(open(osp.join(self.data_path, f"groundedscenecaption_format_{self.split}.json"), "r"))
 
         self.tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
         original_tokenizer_len = len(self.tokenizer_copy)
@@ -50,7 +50,7 @@ class ReferItDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        data = self.data[idx]
+        data = self.database[idx]
         scan_id = data["scan_id"]
         scene_data_dict = self._get_scan_data(scan_id)
 
@@ -112,7 +112,7 @@ class ReferIt3DCollator(DataCollatorBase):
 
 
 def build_dataloader(hparams, split: Literal["train", "val"]):
-    dataset = ReferItDataset(
+    dataset = Grounded3DDataset(
         data_path=hparams.data_path,
         mask3d_cfg=hparams.mask3d_cfg,
         tokenizer=hparams.tokenizer,

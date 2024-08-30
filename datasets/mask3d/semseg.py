@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from itertools import product
 from pathlib import Path
@@ -10,7 +11,6 @@ import numpy as np
 import scipy
 import torch
 import volumentations as V
-import yaml
 from torch.utils.data import Dataset
 
 from .random_cuboid import RandomCuboid
@@ -29,7 +29,7 @@ class Mask3DDataset(Dataset):
             data_dir: Optional[Union[str, Tuple[str]]] = "data/processed/scannet",
             label_db_filepath: Optional[
                 str
-            ] = "configs/scannet_preprocessing/label_database.yaml",
+            ] = "configs/scannet_preprocessing/label_database.json",
             # mean std values from scannet
             color_mean_std: Optional[Union[str, Tuple[Tuple[float]]]] = (
                     (0.47793125906962, 0.4303257521323044, 0.3749598901421883),
@@ -119,8 +119,8 @@ class Mask3DDataset(Dataset):
         self.data_dir = data_dir
         self.add_unlabeled_pc = add_unlabeled_pc
         if add_unlabeled_pc:
-            self.other_database = self._load_yaml(
-                Path(data_dir).parent / "matterport" / "train_database.yaml"
+            self.other_database = self._load_json(
+                Path(data_dir).parent / "matterport" / "train_database.json"
             )
         if isinstance(data_dir, str):
             self.data_dir = [self.data_dir]
@@ -141,31 +141,28 @@ class Mask3DDataset(Dataset):
         self._data = []
         for database_path in self.data_dir:
             database_path = Path(database_path)
-            if not (database_path / f"{mode}_database.yaml").exists():
-                print(
-                    f"generate {database_path}/{mode}_database.yaml first"
-                )
-                exit()
+            if not (database_path / f"{mode}_database.json").exists():
+                raise RuntimeError(f"generate {database_path}/{mode}_database.json first")
             self._data.extend(
-                self._load_yaml(database_path / f"{mode}_database.yaml")
+                self._load_json(database_path / f"{mode}_database.json")
             )
         if data_percent < 1.0:
             self._data = sample(
                 self._data, int(len(self._data) * data_percent)
             )
-        labels = self._load_yaml(Path(label_db_filepath))
+        labels = self._load_json(Path(label_db_filepath))
 
         # if working only on classes for validation - discard others
         self._labels = self._select_correct_labels(labels, num_labels)
 
         if instance_oversampling > 0:
-            self.instance_data = self._load_yaml(
-                Path(label_db_filepath).parent / "instance_database.yaml"
+            self.instance_data = self._load_json(
+                Path(label_db_filepath).parent / "instance_database.json"
             )
 
 
         if Path(str(color_mean_std)).exists():
-            color_mean_std = self._load_yaml(color_mean_std)
+            color_mean_std = self._load_json(color_mean_std)
             color_mean, color_std = (
                 tuple(color_mean_std["mean"]),
                 tuple(color_mean_std["std"]),
@@ -181,151 +178,25 @@ class Mask3DDataset(Dataset):
                 volume_augmentations_path != "none"
         ):
             self.volume_augmentations = V.load(
-                Path(volume_augmentations_path), data_format="yaml"
+                Path(volume_augmentations_path), data_format="json"
             )
         self.image_augmentations = A.NoOp()
         if (image_augmentations_path is not None) and (
                 image_augmentations_path != "none"
         ):
             self.image_augmentations = A.load(
-                Path(image_augmentations_path), data_format="yaml"
+                Path(image_augmentations_path), data_format="json"
             )
         # mandatory color augmentation
         if add_colors:
             self.normalize_color = A.Normalize(mean=color_mean, std=color_std)
 
-        self.cache_data = cache_data
-        # new_data = []
-        if self.cache_data:
-            new_data = []
-            for i in range(len(self._data)):
-                self._data[i]["data"] = np.load(
-                    self.data[i]["filepath"].replace("../../", "")
-                )
-                if self.on_crops:
-                    if self.eval_inner_core == -1:
-                        for block_id, block in enumerate(
-                                self.splitPointCloud(self._data[i]["data"])
-                        ):
-                            if len(block) > 10000:
-                                new_data.append(
-                                    {
-                                        "instance_gt_filepath": self._data[i][
-                                            "instance_gt_filepath"
-                                        ][block_id]
-                                        if len(
-                                            self._data[i][
-                                                "instance_gt_filepath"
-                                            ]
-                                        )
-                                           > 0
-                                        else list(),
-                                        "scene": f"{self._data[i]['scene'].replace('.txt', '')}_{block_id}.txt",
-                                        "raw_filepath": f"{self.data[i]['filepath'].replace('.npy', '')}_{block_id}",
-                                        "data": block,
-                                    }
-                                )
-                            else:
-                                assert False
-                    else:
-                        conds_inner, blocks_outer = self.splitPointCloud(
-                            self._data[i]["data"],
-                            size=self.crop_length,
-                            inner_core=self.eval_inner_core,
-                        )
 
-                        for block_id in range(len(conds_inner)):
-                            cond_inner = conds_inner[block_id]
-                            block_outer = blocks_outer[block_id]
 
-                            if cond_inner.sum() > 10000:
-                                new_data.append(
-                                    {
-                                        "instance_gt_filepath": self._data[i][
-                                            "instance_gt_filepath"
-                                        ][block_id]
-                                        if len(
-                                            self._data[i][
-                                                "instance_gt_filepath"
-                                            ]
-                                        )
-                                           > 0
-                                        else list(),
-                                        "scene": f"{self._data[i]['scene'].replace('.txt', '')}_{block_id}.txt",
-                                        "raw_filepath": f"{self.data[i]['filepath'].replace('.npy', '')}_{block_id}",
-                                        "data": block_outer,
-                                        "cond_inner": cond_inner,
-                                    }
-                                )
-                            else:
-                                assert False
-
-            if self.on_crops:
-                self._data = new_data
-                # new_data.append(np.load(self.data[i]["filepath"].replace("../../", "")))
-            # self._data = new_data
 
     @staticmethod
-    def splitPointCloud(cloud, size=50.0, stride=50, inner_core=-1):
-        if inner_core == -1:
-            limitMax = np.amax(cloud[:, 0:3], axis=0)
-            width = int(np.ceil((limitMax[0] - size) / stride)) + 1
-            depth = int(np.ceil((limitMax[1] - size) / stride)) + 1
-            cells = [
-                (x * stride, y * stride)
-                for x in range(width)
-                for y in range(depth)
-            ]
-            blocks = []
-            for (x, y) in cells:
-                xcond = (cloud[:, 0] <= x + size) & (cloud[:, 0] >= x)
-                ycond = (cloud[:, 1] <= y + size) & (cloud[:, 1] >= y)
-                cond = xcond & ycond
-                block = cloud[cond, :]
-                blocks.append(block)
-            return blocks
-        else:
-            limitMax = np.amax(cloud[:, 0:3], axis=0)
-            width = int(np.ceil((limitMax[0] - inner_core) / stride)) + 1
-            depth = int(np.ceil((limitMax[1] - inner_core) / stride)) + 1
-            cells = [
-                (x * stride, y * stride)
-                for x in range(width)
-                for y in range(depth)
-            ]
-            blocks_outer = []
-            conds_inner = []
-            for (x, y) in cells:
-                xcond_outer = (
-                                      cloud[:, 0] <= x + inner_core / 2.0 + size / 2
-                              ) & (cloud[:, 0] >= x + inner_core / 2.0 - size / 2)
-                ycond_outer = (
-                                      cloud[:, 1] <= y + inner_core / 2.0 + size / 2
-                              ) & (cloud[:, 1] >= y + inner_core / 2.0 - size / 2)
-
-                cond_outer = xcond_outer & ycond_outer
-                block_outer = cloud[cond_outer, :]
-
-                xcond_inner = (block_outer[:, 0] <= x + inner_core) & (
-                        block_outer[:, 0] >= x
-                )
-                ycond_inner = (block_outer[:, 1] <= y + inner_core) & (
-                        block_outer[:, 1] >= y
-                )
-
-                cond_inner = xcond_inner & ycond_inner
-
-                conds_inner.append(cond_inner)
-                blocks_outer.append(block_outer)
-            return conds_inner, blocks_outer
-
-    def map2color(self, labels):
-        output_colors = list()
-
-        for label in labels:
-            output_colors.append(self.color_map[label])
-
-        return torch.tensor(output_colors)
+    def _load_json(json_path):
+        return json.load(open(json_path, "r"))
 
     def __len__(self):
         raise NotImplementedError
@@ -603,6 +474,68 @@ class Mask3DDataset(Dataset):
                 idx,
             )
 
+    @staticmethod
+    def splitPointCloud(cloud, size=50.0, stride=50, inner_core=-1):
+        if inner_core == -1:
+            limitMax = np.amax(cloud[:, 0:3], axis=0)
+            width = int(np.ceil((limitMax[0] - size) / stride)) + 1
+            depth = int(np.ceil((limitMax[1] - size) / stride)) + 1
+            cells = [
+                (x * stride, y * stride)
+                for x in range(width)
+                for y in range(depth)
+            ]
+            blocks = []
+            for (x, y) in cells:
+                xcond = (cloud[:, 0] <= x + size) & (cloud[:, 0] >= x)
+                ycond = (cloud[:, 1] <= y + size) & (cloud[:, 1] >= y)
+                cond = xcond & ycond
+                block = cloud[cond, :]
+                blocks.append(block)
+            return blocks
+        else:
+            limitMax = np.amax(cloud[:, 0:3], axis=0)
+            width = int(np.ceil((limitMax[0] - inner_core) / stride)) + 1
+            depth = int(np.ceil((limitMax[1] - inner_core) / stride)) + 1
+            cells = [
+                (x * stride, y * stride)
+                for x in range(width)
+                for y in range(depth)
+            ]
+            blocks_outer = []
+            conds_inner = []
+            for (x, y) in cells:
+                xcond_outer = (
+                                      cloud[:, 0] <= x + inner_core / 2.0 + size / 2
+                              ) & (cloud[:, 0] >= x + inner_core / 2.0 - size / 2)
+                ycond_outer = (
+                                      cloud[:, 1] <= y + inner_core / 2.0 + size / 2
+                              ) & (cloud[:, 1] >= y + inner_core / 2.0 - size / 2)
+
+                cond_outer = xcond_outer & ycond_outer
+                block_outer = cloud[cond_outer, :]
+
+                xcond_inner = (block_outer[:, 0] <= x + inner_core) & (
+                        block_outer[:, 0] >= x
+                )
+                ycond_inner = (block_outer[:, 1] <= y + inner_core) & (
+                        block_outer[:, 1] >= y
+                )
+
+                cond_inner = xcond_inner & ycond_inner
+
+                conds_inner.append(cond_inner)
+                blocks_outer.append(block_outer)
+            return conds_inner, blocks_outer
+
+    def map2color(self, labels):
+        output_colors = list()
+
+        for label in labels:
+            output_colors.append(self.color_map[label])
+
+        return torch.tensor(output_colors)
+
     @property
     def data(self):
         """database file containing information about preproscessed dataset"""
@@ -614,13 +547,7 @@ class Mask3DDataset(Dataset):
         return self._labels
 
     @staticmethod
-    def _load_yaml(filepath):
-        with open(filepath) as f:
-            # file = yaml.load(f, Loader=Loader)
-            file = yaml.load(f, Loader=yaml.FullLoader)
-        return file
-
-    def _select_correct_labels(self, labels, num_labels):
+    def _select_correct_labels(labels, num_labels):
         number_of_validation_labels = 0
         number_of_all_labels = 0
         for (
