@@ -10,17 +10,19 @@ def process(cfg: Dict, global_dict):
             new_dict[key] = process(value, global_dict)
         elif isinstance(value, str) and value.startswith('${'):
             value = value.replace('${', '').replace('}', '')
-            if value == "general.add_instance":
-                value = "general.add_instance"
+            if key == "num_classes":
+                print("here")
 
             chain = value.split('.')
 
             cur_global_dict = global_dict
             while len(chain) > 0:
-                key = chain.pop(0)
-                value = cur_global_dict[key]
+                key_ = chain.pop(0)
+                value = cur_global_dict[key_]
                 cur_global_dict = value
             new_dict[key] = value
+        elif key == "_target_":
+            continue
         else:
             new_dict[key] = value
 

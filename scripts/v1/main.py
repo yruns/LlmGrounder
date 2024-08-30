@@ -13,7 +13,6 @@ from accelerate.utils import DummyOptim, DummyScheduler
 from transformers import (
     get_scheduler, AutoTokenizer, PreTrainedTokenizerBase
 )
-from peft import LoraConfig, get_peft_model
 
 from datasets.referit3d import build_dataloader
 from spatialreasoner.core.resoner import SpatialReasonerForCausalLM
@@ -61,6 +60,7 @@ class Trainer(TrainerBase):
         lora_module_names = find_proj_layers(model, lora_target_modules)
 
         # Configuring LoRA
+        from peft import LoraConfig
         lora_config = LoraConfig(
             r=lora_config.lora_r, lora_alpha=lora_config.lora_alpha, target_modules=lora_module_names,
             bias=lora_config.bias, task_type=lora_config.task_type, lora_dropout=lora_config.lora_dropout
@@ -109,6 +109,7 @@ class Trainer(TrainerBase):
 
         ## LoRA
         if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
+            from peft import LoraConfig, get_peft_model
             lora_config = self.setup_lora_config(self.model, self.hparams.lora_config)
             self.model = get_peft_model(self.model, lora_config)
 

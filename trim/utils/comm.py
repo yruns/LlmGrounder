@@ -7,7 +7,8 @@ Modified from detectron2(https://github.com/facebookresearch/detectron2)
 
 import os
 import random
-from typing import Union
+from typing import *
+import inspect
 
 import numpy as np
 import torch
@@ -69,6 +70,11 @@ def synchronize():
     using distributed engine
     """
     accelerator.wait_for_everyone()
+
+def get_callable_arguments(func_or_class):
+    signature = inspect.signature(func_or_class)
+    arguments = [param.name for param in signature.parameters.values() if param.name != 'self']
+    return arguments
 
 
 def count_parameters(model):

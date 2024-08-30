@@ -36,7 +36,7 @@ freeze_llm_backbone = True
 freeze_mm_tower = True
 detector_name = "V-DETR"
 lora_config = dict(
-    enable=False,
+    enable=True,
     lora_r=8,
     lora_alpha=16,
     lora_dropout=0.05,
@@ -66,8 +66,8 @@ lr_scheduler_type: Literal["linear", "cosine"] = "linear"
 gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
-save_freq: Union[str, int] = 8  # or "epoch"
-resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240820-222727/step_8"
+save_freq: Union[str, int] = 300  # or "epoch"
+resume_from_checkpoint: Optional[str] = None
 
 # logging
 log_interval: int = 1

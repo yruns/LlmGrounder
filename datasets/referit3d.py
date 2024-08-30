@@ -13,13 +13,14 @@ import torch
 from torch.utils.data import default_collate, DataLoader, Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
+from .mask3d.semseg import Mask3D
 from staticvars.const import *
 from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
 
 
-class ReferItDataset(Dataset):
+class ReferItDataset(Mask3D):
     def __init__(
             self,
             data_path: str,

@@ -20,7 +20,7 @@ from data.scannet.scannet200_constants import (
 )
 
 
-class SemanticSegmentationDataset(Dataset):
+class Mask3DDataset(Dataset):
     """Docstring for SemanticSegmentationDataset."""
 
     def __init__(
@@ -328,10 +328,10 @@ class SemanticSegmentationDataset(Dataset):
         return torch.tensor(output_colors)
 
     def __len__(self):
-        if self.is_tta:
-            return 5 * len(self.data)
-        else:
-            return self.reps_per_epoch * len(self.data)
+        raise NotImplementedError
+
+    def _get_scan_data(self, scan_id):
+        pass
 
     def __getitem__(self, idx: int):
         idx = idx % len(self.data)

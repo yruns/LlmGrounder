@@ -1,7 +1,7 @@
 import MinkowskiEngine as ME
 import torch.nn as nn
-from mix3d.models.modules.common import ConvType, NormType
-from mix3d.models.modules.resnet_block import BasicBlock, Bottleneck
+from .common import ConvType, NormType
+from .resnet_block import BasicBlock, Bottleneck
 
 
 class SELayer(nn.Module):

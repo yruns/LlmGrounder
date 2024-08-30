@@ -4,6 +4,8 @@ import MinkowskiEngine as ME
 
 from .metrics import IoU
 
+from trim.utils import comm
+
 
 class Mask3DSegmentor(object):
 
@@ -45,7 +47,7 @@ class Mask3DSegmentor(object):
         self.bbox_preds = dict()
         self.bbox_gt = dict()
 
-        from criterion import SetCriterion
+        from .criterion import SetCriterion
         self.criterion = SetCriterion(
             **config["loss"], matcher=matcher, weight_dict=weight_dict
         )
