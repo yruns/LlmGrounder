@@ -1,3 +1,5 @@
+from typing import *
+
 import MinkowskiEngine.MinkowskiOps as me
 import numpy as np
 import torch
@@ -6,10 +8,10 @@ from MinkowskiEngine.MinkowskiPooling import MinkowskiAvgPooling
 from torch.nn import functional as F
 from torch_scatter import scatter_mean, scatter_max
 
-from third_party.pointnet2.pointnet2_utils import furthest_point_sample
 from .modules.common import conv
 from .modules.helpers_3detr import GenericMLP
 from .position_embedding import PositionEmbeddingCoordsSine
+from third_party.pointnet2.pointnet2_utils import furthest_point_sample
 
 
 class Mask3D(nn.Module):
@@ -255,7 +257,7 @@ class Mask3D(nn.Module):
         mask_features = self.mask_features_head(pcd_features)
 
         return (x, point2segment, is_eval, aux, coordinates,
-                pcd_features, batch_size, coords, pos_encodings_pcd, mask_features), mask_features
+               pcd_features, batch_size, coords, pos_encodings_pcd, mask_features), mask_features
 
     def decode(self, x, point2segment, is_eval,
                aux, coordinates, pcd_features, batch_size, coords, pos_encodings_pcd, mask_features):

@@ -1,6 +1,5 @@
 import MinkowskiEngine as ME
 import torch.nn as nn
-
 from .common import ConvType, NormType
 from .resnet_block import BasicBlock, Bottleneck
 

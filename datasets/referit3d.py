@@ -13,6 +13,7 @@ import torch
 from torch.utils.data import default_collate, DataLoader, Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
+from .mask3d.semseg import Mask3DDataset
 from staticvars.const import *
 from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction

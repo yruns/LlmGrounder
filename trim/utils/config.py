@@ -12,7 +12,6 @@ import uuid
 import warnings
 from argparse import Action
 from importlib import import_module
-
 from addict import Dict
 
 if platform.system() == "Windows":
@@ -24,7 +23,6 @@ BASE_KEY = "_base_"
 DELETE_KEY = "_delete_"
 DEPRECATION_KEY = "_deprecation_"
 RESERVED_KEYS = ["filename", "text", "pretty_text"]
-
 
 class ConfigDict(Dict):
     def __missing__(self, name):
@@ -52,6 +50,7 @@ def setup_hparams(file_path, options):
         hparams.merge_from_dict(options)
 
     return hparams
+
 
 
 class Config:
@@ -183,12 +182,12 @@ class Config:
                     name: value
                     for name, value in mod.__dict__.items()
                     if not name.startswith("__")
-                       and not isinstance(value, types.ModuleType)
-                       and not isinstance(value, types.BuiltinFunctionType)
-                       and not isinstance(value, types.FunctionType)
-                       and not isinstance(value, typing.TypeVar)
-                       and not callable(value)
-                       and not name.startswith("__")
+                    and not isinstance(value, types.ModuleType)
+                    and not isinstance(value, types.BuiltinFunctionType)
+                    and not isinstance(value, types.FunctionType)
+                    and not isinstance(value, typing.TypeVar)
+                    and not callable(value)
+                    and not name.startswith("__")
                 }
                 # delete imported module
                 del sys.modules[temp_module_name]
@@ -319,7 +318,7 @@ class Config:
             # check if users specify a wrong suffix for python
             warnings.warn('Please check "file_format", the file format may be .py')
         with tempfile.NamedTemporaryFile(
-                "w", encoding="utf-8", suffix=file_format, delete=False
+            "w", encoding="utf-8", suffix=file_format, delete=False
         ) as temp_file:
             temp_file.write(cfg_str)
             # on windows, previous implementation cause error
@@ -327,6 +326,7 @@ class Config:
         cfg = Config.fromfile(temp_file.name)
         os.remove(temp_file.name)
         return cfg
+
 
     def __init__(self, cfg_dict=None, cfg_text=None, filename=None):
         if cfg_dict is None:
@@ -361,6 +361,7 @@ class Config:
             return getattr(self._cfg_dict, name)
         return None
 
+
     def __repr__(self):
         return f"Config (path: {self.filename}): {self._cfg_dict.__repr__()}"
 
@@ -394,6 +395,7 @@ class Config:
         super(Config, self).__setattr__("_cfg_dict", _cfg_dict)
         super(Config, self).__setattr__("_filename", _filename)
         super(Config, self).__setattr__("_text", _text)
+
 
     def merge_from_dict(self, options, allow_list_keys=True):
         """Merge list into cfg_dict.
@@ -478,16 +480,16 @@ class DictAction(Action):
             inside these brackets are ignored.
             """
             assert (string.count("(") == string.count(")")) and (
-                    string.count("[") == string.count("]")
+                string.count("[") == string.count("]")
             ), f"Imbalanced brackets exist in {string}"
             end = len(string)
             for idx, char in enumerate(string):
                 pre = string[:idx]
                 # The string before this ',' is balanced
                 if (
-                        (char == ",")
-                        and (pre.count("(") == pre.count(")"))
-                        and (pre.count("[") == pre.count("]"))
+                    (char == ",")
+                    and (pre.count("(") == pre.count(")"))
+                    and (pre.count("[") == pre.count("]"))
                 ):
                     end = idx
                     break
@@ -510,7 +512,7 @@ class DictAction(Action):
             comma_idx = find_next_comma(val)
             element = DictAction._parse_iterable(val[:comma_idx])
             values.append(element)
-            val = val[comma_idx + 1:]
+            val = val[comma_idx + 1 :]
         if is_tuple:
             values = tuple(values)
         return values
@@ -521,3 +523,4 @@ class DictAction(Action):
             key, val = kv.split("=", maxsplit=1)
             options[key] = self._parse_iterable(val)
         setattr(namespace, self.dest, options)
+

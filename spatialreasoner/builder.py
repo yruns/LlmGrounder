@@ -4,7 +4,6 @@ Date: 2024/8/17
 Author: yruns
 """
 
-
 def build_pointcloud_tower(cfg):
     engine = cfg.pop("engine")
     if engine == "mask3d":

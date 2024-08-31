@@ -13,11 +13,11 @@ import torch
 import volumentations as V
 from torch.utils.data import Dataset
 
-from data.scannet.scannet200_constants import (
+from .random_cuboid import RandomCuboid
+from ..scannet.scannet200_constants import (
     SCANNET_COLOR_MAP_200,
     SCANNET_COLOR_MAP_20,
 )
-from .random_cuboid import RandomCuboid
 
 
 class Mask3DDataset(Dataset):
@@ -156,6 +156,7 @@ class Mask3DDataset(Dataset):
                 Path(label_db_filepath).parent / "instance_database.json"
             )
 
+
         if Path(str(color_mean_std)).exists():
             color_mean_std = self._load_json(color_mean_std)
             color_mean, color_std = (
@@ -191,6 +192,7 @@ class Mask3DDataset(Dataset):
         for data in scan_database:
             scan_id = data["raw_filepath"].split("/")[-2]
             self.scan_database[scan_id] = deepcopy(data)
+          
 
     @staticmethod
     def _load_json(json_path):
@@ -445,8 +447,10 @@ class Mask3DDataset(Dataset):
             raw_coordinates,
         )
 
+
     def __getitem__(self, idx):
         raise RuntimeError("You should not call this function directly")
+
 
     @staticmethod
     def splitPointCloud(cloud, size=50.0, stride=50, inner_core=-1):
@@ -509,6 +513,7 @@ class Mask3DDataset(Dataset):
             output_colors.append(self.color_map[label])
 
         return torch.tensor(output_colors)
+
 
     @property
     def label_info(self):

@@ -17,13 +17,13 @@ data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
 
+
 # data
 num_workers: int = 0
 dataset_name: Literal["referit3d"] = "referit3d"
 grounding_granularity: Literal["reg", "seg"] = "reg"
 
 from configs.mask3d_conf import mask3d_cfg
-
 pointcloud_tower_cfg: Dict = mask3d_cfg
 pointcloud_output_dim: int = 256
 
@@ -73,3 +73,5 @@ resume_from_checkpoint: Optional[str] = None
 log_interval: int = 1
 log_project: str = "grounder_reg"
 log_tag: str = "test1"
+
+

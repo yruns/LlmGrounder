@@ -1,9 +1,10 @@
 import MinkowskiEngine as ME
 import torch.nn as nn
-from MinkowskiEngine import MinkowskiNetwork
 
 from .modules.common import ConvType, NormType, conv, get_norm, sum_pool
 from .modules.resnet_block import BasicBlock, Bottleneck
+
+from MinkowskiEngine import MinkowskiNetwork
 
 
 class Model(MinkowskiNetwork, nn.Module):

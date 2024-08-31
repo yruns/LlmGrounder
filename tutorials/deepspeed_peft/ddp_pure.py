@@ -1,15 +1,15 @@
 import time
-
 import deepspeed
 import math
 import pandas as pd
 import torch
 from accelerate import Accelerator
 from peft import LoraConfig, get_peft_model
+from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from torch.utils.data import random_split
 from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data import random_split
 from transformers import BertTokenizer, BertForSequenceClassification
 
 import dist
@@ -44,6 +44,7 @@ def prepare_dataloader():
         inputs["labels"] = torch.tensor(labels)
         return inputs
 
+
     sampler = DistributedSampler(validset, shuffle=False, drop_last=False) if dist.is_distributed() else None
     validloader = DataLoader(
         dataset=validset,
@@ -67,11 +68,9 @@ def prepare_model():
     model.print_trainable_parameters()
     return model
 
-
 batch_size = 32
 grad_accumulation_steps = 2
 epoch = 5
-
 
 def evaluate(model, validloader, accelerator: Accelerator):
     model.eval()
@@ -108,7 +107,6 @@ def initialize_deepspeed(model, trainset, total_num_steps):
 
     return model_engine, optimizer, trainloader, scheduler
 
-
 def train(model_engine, optimizer, trainloader, validloader, resume, epoch=3, log_step=10):
     global_step = 0
     start_time = time.time()
@@ -123,6 +121,7 @@ def train(model_engine, optimizer, trainloader, validloader, resume, epoch=3, lo
         resume_step = global_step = step
         resume_epoch = resume_step // steps_per_epoch
         resume_step -= resume_epoch * steps_per_epoch
+
 
     for ep in range(resume_epoch, epoch):
         if resume and ep == resume_epoch and resume_step != 0:
@@ -165,6 +164,7 @@ def train(model_engine, optimizer, trainloader, validloader, resume, epoch=3, lo
         acc = evaluate(model, validloader, accelerator)
         accelerator.print(f"ep: {ep}, acc: {acc}, time: {time.time() - start_time}")
         accelerator.log({"acc": acc}, global_step)
+
 
 
 def main():

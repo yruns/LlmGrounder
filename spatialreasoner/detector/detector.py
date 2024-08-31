@@ -4,9 +4,9 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
-from utils.pc_util import scale_points, shift_scale_points
 
 from third_party.pointnet2.pointnet2_modules import PointnetSAModuleVotes
+from utils.pc_util import scale_points, shift_scale_points
 from .helpers import GenericMLP
 from .position_embedding import PositionEmbeddingCoordsSine
 from .transformer import (

@@ -5,10 +5,10 @@ import torch
 import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 from torch import nn
-from utils.box_util import generalized_box3d_iou
-from utils.misc import huber_loss
 
 from trim.utils import comm
+from utils.box_util import generalized_box3d_iou
+from utils.misc import huber_loss
 
 GT_VOTE_FACTOR = 3  # number of GT votes per point
 

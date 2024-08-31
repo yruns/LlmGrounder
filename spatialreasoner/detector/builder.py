@@ -1,7 +1,6 @@
-from .config import DetectorConfig
-from .criterion import build_criterion
 from .detector import *
-
+from .criterion import build_criterion
+from .config import DetectorConfig
 
 def build_vote2cap(scannet_config):
     cfg = DetectorConfig(scannet_config)
