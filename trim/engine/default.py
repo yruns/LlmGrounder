@@ -60,4 +60,3 @@ def load_state_dict(state_dict, model, logger, strict=True):
     logger.info(f"Missing keys: {load_state_info[0]}")
 
     return model
-

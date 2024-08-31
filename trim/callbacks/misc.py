@@ -213,7 +213,8 @@ class Resumer(CallbackBase):
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader
         self.trainer.train_loader = \
-            self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step * self.accelerator.gradient_accumulation_steps)
+            self.accelerator.skip_first_batches(self.trainer.train_loader,
+                                                resume_step * self.accelerator.gradient_accumulation_steps)
 
     def on_training_epoch_end(self):
         # We need to reset the train_loader in next epoch

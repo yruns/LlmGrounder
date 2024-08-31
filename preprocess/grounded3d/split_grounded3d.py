@@ -1,8 +1,10 @@
 import json
+
 from tqdm import tqdm
 
 SCANNET_TRAIN_SCANS = set(open("../../data/scannet/meta_data/scannetv2_train.txt").read().splitlines())
 SCANNET_VAL_SCANS = set(open("../../data/scannet/meta_data/scannetv2_val.txt").read().splitlines())
+
 
 def split_grounded3d():
     grounded3d_data = json.load(open("../data/groundedscenecaption_format.json"))

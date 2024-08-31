@@ -10,14 +10,14 @@ import os.path as osp
 from typing import *
 
 import torch
-from torch.utils.data import default_collate, DataLoader, Dataset
+from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
-from .mask3d.semseg import Mask3DDataset
 from staticvars.const import *
 from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
+from .mask3d.semseg import Mask3DDataset
 
 
 class Grounded3DDataset(Mask3DDataset):

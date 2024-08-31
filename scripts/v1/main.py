@@ -15,11 +15,10 @@ from transformers import (
 )
 
 from staticvars.const import REG_TOKEN
-
+from trim.callbacks.misc import *
+from trim.engine import TrainerBase
 from trim.thirdparty.logging import WandbWrapper
 from trim.thirdparty.logging import logger
-from trim.engine import TrainerBase
-from trim.callbacks.misc import *
 from trim.utils import comm
 from trim.utils.config import setup_hparams, DictAction, Config
 
@@ -42,6 +41,7 @@ class Trainer(TrainerBase):
     @staticmethod
     def setup_lora_config(model, lora_config):
         """ Configure LoRA settings for the model. """
+
         def find_proj_layers(model, target_modules):
             """ Identify projection layers in the model for LoRA adaptation. """
             linear_cls = torch.nn.Linear
@@ -96,9 +96,9 @@ class Trainer(TrainerBase):
 
         ## Freeze parameters
         for name, param in self.model.named_parameters():
-            if "mm_" in name:              # MM tower
+            if "mm_" in name:  # MM tower
                 param.requires_grad = not self.hparams.freeze_mm_tower
-            elif "lm_head" not in name:    # LLM backbone(except lm_head)
+            elif "lm_head" not in name:  # LLM backbone(except lm_head)
                 param.requires_grad = not self.hparams.freeze_llm_backbone
 
         ## Gradient checkpointing
@@ -137,7 +137,7 @@ class Trainer(TrainerBase):
         optimizer_cls = (
             torch.optim.AdamW
             if self.accelerator.state.deepspeed_plugin is None
-            or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
+               or "optimizer" not in self.accelerator.state.deepspeed_plugin.deepspeed_config
             else DummyOptim
         )
         self.optimizer = optimizer_cls(self.model.parameters(), lr=self.hparams.lr)
@@ -232,6 +232,7 @@ def main(hparams):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

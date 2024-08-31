@@ -45,13 +45,11 @@ from transformers import (
     default_data_collator,
     get_scheduler,
 )
-from transformers.utils.versions import require_version
 
 import datasets
 from datasets import load_dataset
 
 logger = get_logger(__name__)
-
 
 MODEL_CONFIG_CLASSES = list(MODEL_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)

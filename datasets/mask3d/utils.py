@@ -1,5 +1,3 @@
-from random import random
-
 import MinkowskiEngine as ME
 import numpy as np
 import torch
@@ -459,5 +457,3 @@ class Mask3DData(DataBase):
         self.original_colors = original_colors
         self.original_normals = original_normals
         self.original_coordinates = original_coordinates
-
-

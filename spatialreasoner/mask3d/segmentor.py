@@ -1,12 +1,7 @@
-import statistics
-
 import MinkowskiEngine as ME
 from torch import nn
 
 from .metrics import IoU
-
-
-from trim.utils import comm
 
 
 class Mask3DSegmentor(nn.Module):
@@ -63,7 +58,6 @@ class Mask3DSegmentor(nn.Module):
         ## => misc
         self.labels_info = dict()
 
-
     def encode_scene(self, batch, is_eval, device, dtype):
         data, target, file_names = batch
 
@@ -96,14 +90,13 @@ class Mask3DSegmentor(nn.Module):
         )
         return encoder_out, batch, mask_features
 
-
     def decode(self, encoder_out, batch):
         data, target, file_names = batch
         x, point2segment, is_eval, aux, coordinates, \
             pcd_features, batch_size, coords, pos_encodings_pcd, mask_features = encoder_out
 
         output = self.model.decode(x, point2segment, is_eval, aux, coordinates,
-            pcd_features, batch_size, coords, pos_encodings_pcd, mask_features)
+                                   pcd_features, batch_size, coords, pos_encodings_pcd, mask_features)
 
         if not is_eval:
             ## => Training, compute loss
@@ -131,4 +124,3 @@ class Mask3DSegmentor(nn.Module):
         else:
             ## => Evaluation, compute metrics
             return None
-

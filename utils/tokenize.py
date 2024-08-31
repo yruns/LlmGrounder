@@ -7,7 +7,6 @@ import re
 from typing import Union, Tuple
 
 import torch
-from transformers import AutoTokenizer
 
 from staticvars.const import *
 
@@ -48,7 +47,6 @@ def tokenize_scene_token(
         tokenizer,
         scene_token_id
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-
     input_ids, mask_ids = tokenize_with_mask(instruction, tokenizer, wrapper=(ROLES["reply"], REPLY_END_TOKEN))
     input_ids[input_ids == scene_token_id] = SCENE_TOKEN_INDEX
 

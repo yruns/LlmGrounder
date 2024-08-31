@@ -280,7 +280,8 @@ def main(hparams):
 
         # skip new `skip_first_batches` to skip the batches when resuming from ckpt
         if hparams.resume_from_checkpoint and epoch == starting_epoch and resume_step is not None:
-            active_dataloader = accelerator.skip_first_batches(train_dataloader, resume_step * accelerator.gradient_accumulation_steps)
+            active_dataloader = accelerator.skip_first_batches(train_dataloader,
+                                                               resume_step * accelerator.gradient_accumulation_steps)
         else:
             active_dataloader = train_dataloader
         for step, (data, target) in enumerate(active_dataloader):
