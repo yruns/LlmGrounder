@@ -10,26 +10,31 @@ import os.path as osp
 from typing import *
 
 import torch
-from torch.utils.data import default_collate, DataLoader, Dataset
+from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
 from .mask3d.semseg import Mask3DDataset
+from .ptv3.semseg import PTv3Dataset
 from staticvars.const import *
 from utils.collator import DataCollatorBase
 from utils.prepare_input import assemble_instruction
 from utils.tokenize import tokenize_scene_token
 
-
-class Grounded3DDataset(Mask3DDataset):
+class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
     def __init__(
             self,
             data_path: str,
-            mask3d_cfg: Dict = None,
+            data_cfg: Dict = None,
             tokenizer: PreTrainedTokenizerBase = None,
             grounding_granularity: Literal["seg", "reg"] = "reg",
             split: Literal["train", "val"] = "train",
     ):
-        super(Grounded3DDataset, self).__init__(**mask3d_cfg)
+        # super(Grounded3DDataset, self).__init__(**mask3d_cfg)
+        mask3d_cfg = data_cfg["mask3d"]
+        ptv3_cfg = data_cfg["ptv3"]
+        Mask3DDataset.__init__(self, **mask3d_cfg)
+        PTv3Dataset.__init__(self, **ptv3_cfg)
+
         self.data_path = data_path
         self.tokenizer = tokenizer
         self.grounding_granularity = grounding_granularity
@@ -52,7 +57,8 @@ class Grounded3DDataset(Mask3DDataset):
     def __getitem__(self, idx):
         data = self.database[idx]
         scan_id = data["scan_id"]
-        scene_data_dict = self._get_scan_data(scan_id)
+        mask3d_data_dict = self._get_mask3d_data(scan_id)
+        ptv3_data_dict = self._get_ptv3_data(scan_id)
 
         utterance = data["utterance"]
         instruction = assemble_instruction(utterance, self.grounding_granularity)
@@ -66,21 +72,23 @@ class Grounded3DDataset(Mask3DDataset):
         return dict(
             input_ids=input_ids,
             labels=target_ids,
-            scene_data_dict=scene_data_dict,
+            mask3d_data_dict=mask3d_data_dict,
+            ptv3_data_dict=ptv3_data_dict
         )
 
 
 class Grounded3DCollator(DataCollatorBase):
 
-    def __init__(self, tokenizer: PreTrainedTokenizerBase, mask3d_collate: Callable):
+    def __init__(self, tokenizer: PreTrainedTokenizerBase, mask3d_collate: Callable, ptv3_collate: Callable):
         super(Grounded3DCollator, self).__init__()
         self.tokenizer = tokenizer
         self.mask3d_collate = mask3d_collate
+        self.ptv3_collate = ptv3_collate
 
     def collate(self, batch):
-        input_ids, labels, scene_data_dict = tuple(
+        input_ids, labels, mask3d_data_dict, ptv3_data_dict = tuple(
             [batch[key] for batch in batch]
-            for key in ("input_ids", "labels", "scene_data_dict")
+            for key in ("input_ids", "labels", "mask3d_data_dict", "ptv3_data_dict")
         )
 
         input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -104,24 +112,29 @@ class Grounded3DCollator(DataCollatorBase):
         # Construct attention_mask
         attention_mask = input_ids.ne(self.tokenizer.pad_token_id)
 
-        # Makesure every sample has <scene>
-        assert all(scene_data is not None for scene_data in scene_data_dict), "Some samples do not have <scene>"
-        scene_data_dict = self.mask3d_collate(scene_data_dict)
+        mask3d_data_dict = self.mask3d_collate(mask3d_data_dict)
+        ptv3_data_dict = self.ptv3_collate(ptv3_data_dict)
 
         return dict(
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,
-            scene_data_dict=scene_data_dict,
+            mask3d_data_dict=mask3d_data_dict,
+            ptv3_data_dict=ptv3_data_dict
         )
 
 
 def build_dataloader(hparams, split: Literal["train", "val"]):
-    mask3d_data_cfg = hparams.mask3d_cfg["data"]
+    data_cfg = hparams.data_cfg
+    mask3d_data_cfg = data_cfg["mask3d"]["data"]
+    ptv3_data_cfg = data_cfg["ptv3"]["data"]
 
     dataset = Grounded3DDataset(
         data_path=hparams.data_path,
-        mask3d_cfg=mask3d_data_cfg[f"{split}_dataset"],
+        data_cfg=dict(
+            mask3d=mask3d_data_cfg[f"{split}_dataset"],
+            ptv3=ptv3_data_cfg[f"{split}"]
+        ),
         tokenizer=hparams.tokenizer,
         grounding_granularity=hparams.grounding_granularity,
         split=split,
@@ -131,6 +144,7 @@ def build_dataloader(hparams, split: Literal["train", "val"]):
         if split == "train" else hparams.per_device_eval_batch_size
 
     from .mask3d.utils import VoxelizeCollate
+    from .ptv3.utils import collate_fn
 
     return DataLoader(
         dataset=dataset,
@@ -140,5 +154,6 @@ def build_dataloader(hparams, split: Literal["train", "val"]):
         collate_fn=Grounded3DCollator(
             tokenizer=hparams.tokenizer,
             mask3d_collate=VoxelizeCollate(mask3d_data_cfg[f"{split}_collation"]),
+            ptv3_collate=collate_fn,
         ).collate,
     )

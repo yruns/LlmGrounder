@@ -201,7 +201,7 @@ class Mask3DDataset(Dataset):
     def __len__(self):
         raise NotImplementedError
 
-    def _get_scan_data(self, scan_id):
+    def _get_mask3d_data(self, scan_id):
         scan_data = self.scan_database[scan_id]
 
         points = np.load(scan_data["filepath"])

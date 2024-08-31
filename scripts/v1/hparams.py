@@ -11,30 +11,26 @@ Configuration file for grounder(reg).
 """
 now = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
-# file paths
+# *************** file paths ***************
 scan_root: str = "/data3/ysh/Datasets/ScanNet/scans"
 data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
 
 
-# data
+# *************** data ***************
 num_workers: int = 0
 dataset_name: Literal["referit3d"] = "referit3d"
 grounding_granularity: Literal["reg", "seg"] = "reg"
 
-from configs.mask3d_conf import mask3d_cfg
-pointcloud_tower_cfg: Dict = mask3d_cfg
-pointcloud_output_dim: int = 256
 
-# model
+# *************** model ***************
 # llm_name="Meta-Llama-3.1-8B-Instruct"
 llm_name = "vicuna-7b-v1.3"
 model_max_length = 2048
 attn_implementation = "flash_attention_2"
 freeze_llm_backbone = True
 freeze_mm_tower = True
-detector_name = "V-DETR"
 lora_config = dict(
     enable=False,
     lora_r=8,
@@ -44,8 +40,18 @@ lora_config = dict(
     lora_target_modules="q_proj,v_proj,lm_head",
     task_type="CAUSAL_LM",
 )
+num_encoded_scene_token: int = 384
 
-# train
+from configs.ptv3_conf import ptv3_cfg
+ptv3_cfg["model"]["K"] = num_encoded_scene_token
+pointcloud_tower_cfg: Dict = ptv3_cfg
+pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1]
+
+from configs.mask3d_conf import mask3d_cfg
+grounding_tower_cfg = mask3d_cfg
+
+
+# *************** training ***************
 seed: int = 42
 gpus: List[int] = [0]
 batch_size: int = 2
@@ -69,7 +75,8 @@ num_train_epochs: int = 10
 save_freq: Union[str, int] = 300  # or "epoch"
 resume_from_checkpoint: Optional[str] = None
 
-# logging
+
+# *************** logging ***************
 log_interval: int = 1
 log_project: str = "grounder_reg"
 log_tag: str = "test1"

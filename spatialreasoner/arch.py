@@ -8,9 +8,8 @@ from typing import *
 
 import torch
 from torch import nn
-from transformers import Cache
 
-from spatialreasoner.builder import build_pointcloud_tower
+from spatialreasoner.builder import build_pointcloud_tower, build_grounding_tower
 from staticvars.const import SCENE_TOKEN_INDEX, IGNORE_INDEX
 
 
@@ -21,14 +20,25 @@ class SpatialReasonerMetaModel(nn.Module):
         self.config = config
         self.pointcloud_tower = None
         self.pointcloud_projector = None
+        self.grounding_tower = None
+        self.grounding_projector = None
 
     def initialize_pointcloud_tower(self, hparms):
         pointcloud_tower_cfg = getattr(hparms, "pointcloud_tower_cfg")
         self.pointcloud_tower = build_pointcloud_tower(pointcloud_tower_cfg)
         self.pointcloud_projector = nn.Linear(
-            pointcloud_tower_cfg["model"]["hidden_dim"],
+            hparms.pointcloud_output_dim,
             self.config.hidden_size,
         )
+
+    def initialize_grounding_tower(self, hparms):
+        grounding_tower_cfg = getattr(hparms, "grounding_tower_cfg")
+        self.grounding_tower = build_grounding_tower(grounding_tower_cfg)
+        self.grounding_projector = nn.Linear(
+            self.config.hidden_size,
+            grounding_tower_cfg["model"]["hidden_dim"]
+        )
+
 
     def get_pointcloud_tower(self):
         return getattr(self, "pointcloud_tower", None)
@@ -60,7 +70,7 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         dtype = getattr(self.config, "compute_dtype")
         scene_features = (
              self.get_pointcloud_tower()
-             .encode_scene(scene_data_dict, is_eval=not self.training, device=device, dtype=dtype)
+             .encode_scene(scene_data_dict)
              .to(dtype)
         )
         return self.get_pointcloud_projector()(scene_features)
