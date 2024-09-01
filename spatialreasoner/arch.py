@@ -22,6 +22,7 @@ class SpatialReasonerMetaModel(nn.Module):
         self.pointcloud_projector = None
         self.grounding_tower = None
         self.grounding_projector = None
+        self.grounding_cross_attn = None
 
     def initialize_pointcloud_tower(self, hparms):
         pointcloud_tower_cfg = getattr(hparms, "pointcloud_tower_cfg")
@@ -38,7 +39,11 @@ class SpatialReasonerMetaModel(nn.Module):
             self.config.hidden_size,
             grounding_tower_cfg["model"]["hidden_dim"]
         )
-
+        self.grounding_cross_attn = nn.TransformerDecoderLayer(
+            d_model=grounding_tower_cfg["model"]["hidden_dim"],
+            dim_feedforward=grounding_tower_cfg["model"]["hidden_dim"] * 4,
+            nhead=8, batch_first=True,
+        )
 
     def get_pointcloud_tower(self):
         return getattr(self, "pointcloud_tower", None)
@@ -46,8 +51,21 @@ class SpatialReasonerMetaModel(nn.Module):
     def get_pointcloud_projector(self):
         return getattr(self, "pointcloud_projector", None)
 
+    def get_grounding_tower(self):
+        return getattr(self, "grounding_tower", None)
+
+    def get_grounding_projector(self):
+        return getattr(self, "grounding_projector", None)
+
+    def get_grounding_cross_attn(self):
+        return getattr(self, "grounding_cross_attn", None)
+
     def reset_pointcloud_tower_precision(self, precision: torch.dtype):
         setattr(self, "pointcloud_tower", self.get_pointcloud_tower().to(dtype=precision))
+
+    def reset_grounding_tower_precision(self, precision: torch.dtype):
+        setattr(self, "grounding_tower", self.get_grounding_tower().to(dtype=precision))
+        setattr(self, "grounding_cross_attn", self.get_grounding_cross_attn().to(dtype=precision))
 
 
 class SpatialReasonerMetaForCausalLM(nn.Module):
@@ -57,14 +75,20 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
     def get_model(self):
         pass
 
-    def reset_detector_precision(self, precision: torch.dtype):
-        self.get_model().reset_pointcloud_tower_precision(precision)
-
     def get_pointcloud_tower(self):
         return self.get_model().get_pointcloud_tower()
 
     def get_pointcloud_projector(self):
         return self.get_model().get_pointcloud_projector()
+
+    def get_grounding_tower(self):
+        return self.get_model().get_grounding_tower()
+
+    def get_grounding_projector(self):
+        return self.get_model().get_grounding_projector()
+
+    def get_grounding_cross_attn(self):
+        return self.get_model().get_grounding_cross_attn()
 
     def encode_scene(self, scene_data_dict: Dict, device):
         dtype = getattr(self.config, "compute_dtype")
@@ -75,6 +99,71 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         )
         return self.get_pointcloud_projector()(scene_features)
 
+    def extract_ref_hidden_state(
+            self,
+            input_ids: torch.LongTensor,
+            llm_hidden_states: Tuple[torch.FloatTensor, ...],
+            grounding_projector: nn.Module
+    ):
+        ## => Construct seg_mask
+        mask = input_ids[:, 1:] == getattr(self.config, "ref_token_index")
+        num_encoded_scene_token = \
+            getattr(self.config, "num_encoded_scene_token") + int(getattr(self.config, "use_scene_start_end")) * 2
+        seg_mask = torch.cat(
+            [
+                torch.zeros((input_ids.shape[0], num_encoded_scene_token - 1), dtype=torch.bool, device=input_ids.device),
+                mask, torch.zeros((input_ids.shape[0], 1), dtype=torch.bool, device=input_ids.device)
+            ], dim=1
+        )
+        last_hidden_state = llm_hidden_states[-1]
+        ref_embeddings_flattened = last_hidden_state[seg_mask]
+        ref_embeddings_flattened = grounding_projector(ref_embeddings_flattened)
+
+        ## => Construct ref_embeddings as List
+        seg_token_count = seg_mask.int().sum(-1)
+        seg_token_offset = seg_token_count.cumsum(-1)
+        seg_token_offset = torch.cat([torch.zeros(1, device=input_ids.device).long(), seg_token_offset], dim=0)
+
+        ref_embeddings = []
+        for i in range(len(seg_token_offset) - 1):
+            start_i, end_i = seg_token_offset[i], seg_token_offset[i + 1]
+            ref_embeddings.append(ref_embeddings_flattened[start_i:end_i])
+        return ref_embeddings
+
+
+    def call_grounding_tower(
+            self,
+            input_ids,
+            grounding_data_dict: Dict,
+            llm_hidden_states: Optional[Tuple[torch.FloatTensor, ...]]
+    ):
+        ## => Get the grounding tower and projector first
+        grounding_tower = self.get_grounding_tower()
+        grounding_projector = self.get_grounding_projector()
+        grounding_cross_attn = self.get_grounding_cross_attn()
+
+        ## => Call the grounding tower's `encode()` method
+        encoded_state = grounding_tower.encode(grounding_data_dict, not self.training, input_ids.device)
+        raw_queries_pos = encoded_state[-1]
+
+        ## => Construct queries from llm_hidden_states
+        ref_embeddings = self.extract_ref_hidden_state(input_ids, llm_hidden_states, grounding_projector)
+        max_num_ref_tokens = max([ref_embedding.shape[0] for ref_embedding in ref_embeddings])
+        ref_embeddings_wrapped = torch.zeros(
+            (len(ref_embeddings), max_num_ref_tokens, ref_embeddings[0].shape[-1]),
+            device=input_ids.device, dtype=raw_queries_pos.dtype
+        )
+        for i, ref_embedding in enumerate(ref_embeddings):
+            ref_embeddings_wrapped[i, :ref_embedding.shape[0]] = ref_embedding
+
+        ## => Call the grounding tower's `decode()` method for each sample(maybe have different number of ref tokens)
+        # for i, ref_embedding in enumerate(ref_embeddings):
+        queries_pos = grounding_cross_attn(ref_embeddings_wrapped, raw_queries_pos.permute(1, 0, 2))
+
+        ## => Call the grounding tower's `decode()` method
+        grounding_loss = grounding_tower.decode(encoded_state, grounding_data_dict, queries_pos.permute(1, 0, 2))
+        return grounding_loss
+
     def prepare_for_multimodal(
             self,
             input_ids: torch.LongTensor = None,
@@ -83,9 +172,6 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
             labels: Optional[torch.LongTensor] = None,
             scene_data_dict: Dict = None
     ):
-        # pointcloud_tower = self.get_detector()
-        # assert pointcloud_tower is not None, "Please provide a pointcloud_tower"
-
         device = input_ids.device
         embed_tokens_fn = self.get_model().embed_tokens
 

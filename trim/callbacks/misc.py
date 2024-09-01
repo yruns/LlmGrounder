@@ -67,7 +67,7 @@ class InformationWriter(CallbackBase):
 
     def on_training_phase_start(self):
         self.trainer.comm_info["iter_info"] = ""
-        self.trainer.logger.info(self.trainer.hparams)
+        # self.trainer.logger.info(self.trainer.hparams)
 
     def on_training_setp_start(self):
         info = "Train: [{epoch}/{max_epoch}][{iter}/{max_iter}] ".format(
@@ -171,7 +171,7 @@ class Resumer(CallbackBase):
         if self.checkpoint is not None:
             self.resume()
         else:
-            self.trainer.logger.info("=> No checkpoint given, engine from scratch")
+            self.trainer.logger.info("=> No checkpoint given, training from scratch")
 
     def resume(self):
         if not os.path.exists(self.checkpoint):

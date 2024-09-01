@@ -9,6 +9,7 @@ import glob
 import os
 from collections.abc import Sequence
 from copy import deepcopy
+import functools
 
 import numpy as np
 import torch
@@ -66,11 +67,6 @@ class PTv3Dataset(Dataset):
             self.data_list = self.get_data_list()
         self.la = torch.load(la_file) if la_file else None
         self.ignore_index = ignore_index
-        print(
-            "Totally {} x {} samples in {} set.".format(
-                len(self.data_list), self.loop, split
-            )
-        )
 
         # Construct scan_id to scan_data mapping
         self.scan_id_to_data = {}
@@ -90,8 +86,9 @@ class PTv3Dataset(Dataset):
             raise NotImplementedError
         return data_list
 
-    def _get_ptv3_data(self, idx):
-        data_path = self.data_list[idx % len(self.data_list)]
+    @functools.lru_cache(maxsize=None)
+    def _load_data(self, scan_id):
+        data_path = self.scan_id_to_data[scan_id]
         data = torch.load(data_path)
         coord = data["coord"]
         color = data["color"]
@@ -113,17 +110,11 @@ class PTv3Dataset(Dataset):
             instance=instance,
             scene_id=scene_id,
         )
-        if self.la:
-            sampled_index = self.la[self.get_data_name(idx)]
-            mask = np.ones_like(segment).astype(np.bool_)
-            mask[sampled_index] = False
-            segment[mask] = self.ignore_index
-            data_dict["segment"] = segment
-            data_dict["sampled_index"] = sampled_index
         return data_dict
 
-    def get_data_name(self, idx):
-        return os.path.basename(self.data_list[idx % len(self.data_list)]).split(".")[0]
+    def _get_ptv3_data(self, scan_id):
+        data_dict = self._load_data(scan_id)
+        return self.transform(data_dict)
 
 
     def __getitem__(self, idx):
@@ -159,11 +150,6 @@ class ScanNet200Dataset(PTv3Dataset):
             instance=instance,
             scene_id=scene_id,
         )
-        if self.la:
-            sampled_index = self.la[self.get_data_name(idx)]
-            segment[sampled_index] = self.ignore_index
-            data_dict["segment"] = segment
-            data_dict["sampled_index"] = sampled_index
         return data_dict
 
 

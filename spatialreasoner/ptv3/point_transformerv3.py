@@ -23,6 +23,7 @@ from .misc import offset2bincount
 from .structure import Point
 from .modules import PointModule, PointSequential
 
+from third_party.pointnet2.pointnet2_utils import furthest_point_sample
 
 
 class DropPath(nn.Module):
@@ -661,6 +662,8 @@ class PointTransformerV3(PointModule):
             if len(enc) != 0:
                 self.enc.add(module=enc, name=f"enc{s}")
 
+    def encode_scene(self, data_dict):
+        return self.forward(data_dict)
 
     def forward(self, data_dict):
         point = Point(data_dict)
@@ -681,7 +684,6 @@ class PointTransformerV3(PointModule):
                 "feat": point.feat[offset[i]: offset[i + 1]],
             })
 
-        from third_party.pointnet2.pointnet2_utils import furthest_point_sample
         fps_idxs = [
             furthest_point_sample(
                 point["coord"].unsqueeze(0).float(),
@@ -694,5 +696,4 @@ class PointTransformerV3(PointModule):
         feats = torch.stack([point["feat"][fps_idx] for point, fps_idx in zip(batch_data, fps_idxs)])
 
         feats = torch.cat([coords, feats], dim=-1)
-
         return feats

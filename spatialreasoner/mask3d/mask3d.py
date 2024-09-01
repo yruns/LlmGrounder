@@ -232,11 +232,10 @@ class Mask3D(nn.Module):
 
         return pos_encodings_pcd
 
-    def encode_scene(
+    def encode(
             self, x, point2segment=None, raw_coordinates=None, is_eval=False
     ):
         pcd_features, aux = self.backbone(x)
-
         batch_size = len(x.decomposed_coordinates)
 
         with torch.no_grad():
@@ -256,22 +255,7 @@ class Mask3D(nn.Module):
         pos_encodings_pcd = self.get_pos_encs(coords)
         mask_features = self.mask_features_head(pcd_features)
 
-        return (x, point2segment, is_eval, aux, coordinates,
-               pcd_features, batch_size, coords, pos_encodings_pcd, mask_features), mask_features
 
-    def decode(self, x, point2segment, is_eval,
-               aux, coordinates, pcd_features, batch_size, coords, pos_encodings_pcd, mask_features):
-
-        if self.train_on_segments:
-            mask_segments = []
-            for i, mask_feature in enumerate(
-                    mask_features.decomposed_features
-            ):
-                mask_segments.append(
-                    self.scatter_fn(mask_feature, point2segment[i], dim=0)
-                )
-
-        sampled_coords = None
 
         if self.non_parametric_queries:
             fps_idx = [
@@ -322,53 +306,28 @@ class Mask3D(nn.Module):
                 )
                 queries = self.np_feature_projection(queries)
             query_pos = query_pos.permute((2, 0, 1))
-        elif self.random_queries:
-            query_pos = (
-                    torch.rand(
-                        batch_size,
-                        self.mask_dim,
-                        self.num_queries,
-                        device=x.device,
-                    )
-                    - 0.5
-            )
-
-            queries = torch.zeros_like(query_pos).permute((0, 2, 1))
-            query_pos = query_pos.permute((2, 0, 1))
-        elif self.random_query_both:
-            if not self.random_normal:
-                query_pos_feat = (
-                        torch.rand(
-                            batch_size,
-                            2 * self.mask_dim,
-                            self.num_queries,
-                            device=x.device,
-                        )
-                        - 0.5
-                )
-            else:
-                query_pos_feat = torch.randn(
-                    batch_size,
-                    2 * self.mask_dim,
-                    self.num_queries,
-                    device=x.device,
-                )
-
-            queries = query_pos_feat[:, : self.mask_dim, :].permute((0, 2, 1))
-            query_pos = query_pos_feat[:, self.mask_dim:, :].permute(
-                (2, 0, 1)
-            )
         else:
-            # PARAMETRIC QUERIES
-            queries = self.query_feat.weight.unsqueeze(0).repeat(
-                batch_size, 1, 1
-            )
-            query_pos = self.query_pos.weight.unsqueeze(1).repeat(
-                1, batch_size, 1
-            )
+            raise NotImplementedError
 
+        return point2segment, is_eval, aux, pcd_features, \
+            coords, pos_encodings_pcd, mask_features, queries, query_pos
+
+    def decode(self, point2segment, is_eval, aux, pcd_features, coords,
+               pos_encodings_pcd, mask_features, queries, query_pos):
+
+        sampled_coords = None
         predictions_class = []
         predictions_mask = []
+
+        mask_segments = None
+        if self.train_on_segments:
+            mask_segments = []
+            for i, mask_feature in enumerate(
+                    mask_features.decomposed_features
+            ):
+                mask_segments.append(
+                    self.scatter_fn(mask_feature, point2segment[i], dim=0)
+                )
 
         for decoder_counter in range(self.num_decoders):
             if self.shared_decoder:

@@ -17,13 +17,6 @@ data_path: str = "data/referit3d/"
 pretrained_state_dir: str = "pretrained/"
 output_dir: str = f"output/grounder_reg_{now}"
 
-
-# *************** data ***************
-num_workers: int = 0
-dataset_name: Literal["referit3d"] = "referit3d"
-grounding_granularity: Literal["reg", "seg"] = "reg"
-
-
 # *************** model ***************
 # llm_name="Meta-Llama-3.1-8B-Instruct"
 llm_name = "vicuna-7b-v1.3"
@@ -40,16 +33,23 @@ lora_config = dict(
     lora_target_modules="q_proj,v_proj,lm_head",
     task_type="CAUSAL_LM",
 )
+use_scene_start_end = False
 num_encoded_scene_token: int = 384
 
 from configs.ptv3_conf import ptv3_cfg
+from configs.mask3d_conf import mask3d_cfg
 ptv3_cfg["model"]["K"] = num_encoded_scene_token
 pointcloud_tower_cfg: Dict = ptv3_cfg
-pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1]
-
-from configs.mask3d_conf import mask3d_cfg
+pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1] + 3  # Note `+3` for xyz
 grounding_tower_cfg = mask3d_cfg
 
+grounding_loss_weight: float = 1.0
+llm_loss_weight: float = 1.0
+
+# *************** data ***************
+num_workers: int = 8
+dataset_name: Literal["referit3d"] = "referit3d"
+grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42

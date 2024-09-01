@@ -3,7 +3,7 @@ File: prompts.py
 Date: 2024/8/16
 Author: yruns
 """
-from .const import REG_TOKEN, SEG_TOKEN
+from .const import REF_TOKEN
 
 SYSTEM_PROMPTS = [
     "You are an advanced 3D vision expert. Your task is to analyze and understand objects in a 3D scene, and accurately locate the specified object or area based on the given description. Please return the position and relevant information of the object in the 3D scene according to the input description.",
@@ -12,19 +12,13 @@ SYSTEM_PROMPTS = [
 ]
 
 ASK_PROMPTS = {
-    "reg": [
-        "{SCENE_TOKEN}\nGiven the 3D scene, can you help ground the object by its description which is {UTTERANCE}?",
-    ],
     "seg": [
         "{SCENE_TOKEN}\nGiven the 3D scene, can you help ground the object by its description which is {UTTERANCE}?",
     ]
 }
 
 REPLY_PROMPTS = {
-    "reg": [
-        f"Sure, it is {REG_TOKEN}.",
-    ],
     "seg": [
-        f"Sure, it is {SEG_TOKEN}.",
+        f"Sure, it is {REF_TOKEN}.",
     ]
 }

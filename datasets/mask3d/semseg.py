@@ -147,6 +147,7 @@ class Mask3DDataset(Dataset):
                 self._load_json(database_path / f"{mode}_database.json")
             )
         labels = self._load_json(Path(label_db_filepath))
+        labels = {int(key): value for key, value in labels.items() if isinstance(key, str)}
 
         # if working only on classes for validation - discard others
         self._labels = self._select_correct_labels(labels, num_labels)
@@ -186,6 +187,8 @@ class Mask3DDataset(Dataset):
         # mandatory color augmentation
         if add_colors:
             self.normalize_color = A.Normalize(mean=color_mean, std=color_std)
+
+        self._build_from_zero_map()
 
         # Construct scan_id to scan_data mapping
         self.scan_database = dict()
@@ -430,13 +433,6 @@ class Mask3DDataset(Dataset):
             else:
                 features = np.hstack((features, coordinates))
 
-        # if self.task != "semantic_segmentation":
-        if scan_data["raw_filepath"].split("/")[-2] in [
-            "scene0636_00",
-            "scene0154_00",
-        ]:
-            return self.__getitem__(0)
-
         return (
             coordinates,
             features,
@@ -548,13 +544,19 @@ class Mask3DDataset(Dataset):
             {number_of_validation_labels}, {number_of_all_labels}"""
             raise ValueError(msg)
 
+    def _build_from_zero_map(self):
+        raw_indices = [int(i) for i in self.label_info.keys()]
+
+        self.label_map = np.ones((max(raw_indices) + 1, ), dtype=np.int32) * self.ignore_label
+        for i, k in enumerate(raw_indices):
+            self.label_map[k] = i
+
     def _remap_from_zero(self, labels):
         labels[
             ~np.isin(labels, list(self.label_info.keys()))
         ] = self.ignore_label
         # remap to the range from 0
-        for i, k in enumerate(self.label_info.keys()):
-            labels[labels == k] = i
+        labels = self.label_map[labels]
         return labels
 
     def _remap_model_output(self, output):

@@ -5,6 +5,7 @@ Author: yruns
 
 
 """
+import time
 import json
 import os.path as osp
 from typing import *
@@ -26,10 +27,9 @@ class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
             data_path: str,
             data_cfg: Dict = None,
             tokenizer: PreTrainedTokenizerBase = None,
-            grounding_granularity: Literal["seg", "reg"] = "reg",
+            grounding_granularity: Literal["seg", "reg"] = "seg",
             split: Literal["train", "val"] = "train",
     ):
-        # super(Grounded3DDataset, self).__init__(**mask3d_cfg)
         mask3d_cfg = data_cfg["mask3d"]
         ptv3_cfg = data_cfg["ptv3"]
         Mask3DDataset.__init__(self, **mask3d_cfg)
@@ -125,9 +125,8 @@ class Grounded3DCollator(DataCollatorBase):
 
 
 def build_dataloader(hparams, split: Literal["train", "val"]):
-    data_cfg = hparams.data_cfg
-    mask3d_data_cfg = data_cfg["mask3d"]["data"]
-    ptv3_data_cfg = data_cfg["ptv3"]["data"]
+    mask3d_data_cfg = hparams.grounding_tower_cfg["data"]
+    ptv3_data_cfg = hparams.pointcloud_tower_cfg["data"]
 
     dataset = Grounded3DDataset(
         data_path=hparams.data_path,
@@ -151,9 +150,10 @@ def build_dataloader(hparams, split: Literal["train", "val"]):
         batch_size=per_device_batch_size,
         shuffle=(split == "train"),
         num_workers=hparams.num_workers,
+        pin_memory=True,
         collate_fn=Grounded3DCollator(
             tokenizer=hparams.tokenizer,
-            mask3d_collate=VoxelizeCollate(mask3d_data_cfg[f"{split}_collation"]),
+            mask3d_collate=VoxelizeCollate(**mask3d_data_cfg[f"{split}_collation"]),
             ptv3_collate=collate_fn,
         ).collate,
     )

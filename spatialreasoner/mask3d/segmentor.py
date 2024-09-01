@@ -64,7 +64,7 @@ class Mask3DSegmentor(nn.Module):
         self.labels_info = dict()
 
 
-    def encode_scene(self, batch, is_eval, device, dtype):
+    def encode(self, batch, is_eval, device):
         data, target, file_names = batch
 
         if data.features.shape[0] > self.config.general.max_batch_size:
@@ -86,7 +86,7 @@ class Mask3DSegmentor(nn.Module):
             device=device,
         )
 
-        encoder_out, mask_features = self.model.encode_scene(
+        encoder_state = self.model.encode(
             data,
             point2segment=[
                 target[i]["point2segment"] for i in range(len(target))
@@ -94,16 +94,16 @@ class Mask3DSegmentor(nn.Module):
             raw_coordinates=raw_coordinates,
             is_eval=is_eval,
         )
-        return encoder_out, batch, mask_features
+        return encoder_state
 
 
-    def decode(self, encoder_out, batch):
+    def decode(self, encoder_state, batch, queries_pos):
         data, target, file_names = batch
-        x, point2segment, is_eval, aux, coordinates, \
-            pcd_features, batch_size, coords, pos_encodings_pcd, mask_features = encoder_out
+        point2segment, is_eval, aux, pcd_features, \
+            coords, pos_encodings_pcd, mask_features, queries, _ = encoder_state
 
-        output = self.model.decode(x, point2segment, is_eval, aux, coordinates,
-            pcd_features, batch_size, coords, pos_encodings_pcd, mask_features)
+        output = self.model.decode(point2segment, is_eval, aux, pcd_features,
+            coords, pos_encodings_pcd, mask_features, queries, queries_pos)
 
         if not is_eval:
             ## => Training, compute loss

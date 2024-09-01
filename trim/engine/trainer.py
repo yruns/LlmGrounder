@@ -98,13 +98,32 @@ class TrainerBase(object):
         from trim.utils import comm
         comm.lazy_init_accelerate(self.accelerator)
         self.configure_wandb()
+
+        self.logger.info("###  => Creating model ...")
         self.configure_model()
+        num_parameters = comm.count_parameters(self.model)
+        self.logger.info(f"##  => Number of learnable parameters: {num_parameters}")
+        self.accelerator.wait_for_everyone()
+        self.logger.info("###  => Model is ready to use")
+
+        self.logger.info("###  => Creating dataloader...")
         self.configure_dataloader()
+        self.logger.info(f"##  => Train dataset size: {len(self.train_loader.dataset)}")
+        self.logger.info(f"##  => Val dataset size: {len(self.val_loader.dataset)}")
+        self.logger.info("###  => Dataloader is ready to use")
+
+        self.logger.info("###  => Creating optimizer and scheduler...")
         self.configure_optimizers()
+        self.logger.info("###  => Optimizer and scheduler are ready to use")
+
         self.configure_criteria()
         self.configure_scaler()
-        self.configure_callbacks()
 
+        self.logger.info("###  => Binding callbacks...")
+        self.configure_callbacks()
+        self.logger.info("###  => Callbacks are ready to use")
+
+        self.logger.info("###  => Preparing objects by accelerator...")
         wait_prepare_obj_names = []
         wait_prepare_objs = []
         for obj_name in self.need_prepare_by_accelerator_objects:

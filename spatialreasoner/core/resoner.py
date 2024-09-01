@@ -45,6 +45,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
     def get_model(self):
         return self.model
 
+
     def forward(
             self,
             input_ids: torch.LongTensor = None,
@@ -55,11 +56,15 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
             labels: Optional[torch.LongTensor] = None,
             use_cache: Optional[bool] = None,
             output_attentions: Optional[bool] = None,
-            output_hidden_states: Optional[bool] = None,
+            output_hidden_states: Optional[bool] = True,
             return_dict: Optional[bool] = None,
             cache_position: Optional[torch.LongTensor] = None,
-            scene_data_dict: Dict = None,
+            mask3d_data_dict: Dict = None,
+            ptv3_data_dict: Dict = None
     ) -> Union[Tuple, CausalLMOutputWithPast]:
+        raw_input_ids = input_ids.clone()
+
+        ## => Prepare for multimodal(insert scene feature)
         if inputs_embeds is None:
             (
                 input_ids,
@@ -72,10 +77,11 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 position_ids=position_ids,
                 attention_mask=attention_mask,
                 labels=labels,
-                scene_data_dict=scene_data_dict
+                scene_data_dict=ptv3_data_dict
             )
 
-        return super().forward(
+        ## => Call original LLM's `forward()` method
+        llm_output: CausalLMOutputWithPast = super().forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -87,6 +93,14 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
             output_hidden_states=output_hidden_states,
             return_dict=return_dict
         )
+        llm_hidden_states = llm_output.hidden_states
+
+        ## => Call grounding tower to generate segmentation
+        grounding_loss = self.call_grounding_tower(raw_input_ids, mask3d_data_dict, llm_hidden_states)
+
+        final_loss = llm_output.loss * getattr(self.config, "llm_loss_weight") + \
+            grounding_loss * getattr(self.config, "grounding_loss_weight")
+        return final_loss
 
 
 AutoConfig.register("spatial_reasoner", SpatialReasonerConfig)

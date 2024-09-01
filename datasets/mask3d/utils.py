@@ -12,7 +12,7 @@ class VoxelizeCollate:
             self,
             ignore_label=255,
             voxel_size=1,
-            mode="test",
+            mode="train",
             small_crops=False,
             very_small_crops=False,
             batch_instance=False,
