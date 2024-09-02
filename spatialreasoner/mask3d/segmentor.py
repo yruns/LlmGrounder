@@ -1,6 +1,7 @@
 import statistics
 
 import MinkowskiEngine as ME
+import torch
 from torch import nn
 
 from .metrics import IoU
@@ -100,8 +101,9 @@ class Mask3DSegmentor(nn.Module):
     def decode(self, encoder_state, batch, queries_pos):
         data, target, file_names = batch
         point2segment, is_eval, aux, pcd_features, \
-            coords, pos_encodings_pcd, mask_features, queries, _ = encoder_state
+            coords, pos_encodings_pcd, mask_features, _, _ = encoder_state
 
+        queries = torch.zeros_like(queries_pos).permute(1, 0, 2)
         output = self.model.decode(point2segment, is_eval, aux, pcd_features,
             coords, pos_encodings_pcd, mask_features, queries, queries_pos)
 

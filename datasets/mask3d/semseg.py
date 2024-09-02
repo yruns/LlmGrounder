@@ -204,7 +204,7 @@ class Mask3DDataset(Dataset):
     def __len__(self):
         raise NotImplementedError
 
-    def _get_mask3d_data(self, scan_id):
+    def _get_mask3d_data(self, scan_id, interested_obj_ids):
         scan_data = self.scan_database[scan_id]
 
         points = np.load(scan_data["filepath"])
@@ -219,6 +219,14 @@ class Mask3DDataset(Dataset):
             points[:, 9],
             points[:, 10:12],
         )
+
+        ## => Only keep interested objects
+        instance_labels = labels[:, 1]
+        mask = np.zeros(len(instance_labels), dtype=bool)
+        for interested_obj_id in interested_obj_ids:
+            mask[instance_labels == interested_obj_id] = True
+        instance_labels[~mask] = -1
+        labels[:, 1] = instance_labels
 
         raw_coordinates = coordinates.copy()
         raw_color = color

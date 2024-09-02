@@ -57,11 +57,12 @@ class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
     def __getitem__(self, idx):
         data = self.database[idx]
         scan_id = data["scan_id"]
-        mask3d_data_dict = self._get_mask3d_data(scan_id)
-        ptv3_data_dict = self._get_ptv3_data(scan_id)
-
         utterance = data["utterance"]
+        target_ids = data["target_id"]
         instruction = assemble_instruction(utterance, self.grounding_granularity)
+
+        mask3d_data_dict = self._get_mask3d_data(scan_id, [target_ids])
+        ptv3_data_dict = self._get_ptv3_data(scan_id)
 
         input_ids, target_ids = tokenize_scene_token(
             instruction,
