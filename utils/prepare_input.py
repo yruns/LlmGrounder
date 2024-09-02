@@ -34,4 +34,4 @@ def assemble_instruction(utterance, granularity):
         "{role}: {prompt}{end_token}".format(role=reply_role, prompt=reply_prompt, end_token=REPLY_END_TOKEN)
     )
 
-    return "".join(instruction_snippet_list)  # Modifying sep may cause errors in `tokenize_scene_token` function
+    return "\n".join(instruction_snippet_list)

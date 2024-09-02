@@ -147,8 +147,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 encoded_state, mask3d_data_dict, queries_pos.permute(1, 0, 2), is_eval=True
             )
             grounding_outputs.append(grounding_output)
-        return grounding_outputs
-
+        return output_ids, grounding_outputs
 
 
     @torch.no_grad()

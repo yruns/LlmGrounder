@@ -18,5 +18,5 @@ EOP_TOKEN = "</p>"
 REPLY_END_TOKEN = "</s>"
 
 
-# ROLES = {"ask": "USER", "reply": "ASSISTANT"}
-ROLES = {"ask": "## human", "reply": "## assistant"}
+ROLES = {"ask": "USER", "reply": "ASSISTANT"}
+# ROLES = {"ask": "## human", "reply": "## assistant"}
