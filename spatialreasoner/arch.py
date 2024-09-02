@@ -102,19 +102,31 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
     def extract_ref_hidden_state(
             self,
             input_ids: torch.LongTensor,
-            llm_hidden_states: Tuple[torch.FloatTensor, ...],
-            grounding_projector: nn.Module
+            llm_hidden_states: Optional[Tuple[torch.FloatTensor, ...]],
+            multimodal: bool = True,
+            grounding_projector: Optional[nn.Module] = None
     ):
         ## => Construct seg_mask
         mask = input_ids[:, 1:] == getattr(self.config, "ref_token_index")
-        num_encoded_scene_token = \
-            getattr(self.config, "num_encoded_scene_token") + int(getattr(self.config, "use_scene_start_end")) * 2
-        seg_mask = torch.cat(
-            [
-                torch.zeros((input_ids.shape[0], num_encoded_scene_token - 1), dtype=torch.bool, device=input_ids.device),
+        seg_mask = torch.cat([
                 mask, torch.zeros((input_ids.shape[0], 1), dtype=torch.bool, device=input_ids.device)
             ], dim=1
         )
+
+        if multimodal:
+            num_encoded_scene_token = \
+                getattr(self.config, "num_encoded_scene_token") + int(getattr(self.config, "use_scene_start_end")) * 2
+            seg_mask = torch.cat([
+                torch.zeros((input_ids.shape[0], num_encoded_scene_token - 1), dtype=torch.bool, device=input_ids.device),
+                seg_mask
+            ], dim=1)
+
+        ## => Check if llm_hidden_states and grounding_projector is None
+        assert llm_hidden_states is not None, "llm_hidden_states is None"
+        if grounding_projector is None:
+            grounding_projector = self.get_grounding_projector()
+
+        ## => Project ref_embeddings
         last_hidden_state = llm_hidden_states[-1]
         ref_embeddings_flattened = last_hidden_state[seg_mask]
         ref_embeddings_flattened = grounding_projector(ref_embeddings_flattened)

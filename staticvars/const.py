@@ -15,7 +15,7 @@ SCENE_END_TOKEN = "<scene_end>"
 REF_TOKEN = "[ref]"
 SOP_TOKEN = "<p>"
 EOP_TOKEN = "</p>"
-REPLY_END_TOKEN = "<s/>"
+REPLY_END_TOKEN = "</s>"
 
 
 # ROLES = {"ask": "USER", "reply": "ASSISTANT"}

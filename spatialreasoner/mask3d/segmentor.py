@@ -98,7 +98,7 @@ class Mask3DSegmentor(nn.Module):
         return encoder_state
 
 
-    def decode(self, encoder_state, batch, queries_pos):
+    def decode(self, encoder_state, batch, queries_pos, is_eval=False):
         data, target, file_names = batch
         point2segment, is_eval, aux, pcd_features, \
             coords, pos_encodings_pcd, mask_features, _, _ = encoder_state
@@ -107,30 +107,308 @@ class Mask3DSegmentor(nn.Module):
         output = self.model.decode(point2segment, is_eval, aux, pcd_features,
             coords, pos_encodings_pcd, mask_features, queries, queries_pos)
 
+        try:
+            losses = self.criterion(output, target, mask_type=self.mask_type)
+        except ValueError as val_err:
+            raise val_err
+
+        for k in list(losses.keys()):
+            if k in self.criterion.weight_dict:
+                losses[k] *= self.criterion.weight_dict[k]
+            else:
+                # remove this loss if not specified in `weight_dict`
+                losses.pop(k)
+
+        loss = sum(losses.values()) / len(losses)
         if not is_eval:
             ## => Training, compute loss
-            try:
-                losses = self.criterion(output, target, mask_type=self.mask_type)
-            except ValueError as val_err:
-                print(f"ValueError: {val_err}")
-                print(f"data shape: {data.shape}")
-                print(f"data feat shape:  {data.features.shape}")
-                print(f"data feat nans:   {data.features.isnan().sum()}")
-                print(f"output: {output}")
-                print(f"target: {target}")
-                print(f"filenames: {file_names}")
-                raise val_err
-
-            for k in list(losses.keys()):
-                if k in self.criterion.weight_dict:
-                    losses[k] *= self.criterion.weight_dict[k]
-                else:
-                    # remove this loss if not specified in `weight_dict`
-                    losses.pop(k)
-
-            return sum(losses.values()) / len(losses)
+            return loss
 
         else:
             ## => Evaluation, compute metrics
-            return None
+            inverse_maps = data.inverse_maps
+            target_full = data.target_full
+            original_coordinates = data.original_coordinates
+
+            raw_coordinates = None
+            if self.config.data.add_raw_coordinates:
+                raw_coordinates = data.features[:, -3:]
+                data.features = data.features[:, :-3]
+
+            pred_classes, pred_masks, pred_scores, pred_bbox_data, gt_bbox_data = self.eval_instance_step(
+                output,
+                target,
+                target_full,
+                inverse_maps,
+                original_coordinates,
+                raw_coordinates,
+                backbone_features=None,
+            )
+            return loss, pred_classes, pred_masks, pred_scores, pred_bbox_data, gt_bbox_data
+
+    def eval_instance_step(
+            self,
+            output,
+            target_low_res,
+            target_full_res,
+            inverse_maps,
+            full_res_coords,
+            raw_coords,
+            first_full_res=False,
+            backbone_features=None,
+    ):
+        label_offset = self.validation_dataset.label_offset
+        prediction = output["aux_outputs"]
+        prediction.append({
+                "pred_logits": output["pred_logits"],
+                "pred_masks": output["pred_masks"],
+        })
+
+        prediction[self.decoder_id][
+            "pred_logits"
+        ] = torch.functional.F.softmax(
+            prediction[self.decoder_id]["pred_logits"], dim=-1
+        )[..., :-1]
+
+        all_pred_classes = list()
+        all_pred_masks = list()
+        all_pred_scores = list()
+        all_heatmaps = list()
+
+        offset_coords_idx = 0
+        for bid in range(len(prediction[self.decoder_id]["pred_masks"])):
+            if not first_full_res:
+                if self.model.train_on_segments:
+                    masks = (
+                        prediction[self.decoder_id]["pred_masks"][bid]
+                        .detach()
+                        .cpu()[target_low_res[bid]["point2segment"].cpu()]
+                    )
+                else:
+                    masks = (
+                        prediction[self.decoder_id]["pred_masks"][bid]
+                        .detach()
+                        .cpu()
+                    )
+
+                if self.config.general.use_dbscan:
+                    new_preds = {
+                        "pred_masks": list(),
+                        "pred_logits": list(),
+                    }
+
+                    curr_coords_idx = masks.shape[0]
+                    curr_coords = raw_coords[offset_coords_idx: curr_coords_idx + offset_coords_idx]
+                    offset_coords_idx += curr_coords_idx
+
+                    for curr_query in range(masks.shape[1]):
+                        curr_masks = masks[:, curr_query] > 0
+
+                        if curr_coords[curr_masks].shape[0] > 0:
+                            clusters = (
+                                DBSCAN(
+                                    eps=self.config.general.dbscan_eps,
+                                    min_samples=self.config.general.dbscan_min_points,
+                                    n_jobs=-1,
+                                )
+                                .fit(curr_coords[curr_masks])
+                                .labels_
+                            )
+
+                            new_mask = torch.zeros(curr_masks.shape, dtype=int)
+                            new_mask[curr_masks] = (
+                                    torch.from_numpy(clusters) + 1
+                            )
+
+                            for cluster_id in np.unique(clusters):
+                                original_pred_masks = masks[:, curr_query]
+                                if cluster_id != -1:
+                                    new_preds["pred_masks"].append(
+                                        original_pred_masks * (new_mask == cluster_id + 1)
+                                    )
+                                    new_preds["pred_logits"].append(
+                                        prediction[self.decoder_id][
+                                            "pred_logits"
+                                        ][bid, curr_query]
+                                    )
+
+                    scores, masks, classes, heatmap = self.get_mask_and_scores(
+                        torch.stack(new_preds["pred_logits"]).cpu(),
+                        torch.stack(new_preds["pred_masks"]).T,
+                        len(new_preds["pred_logits"]),
+                        self.model.num_classes - 1,
+                    )
+                else:
+                    scores, masks, classes, heatmap = self.get_mask_and_scores(
+                        prediction[self.decoder_id]["pred_logits"][bid]
+                        .detach()
+                        .cpu(),
+                        masks,
+                        prediction[self.decoder_id]["pred_logits"][bid].shape[0],
+                        self.model.num_classes - 1,
+                    )
+
+                masks = self.get_full_res_mask(
+                    masks,
+                    inverse_maps[bid],
+                    target_full_res[bid]["point2segment"],
+                )
+
+                heatmap = self.get_full_res_mask(
+                    heatmap,
+                    inverse_maps[bid],
+                    target_full_res[bid]["point2segment"],
+                    is_heatmap=True,
+                )
+
+                if backbone_features is not None:
+                    backbone_features = self.get_full_res_mask(
+                        torch.from_numpy(backbone_features),
+                        inverse_maps[bid],
+                        target_full_res[bid]["point2segment"],
+                        is_heatmap=True,
+                    )
+                    backbone_features = backbone_features.numpy()
+            else:
+                assert False, "not tested"
+                masks = self.get_full_res_mask(
+                    prediction[self.decoder_id]["pred_masks"][bid].cpu(),
+                    inverse_maps[bid],
+                    target_full_res[bid]["point2segment"],
+                )
+
+                scores, masks, classes, heatmap = self.get_mask_and_scores(
+                    prediction[self.decoder_id]["pred_logits"][bid].cpu(),
+                    masks,
+                    prediction[self.decoder_id]["pred_logits"][bid].shape[0],
+                    self.model.num_classes - 1,
+                    device="cpu",
+                )
+
+            masks = masks.numpy()
+            heatmap = heatmap.numpy()
+
+            sort_scores = scores.sort(descending=True)
+            sort_scores_index = sort_scores.indices.cpu().numpy()
+            sort_scores_values = sort_scores.values.cpu().numpy()
+            sort_classes = classes[sort_scores_index]
+
+            sorted_masks = masks[:, sort_scores_index]
+            sorted_heatmap = heatmap[:, sort_scores_index]
+
+            if self.config.general.filter_out_instances:
+                keep_instances = set()
+                pairwise_overlap = sorted_masks.T @ sorted_masks
+                normalization = pairwise_overlap.max(axis=0)
+                norm_overlaps = pairwise_overlap / normalization
+
+                for instance_id in range(norm_overlaps.shape[0]):
+                    # filter out unlikely masks and nearly empty masks
+                    # if not(sort_scores_values[instance_id] < 0.3 or sorted_masks[:, instance_id].sum() < 500):
+                    if not (
+                            sort_scores_values[instance_id]
+                            < self.config.general.scores_threshold
+                    ):
+                        # check if mask != empty
+                        if not sorted_masks[:, instance_id].sum() == 0.0:
+                            overlap_ids = set(
+                                np.nonzero(
+                                    norm_overlaps[instance_id, :]
+                                    > self.config.general.iou_threshold
+                                )[0]
+                            )
+
+                            if len(overlap_ids) == 0:
+                                keep_instances.add(instance_id)
+                            else:
+                                if instance_id == min(overlap_ids):
+                                    keep_instances.add(instance_id)
+
+                keep_instances = sorted(list(keep_instances))
+                all_pred_classes.append(sort_classes[keep_instances])
+                all_pred_masks.append(sorted_masks[:, keep_instances])
+                all_pred_scores.append(sort_scores_values[keep_instances])
+                all_heatmaps.append(sorted_heatmap[:, keep_instances])
+            else:
+                all_pred_classes.append(sort_classes)
+                all_pred_masks.append(sorted_masks)
+                all_pred_scores.append(sort_scores_values)
+                all_heatmaps.append(sorted_heatmap)
+
+        if self.validation_dataset.dataset_name == "scannet200":
+            all_pred_classes[bid][all_pred_classes[bid] == 0] = -1
+            if self.config.data.test_mode != "test":
+                target_full_res[bid]["labels"][
+                    target_full_res[bid]["labels"] == 0
+                    ] = -1
+
+        for bid in range(len(prediction[self.decoder_id]["pred_masks"])):
+            all_pred_classes[bid] = self.validation_dataset._remap_model_output(
+                all_pred_classes[bid].cpu() + label_offset
+            )
+
+            if (
+                    self.config.data.test_mode != "test"
+                    and len(target_full_res) != 0
+            ):
+                target_full_res[bid]["labels"] = self.validation_dataset._remap_model_output(
+                    target_full_res[bid]["labels"].cpu() + label_offset
+                )
+
+                # PREDICTION BOX
+                pred_bbox_data = []
+                for query_id in range(
+                        all_pred_masks[bid].shape[1]
+                ):  # self.model.num_queries
+                    obj_coords = full_res_coords[bid][
+                                 all_pred_masks[bid][:, query_id].astype(bool), :
+                                 ]
+                    if obj_coords.shape[0] > 0:
+                        obj_center = obj_coords.mean(axis=0)
+                        obj_axis_length = obj_coords.max(
+                            axis=0
+                        ) - obj_coords.min(axis=0)
+
+                        bbox = np.concatenate((obj_center, obj_axis_length))
+
+                        pred_bbox_data.append(
+                            (
+                                all_pred_classes[bid][query_id].item(),
+                                bbox,
+                                all_pred_scores[bid][query_id],
+                            )
+                        )
+
+                # GT BOX
+                gt_bbox_data = []
+                for obj_id in range(target_full_res[bid]["masks"].shape[0]):
+                    if target_full_res[bid]["labels"][obj_id].item() == 255:
+                        continue
+
+                    obj_coords = full_res_coords[bid][
+                                 target_full_res[bid]["masks"][obj_id, :]
+                                 .cpu()
+                                 .detach()
+                                 .numpy()
+                                 .astype(bool),
+                                 :,
+                                 ]
+                    if obj_coords.shape[0] > 0:
+                        obj_center = obj_coords.mean(axis=0)
+                        obj_axis_length = obj_coords.max(
+                            axis=0
+                        ) - obj_coords.min(axis=0)
+
+                        bbox = np.concatenate((obj_center, obj_axis_length))
+                        gt_bbox_data.append(
+                            (
+                                target_full_res[bid]["labels"][obj_id].item(),
+                                bbox,
+                            )
+                        )
+
+        return all_pred_classes[0], all_pred_masks[0], all_pred_scores[0], pred_bbox_data, gt_bbox_data
+
+
+
 

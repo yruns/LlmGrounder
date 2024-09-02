@@ -12,8 +12,9 @@ import torch
 from torch import nn
 from transformers import (
     AutoConfig, AutoModelForCausalLM,
-    LlamaConfig, LlamaModel, LlamaForCausalLM, Cache
+    LlamaConfig, LlamaModel, LlamaForCausalLM, Cache, GenerationConfig, LogitsProcessorList, StoppingCriteriaList
 )
+from transformers.generation.utils import GenerateOutput
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from spatialreasoner.arch import SpatialReasonerMetaModel, SpatialReasonerMetaForCausalLM
@@ -45,8 +46,13 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
     def get_model(self):
         return self.model
 
+    def forward(self, **kwargs):
+        if self.training:
+            return self.training_forward(**kwargs)
+        else:
+            return self.inference_forward(**kwargs)
 
-    def forward(
+    def training_forward(
             self,
             input_ids: torch.LongTensor = None,
             attention_mask: Optional[torch.Tensor] = None,
@@ -58,7 +64,6 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = True,
             return_dict: Optional[bool] = None,
-            cache_position: Optional[torch.LongTensor] = None,
             mask3d_data_dict: Dict = None,
             ptv3_data_dict: Dict = None
     ) -> Union[Tuple, CausalLMOutputWithPast]:
@@ -101,6 +106,90 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         final_loss = llm_output.loss * getattr(self.config, "llm_loss_weight") + \
             grounding_loss * getattr(self.config, "grounding_loss_weight")
         return final_loss
+
+    @torch.no_grad()
+    def inference_forward(
+            self,
+            input_ids: torch.LongTensor = None,
+            mask3d_data_dict: Dict = None,
+            ptv3_data_dict: Dict = None,
+            **kwargs
+    ):
+        assert input_ids.shape[0] == 1, "We only support batch size 1 for inference"
+
+        output, multimodal = self.generate(
+            input_ids=input_ids, mask3d_data_dict=mask3d_data_dict, ptv3_data_dict=ptv3_data_dict, **kwargs,
+            num_return_sequences=1, output_hidden_states=True, return_dict_in_generate=True,
+        )
+
+        hidden_states = output.hidden_states
+        output_ids = output.sequences
+
+        ## => Get the grounding tower and projector first
+        grounding_tower = self.get_grounding_tower()
+        grounding_cross_attn = self.get_grounding_cross_attn()
+
+        ## => Call the grounding tower's `encode()` method
+        encoded_state = grounding_tower.encode(mask3d_data_dict, is_eval=True, device=output_ids.device)
+        raw_queries_pos = encoded_state[-1]
+
+        ## => Construct queries from llm_hidden_states
+        ref_embeddings = self.extract_ref_hidden_state(output_ids, hidden_states, multimodal)
+
+        ## => Call the grounding tower's `decode()` method for each sample(maybe have different number of ref tokens)
+        grounding_outputs = []
+        for ref_embedding in ref_embeddings:
+            ref_embedding = ref_embedding.unsqueeze(0)
+            queries_pos = grounding_cross_attn(ref_embedding, raw_queries_pos.permute(1, 0, 2))
+
+            ## => Call the grounding tower's `decode()` method
+            grounding_output = grounding_tower.decode(
+                encoded_state, mask3d_data_dict, queries_pos.permute(1, 0, 2), is_eval=True
+            )
+            grounding_outputs.append(grounding_output)
+        return grounding_outputs
+
+
+
+    @torch.no_grad()
+    def generate(
+        self,
+        inputs: Optional[torch.Tensor] = None,
+        mask3d_data_dict: Dict = None,
+        ptv3_data_dict: Dict = None,
+        **kwargs,
+    ) -> Tuple[Union[GenerateOutput, torch.LongTensor], bool]:
+        position_ids = kwargs.pop("position_ids", None)
+        attention_mask = kwargs.pop("attention_mask", None)
+        if "inputs_embeds" in kwargs:
+            raise NotImplementedError("`inputs_embeds` is not supported")
+
+        ## => Prepare for multimodal(insert scene feature)
+        if ptv3_data_dict is not None:
+            (
+                inputs,
+                position_ids,
+                attention_mask,
+                inputs_embeds,
+                _
+            ) = self.prepare_for_multimodal(
+                input_ids=inputs,
+                position_ids=position_ids,
+                attention_mask=attention_mask,
+                labels=None,
+                scene_data_dict=ptv3_data_dict
+            )
+        else:
+            inputs_embeds = self.get_model().embed_tokens(inputs)
+
+        multimodal = (ptv3_data_dict is not None)
+
+        return super().generate(
+            position_ids=position_ids,
+            attention_mask=attention_mask,
+            inputs_embeds=inputs_embeds,
+            **kwargs
+        ), multimodal
 
 
 AutoConfig.register("spatial_reasoner", SpatialReasonerConfig)
