@@ -9,11 +9,12 @@ from staticvars.const import *
 from staticvars.prompts import *
 
 
-def assemble_instruction(utterance, granularity):
+def assemble_instruction(utterance, granularity, split):
     """
     Assemble instruction
     :param utterance
     :param granularity: seg or reg
+    :param split: `train` or `val`
     :return:
     """
     instruction_snippet_list = []
@@ -29,9 +30,12 @@ def assemble_instruction(utterance, granularity):
 
     ### => Add reply prompt
     reply_role = ROLES["reply"]
-    reply_prompt = random.choice(REPLY_PROMPTS[granularity])
-    instruction_snippet_list.append(
-        "{role}: {prompt}{end_token}".format(role=reply_role, prompt=reply_prompt, end_token=REPLY_END_TOKEN)
-    )
+    if split == "train":
+        reply_prompt = random.choice(REPLY_PROMPTS[granularity])
+        instruction_snippet_list.append(
+            "{role}: {prompt}{end_token}".format(role=reply_role, prompt=reply_prompt, end_token=REPLY_END_TOKEN)
+        )
+    else:
+        instruction_snippet_list.append("{role}: ".format(role=reply_role))
 
     return "\n".join(instruction_snippet_list)

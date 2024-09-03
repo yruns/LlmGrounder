@@ -144,7 +144,14 @@ class Mask3DSegmentor(nn.Module):
                 raw_coordinates,
                 backbone_features=None,
             )
-            return loss, pred_classes, pred_masks, pred_scores, pred_bbox_data, gt_bbox_data
+            return dict(
+                loss=loss,
+                pred_classes=pred_classes,
+                pred_masks=pred_masks,
+                pred_scores=pred_scores,
+                pred_bboxes=pred_bbox_data,
+                gt_bboxes=gt_bbox_data,
+            )
 
     def eval_instance_step(
             self,
@@ -407,7 +414,8 @@ class Mask3DSegmentor(nn.Module):
                             )
                         )
 
-        return all_pred_classes[0], all_pred_masks[0], all_pred_scores[0], pred_bbox_data, gt_bbox_data
+        # We only return the first one, because we only give one query at a time during inference
+        return all_pred_classes[0], all_pred_masks[0], all_pred_scores[0], pred_bbox_data[0], gt_bbox_data[0]
 
 
 

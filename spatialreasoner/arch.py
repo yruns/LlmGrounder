@@ -102,23 +102,31 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
     def extract_ref_hidden_state(
             self,
             input_ids: torch.LongTensor,
-            llm_hidden_states: Optional[Tuple[torch.FloatTensor, ...]],
-            multimodal: bool = True,
+            llm_hidden_states: Optional[Union[Tuple[torch.FloatTensor, ...], Tuple[torch.Tensor, ...]]],
+            inference: bool = False,
             grounding_projector: Optional[nn.Module] = None
     ):
         ## => Construct seg_mask
-        mask = input_ids[:, 1:] == getattr(self.config, "ref_token_index")
-        seg_mask = torch.cat([
-                mask, torch.zeros((input_ids.shape[0], 1), dtype=torch.bool, device=input_ids.device)
-            ], dim=1
-        )
+        if inference:
+            # Pseudo tokens
+            input_ids_len = llm_hidden_states[0].shape[1] - input_ids.shape[1] + 1
+            input_ids = torch.cat([
+                torch.zeros((input_ids.shape[0], input_ids_len), dtype=torch.long, device=input_ids.device),
+                input_ids
+            ], dim=1)
 
-        if multimodal:
+        seg_mask = input_ids[:, 1:] == getattr(self.config, "ref_token_index")
+
+        if not inference:
             num_encoded_scene_token = \
                 getattr(self.config, "num_encoded_scene_token") + int(getattr(self.config, "use_scene_start_end")) * 2
             seg_mask = torch.cat([
-                torch.zeros((input_ids.shape[0], num_encoded_scene_token - 1), dtype=torch.bool, device=input_ids.device),
+                torch.zeros((input_ids.shape[0], num_encoded_scene_token - 1), dtype=torch.bool,
+                            device=input_ids.device),
                 seg_mask
+            ], dim=1)
+            seg_mask = torch.cat([
+                seg_mask, torch.zeros((input_ids.shape[0], 1), dtype=torch.bool, device=input_ids.device)
             ], dim=1)
 
         ## => Check if llm_hidden_states and grounding_projector is None
@@ -193,6 +201,9 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         # if position_ids is None:
         #     position_ids = torch.range(0, input_ids.shape[1], device=device)
 
+        if labels is None:
+            labels: torch.Tensor = torch.full_like(input_ids, IGNORE_INDEX)
+
         ### => Remove the padding by attention_mask
         mask_tensor = attention_mask.bool()
         input_ids: List[torch.Tensor] = [cur_input_ids[mask] for cur_input_ids, mask in zip(input_ids, mask_tensor)]
@@ -205,6 +216,8 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         for batch_idx, cur_input_ids in enumerate(input_ids):
             cur_labels = labels[batch_idx]
             num_scenes = torch.sum(cur_input_ids == SCENE_TOKEN_INDEX)
+            assert num_scenes.item() == 1, ("We only support `1` scene in a conversation now, "
+                                            "and it has to come up in the first round of conversation")
 
             if num_scenes == 0:
                 cur_input_embeds = embed_tokens_fn(cur_input_ids)
@@ -277,4 +290,4 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
                 multimodal_attention_mask[i, :multimodal_input_embeds_truncated[i].shape[0]] = True
 
         ### => input_ids, position_ids, attention_mask, past_key_values, inputs_embeds, labels
-        return None, position_ids, attention_mask, multimodal_input_embeds_padded, multimodal_labels_padded
+        return None, position_ids, multimodal_attention_mask, multimodal_input_embeds_padded, multimodal_labels_padded

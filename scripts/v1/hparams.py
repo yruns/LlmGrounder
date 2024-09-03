@@ -54,8 +54,8 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 # *************** training ***************
 seed: int = 42
 gpus: List[int] = [0]
-batch_size: int = 2
-gradient_accumulation_steps: int = 1
+batch_size: int = 32
+gradient_accumulation_steps: int = 2
 
 assert (batch_size / len(gpus) / gradient_accumulation_steps).is_integer(), \
     "batch_size must be divisible by the number of gpus and gradient_accumulation_steps"

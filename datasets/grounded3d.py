@@ -56,10 +56,11 @@ class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
 
     def __getitem__(self, idx):
         data = self.database[idx]
+        uid = data["uid"]
         scan_id = data["scan_id"]
         utterance = data["utterance"]
         target_ids = data["target_id"]
-        instruction = assemble_instruction(utterance, self.grounding_granularity)
+        instruction = assemble_instruction(utterance, self.grounding_granularity, split=self.split)
 
         mask3d_data_dict = self._get_mask3d_data(scan_id, [target_ids])
         ptv3_data_dict = self._get_ptv3_data(scan_id)
@@ -71,6 +72,7 @@ class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
         )
 
         return dict(
+            uid=uid,
             input_ids=input_ids,
             labels=target_ids,
             mask3d_data_dict=mask3d_data_dict,
@@ -87,9 +89,9 @@ class Grounded3DCollator(DataCollatorBase):
         self.ptv3_collate = ptv3_collate
 
     def collate(self, batch):
-        input_ids, labels, mask3d_data_dict, ptv3_data_dict = tuple(
+        uid, input_ids, labels, mask3d_data_dict, ptv3_data_dict = tuple(
             [batch[key] for batch in batch]
-            for key in ("input_ids", "labels", "mask3d_data_dict", "ptv3_data_dict")
+            for key in ("uid", "input_ids", "labels", "mask3d_data_dict", "ptv3_data_dict")
         )
 
         input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -117,6 +119,7 @@ class Grounded3DCollator(DataCollatorBase):
         ptv3_data_dict = self.ptv3_collate(ptv3_data_dict)
 
         return dict(
+            uid=uid,
             input_ids=input_ids,
             attention_mask=attention_mask,
             labels=labels,

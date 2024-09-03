@@ -12,11 +12,12 @@ import torch
 from torch import nn
 from transformers import (
     AutoConfig, AutoModelForCausalLM,
-    LlamaConfig, LlamaModel, LlamaForCausalLM, Cache, GenerationConfig, LogitsProcessorList, StoppingCriteriaList
+    LlamaConfig, LlamaModel, LlamaForCausalLM, Cache
 )
 from transformers.generation.utils import GenerateOutput
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
+from staticvars.const import *
 from spatialreasoner.arch import SpatialReasonerMetaModel, SpatialReasonerMetaForCausalLM
 
 
@@ -50,7 +51,13 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         if self.training:
             return self.training_forward(**kwargs)
         else:
-            return self.inference_forward(**kwargs)
+            if "past_key_values" in kwargs:
+                try:
+                    return super().forward(**kwargs)
+                except Exception as e:
+                    exit(1)
+            else:
+                return self.inference_forward(**kwargs)
 
     def training_forward(
             self,
@@ -118,12 +125,20 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         assert input_ids.shape[0] == 1, "We only support batch size 1 for inference"
 
         output, multimodal = self.generate(
-            input_ids=input_ids, mask3d_data_dict=mask3d_data_dict, ptv3_data_dict=ptv3_data_dict, **kwargs,
+            inputs=input_ids, ptv3_data_dict=ptv3_data_dict, **kwargs,
             num_return_sequences=1, output_hidden_states=True, return_dict_in_generate=True,
         )
 
-        hidden_states = output.hidden_states
         output_ids = output.sequences
+        hidden_states = output.hidden_states
+
+        num_layers = len(hidden_states[0])
+        hidden_states = tuple([
+            torch.cat(
+                [hidden_states[seq_idx][layer_idx] for seq_idx in range(len(hidden_states))],
+                dim=1
+            ) for layer_idx in range(num_layers)
+        ])
 
         ## => Get the grounding tower and projector first
         grounding_tower = self.get_grounding_tower()
@@ -134,19 +149,23 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         raw_queries_pos = encoded_state[-1]
 
         ## => Construct queries from llm_hidden_states
-        ref_embeddings = self.extract_ref_hidden_state(output_ids, hidden_states, multimodal)
+        ref_embeddings = self.extract_ref_hidden_state(output_ids, hidden_states, inference=True)
 
         ## => Call the grounding tower's `decode()` method for each sample(maybe have different number of ref tokens)
         grounding_outputs = []
         for ref_embedding in ref_embeddings:
-            ref_embedding = ref_embedding.unsqueeze(0)
+            ref_embedding = ref_embedding.unsqueeze(0).to(raw_queries_pos.dtype)
             queries_pos = grounding_cross_attn(ref_embedding, raw_queries_pos.permute(1, 0, 2))
 
-            ## => Call the grounding tower's `decode()` method
-            grounding_output = grounding_tower.decode(
-                encoded_state, mask3d_data_dict, queries_pos.permute(1, 0, 2), is_eval=True
-            )
-            grounding_outputs.append(grounding_output)
+            if queries_pos.shape[1] == 0:
+                # => No ref tokens, so we just return None
+                grounding_outputs.append(None)
+            else:
+                ## => Call the grounding tower's `decode()` method
+                grounding_output = grounding_tower.decode(
+                    encoded_state, mask3d_data_dict, queries_pos.permute(1, 0, 2), is_eval=True
+                )
+                grounding_outputs.append(grounding_output)
         return output_ids, grounding_outputs
 
 
@@ -154,12 +173,14 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
     def generate(
         self,
         inputs: Optional[torch.Tensor] = None,
-        mask3d_data_dict: Dict = None,
         ptv3_data_dict: Dict = None,
+        max_new_tokens: int = MAX_NEW_TOKENS,
         **kwargs,
     ) -> Tuple[Union[GenerateOutput, torch.LongTensor], bool]:
         position_ids = kwargs.pop("position_ids", None)
         attention_mask = kwargs.pop("attention_mask", None)
+        kwargs.pop("labels", None)
+
         if "inputs_embeds" in kwargs:
             raise NotImplementedError("`inputs_embeds` is not supported")
 
@@ -169,7 +190,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 inputs,
                 position_ids,
                 attention_mask,
-                inputs_embeds,
+                input_embeds,
                 _
             ) = self.prepare_for_multimodal(
                 input_ids=inputs,
@@ -179,15 +200,16 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 scene_data_dict=ptv3_data_dict
             )
         else:
-            inputs_embeds = self.get_model().embed_tokens(inputs)
+            input_embeds = self.get_model().embed_tokens(inputs)
 
         multimodal = (ptv3_data_dict is not None)
 
         return super().generate(
             position_ids=position_ids,
             attention_mask=attention_mask,
-            inputs_embeds=inputs_embeds,
-            **kwargs
+            inputs_embeds=input_embeds,
+            max_new_tokens=max_new_tokens,
+            **kwargs,
         ), multimodal
 
 
