@@ -67,6 +67,18 @@ class SpatialReasonerMetaModel(nn.Module):
         setattr(self, "grounding_tower", self.get_grounding_tower().to(dtype=precision))
         setattr(self, "grounding_cross_attn", self.get_grounding_cross_attn().to(dtype=precision))
 
+    def load_pretrained_adapters(self, pretrained_adapters: dict):
+        from trim.thirdparty.logging import logger
+        from trim.engine.default import load_state_dict
+        for module_name, load_dict in pretrained_adapters.items():
+            module = getattr(self, module_name, None)
+            if module is None:
+                logger.warning(f"Module `{module_name}` not found in the model but you given a state dict for it.")
+                continue
+            state = torch.load(load_dict["path"], map_location="cpu")
+            load_state_dict(state, module, logger, strict=load_dict["strict"])
+            logger.info(f"Loaded pretrained adapter for `{module_name}`.")
+
 
 class SpatialReasonerMetaForCausalLM(nn.Module):
     config: Dict

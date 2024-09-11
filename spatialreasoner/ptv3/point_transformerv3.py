@@ -697,3 +697,5 @@ class PointTransformerV3(PointModule):
 
         feats = torch.cat([coords, feats], dim=-1)
         return feats
+
+

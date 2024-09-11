@@ -255,8 +255,6 @@ class Mask3D(nn.Module):
         pos_encodings_pcd = self.get_pos_encs(coords)
         mask_features = self.mask_features_head(pcd_features)
 
-
-
         if self.non_parametric_queries:
             fps_idx = [
                 furthest_point_sample(

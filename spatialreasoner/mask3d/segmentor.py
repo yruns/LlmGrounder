@@ -1,4 +1,5 @@
 import statistics
+from typing import Mapping, Any
 
 import MinkowskiEngine as ME
 import torch
@@ -64,6 +65,8 @@ class Mask3DSegmentor(nn.Module):
         ## => misc
         self.labels_info = dict()
 
+    def load_state_dict(self, state_dict: Mapping[str, Any], **kwargs):
+        return super().load_state_dict(state_dict["state_dict"], **kwargs)
 
     def encode(self, batch, is_eval, device):
         data, target, file_names = batch

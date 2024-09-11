@@ -57,7 +57,9 @@ def load_state_dict(state_dict, model, logger, strict=True):
                 k = 'module.' + k  # xxx.xxx -> module.xxx.xxx
             weight[k] = v
         load_state_info = model.load_state_dict(weight, strict=strict)
-    logger.info(f"Missing keys: {load_state_info[0]}")
+    if not strict:
+        logger.info(f"Missing keys: {load_state_info.missing_keys}")
+        logger.info(f"Unexpected keys: {load_state_info.unexpected_keys}")
 
     return model
 

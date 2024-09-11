@@ -7,7 +7,7 @@ import time
 from typing import *
 
 """
-Configuration file for grounder(reg).
+Configuration file for grounder(seg).
 """
 now = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
@@ -43,24 +43,23 @@ pointcloud_tower_cfg: Dict = ptv3_cfg
 pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1] + 3  # Note `+3` for xyz
 grounding_tower_cfg = mask3d_cfg
 
+pretrained_adapters = dict(
+    pointcloud_tower=dict(path="pretrained/PTv3-Scannet200.pth", strict=False),
+    grounding_tower=dict(path="pretrained/Mask3D-Scannet200.ckpt", strict=False),
+)
+
 grounding_loss_weight: float = 1.0
 llm_loss_weight: float = 1.0
 
 # *************** data ***************
-num_workers: int = 8
+num_workers: int = 4
 dataset_name: Literal["referit3d"] = "referit3d"
 grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42
-gpus: List[int] = [0]
-batch_size: int = 32
-gradient_accumulation_steps: int = 2
-
-assert (batch_size / len(gpus) / gradient_accumulation_steps).is_integer(), \
-    "batch_size must be divisible by the number of gpus and gradient_accumulation_steps"
-per_device_train_batch_size: int = int(batch_size / len(gpus) / gradient_accumulation_steps)
-per_device_eval_batch_size: int = 1
+batch_size: int = 3
+gradient_accumulation_steps: int = 1
 
 deepspeed_config: str = "configs/zero_3_stage.json"
 
