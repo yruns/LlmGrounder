@@ -11,8 +11,9 @@ if __name__ == '__main__':
 
     mask3d_cfg = ConfigDict(mask3d_cfg)
 
-    state_path = "../pretrained/Mask3D-Scannet200.ckpt"
+    state_path = "../pretrained/Mask3D-Scannet200.pth"
     state = torch.load(state_path)
+
 
     from spatialreasoner.mask3d.builder import build_mask3d_segmentor
     model = build_mask3d_segmentor(mask3d_cfg)

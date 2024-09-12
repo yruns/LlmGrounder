@@ -41,7 +41,7 @@ def save_checkpoint_epoch(state, save_path, epoch):
     torch.save(state, filename)
 
 
-def load_state_dict(state_dict, model, logger, strict=True):
+def load_state_dict(state_dict, model, logger, strict=False):
     try:
         load_state_info = model.load_state_dict(state_dict, strict=strict)
     except Exception:

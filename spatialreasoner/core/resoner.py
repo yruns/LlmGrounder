@@ -112,7 +112,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
 
         final_loss = llm_output.loss * getattr(self.config, "llm_loss_weight") + \
             grounding_loss * getattr(self.config, "grounding_loss_weight")
-        return final_loss
+        return final_loss, (llm_output.loss, grounding_loss)
 
     @torch.no_grad()
     def inference_forward(

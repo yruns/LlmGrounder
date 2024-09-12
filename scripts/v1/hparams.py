@@ -58,15 +58,28 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42
-batch_size: int = 3
+batch_size: int = 2
 gradient_accumulation_steps: int = 1
 
 deepspeed_config: str = "configs/zero_3_stage.json"
 
-lr: float = 2e-5
-optimizer: Literal["adamw_torch"] = "adamw_torch"
+lr: float = 3e-4
+optimizer: Dict = dict(
+    type="AdamW",
+    params=dict(
+        lr=lr,
+        betas=(0.9, 0.95),
+        eps=1e-8,
+        weight_decay=0.0
+    )
+)
 warmup_ratio: float = 0.00
-lr_scheduler_type: Literal["linear", "cosine"] = "linear"
+scheduler: Dict = dict(
+    type="WarmupDecayLR",
+    params=dict(
+        warmup_type="linear"
+    )
+)
 
 gradient_checkpointing: bool = True
 
