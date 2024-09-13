@@ -22,15 +22,21 @@ output_dir: str = f"output/grounder_reg_{now}"
 llm_name = "vicuna-7b-v1.3"
 model_max_length = 2048
 attn_implementation = "flash_attention_2"
-freeze_llm_backbone = True
-freeze_mm_tower = True
+
+freeze_llm = True
+tune_pointcloud_tower = True
+tune_grounding_tower = True
+tune_pointcloud_projector = True
+tune_grounding_projector = True
+tune_grounding_cross_attn = True
+
 lora_config = dict(
     enable=False,
     lora_r=8,
     lora_alpha=16,
     lora_dropout=0.05,
     bias="none",
-    lora_target_modules="q_proj,v_proj,lm_head",
+    lora_target_modules="q_proj,v_proj",
     task_type="CAUSAL_LM",
 )
 use_scene_start_end = False
@@ -45,7 +51,7 @@ grounding_tower_cfg = mask3d_cfg
 
 pretrained_adapters = dict(
     pointcloud_tower=dict(path="pretrained/PTv3-Scannet200.pth", strict=False),
-    grounding_tower=dict(path="pretrained/Mask3D-Scannet200.ckpt", strict=False),
+    grounding_tower=dict(path="pretrained/Mask3D-Scannet200.pth", strict=False),
 )
 
 grounding_loss_weight: float = 1.0

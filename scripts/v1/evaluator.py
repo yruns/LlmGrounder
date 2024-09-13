@@ -23,7 +23,15 @@ class Evaluator(CallbackBase):
         val_iter = tqdm(self.trainer.val_loader, desc="Validation") \
             if self.accelerator.is_main_process else self.trainer.val_loader
 
+        # Metrics
+        bbox_ious = []
+        bbox_counter = 0
+        bbox_iou_25 = 0
+        bbox_iou_50 = 0
+
         for i, batch in enumerate(val_iter):
+            if i > 5: break
+
             uid = batch.pop("uid", None)
             batch_data = comm.convert_tensor_to_dtype(
                 batch, self.accelerator.mixed_precision,
@@ -33,6 +41,7 @@ class Evaluator(CallbackBase):
                 output_ids, grounding_outputs = self.trainer.model(**batch_data)
 
             ious = []
+            bbox_counter += 1   # `only for 1 sample`
             for grounding_output in grounding_outputs:
                 if grounding_output is None:
                     # No grounding result
@@ -51,17 +60,16 @@ class Evaluator(CallbackBase):
                 continue
             ious = torch.cat(ious, dim=0).tolist()
             for iou in ious:
-                self.trainer.storage.put_scalar("bbox_iou", iou)
+                bbox_ious.append(iou)
                 if iou >= 0.25:
-                    self.trainer.storage.put_scalar("bbox_iou_25", 1)
+                    bbox_iou_25 += 1
                     if iou >= 0.5:
-                        self.trainer.storage.put_scalar("bbox_iou_50", 1)
+                        bbox_iou_50 += 1
 
         self.accelerator.wait_for_everyone()
-        mean_iou = self.trainer.storage.history("bbox_iou").avg
-        bbox_counter = self.trainer.storage.history("bbox_counter").total
-        bbox_iou_25 = self.trainer.storage.history("bbox_iou_25").total / bbox_counter
-        bbox_iou_50 = self.trainer.storage.history("bbox_iou_50").total / bbox_counter
+        mean_iou = sum(bbox_ious) / bbox_counter
+        bbox_iou_25 = bbox_iou_25 / bbox_counter
+        bbox_iou_50 = bbox_iou_50 / bbox_counter
 
         self.trainer.logger.info(
             "Mean_iou: {:.4f}, Acc@0.25: {:4f}, Acc@0.50: {:4f}".format(
@@ -69,10 +77,3 @@ class Evaluator(CallbackBase):
             )
         )
 
-
-    # def on_training_phase_end(self):
-    #     self.trainer.logger.info(
-    #         "Best {}: {:.4f}, epoch at {:2d}".format("mIoU",
-    #                                                  self.trainer.best_metric_value,
-    #                                                  self.trainer.best_metric_epoch)
-    #     )

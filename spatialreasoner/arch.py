@@ -179,7 +179,9 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         raw_queries_pos = encoded_state[-1]
 
         ## => Construct queries from llm_hidden_states
-        ref_embeddings = self.extract_ref_hidden_state(input_ids, llm_hidden_states, grounding_projector)
+        ref_embeddings = self.extract_ref_hidden_state(
+            input_ids, llm_hidden_states, inference=False, grounding_projector=grounding_projector
+        )
         max_num_ref_tokens = max([ref_embedding.shape[0] for ref_embedding in ref_embeddings])
         ref_embeddings_wrapped = torch.zeros(
             (len(ref_embeddings), max_num_ref_tokens, ref_embeddings[0].shape[-1]),
@@ -190,6 +192,7 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
 
         ## => Call the grounding tower's `decode()` method for each sample(maybe have different number of ref tokens)
         # for i, ref_embedding in enumerate(ref_embeddings):
+        print(grounding_cross_attn.linear1.weight.dtype)
         queries_pos = grounding_cross_attn(ref_embeddings_wrapped, raw_queries_pos.permute(1, 0, 2))
 
         ## => Call the grounding tower's `decode()` method

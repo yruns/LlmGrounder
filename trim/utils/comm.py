@@ -84,6 +84,14 @@ def count_parameters(model):
 def str_parameters(model):
     return list([n for n, p in model.named_parameters() if p.requires_grad])
 
+def print_parameters_with_learnable(model):
+    ret = []
+    for n, p in model.named_parameters():
+        ret.append((n, p.requires_grad))
+
+    return ret
+
+
 
 def sum_model_parameters(model):
     total_params = 0

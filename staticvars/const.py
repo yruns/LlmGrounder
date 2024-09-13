@@ -4,7 +4,7 @@ Date: 2024/8/16
 Author: yruns
 """
 
-MAX_NEW_TOKENS = 50
+MAX_NEW_TOKENS = 15
 
 IGNORE_INDEX = -100  # Which is default ignored by nn.CrossEntropyLoss()
 

@@ -102,7 +102,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
             labels=labels,
             use_cache=use_cache,
             output_attentions=output_attentions,
-            output_hidden_states=output_hidden_states,
+            output_hidden_states=True,
             return_dict=return_dict
         )
         llm_hidden_states = llm_output.hidden_states
@@ -123,10 +123,10 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
             **kwargs
     ):
         assert input_ids.shape[0] == 1, "We only support batch size 1 for inference"
-
+        kwargs["output_hidden_states"] = True
         output, multimodal = self.generate(
             inputs=input_ids, ptv3_data_dict=ptv3_data_dict, **kwargs,
-            num_return_sequences=1, output_hidden_states=True, return_dict_in_generate=True,
+            num_return_sequences=1, return_dict_in_generate=True,
         )
 
         output_ids = output.sequences
@@ -180,9 +180,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         position_ids = kwargs.pop("position_ids", None)
         attention_mask = kwargs.pop("attention_mask", None)
         kwargs.pop("labels", None)
-
-        if "inputs_embeds" in kwargs:
-            raise NotImplementedError("`inputs_embeds` is not supported")
+        kwargs.pop("inputs_embeds", None)
 
         ## => Prepare for multimodal(insert scene feature)
         if ptv3_data_dict is not None:

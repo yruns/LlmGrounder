@@ -164,7 +164,7 @@ class Mask3DSegmentor(nn.Module):
             first_full_res=False,
             backbone_features=None,
     ):
-        label_offset = self.validation_dataset.label_offset
+        label_offset = 2    # `from mask3d_conf.py`
         prediction = output["aux_outputs"]
         prediction.append({
                 "pred_logits": output["pred_logits"],
