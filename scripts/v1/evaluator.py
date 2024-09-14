@@ -41,7 +41,7 @@ class Evaluator(CallbackBase):
             self.trainer.model.train()
 
     def eval(self):
-        self.trainer.logger.info(">>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>")
+        self.trainer.logger.info("\n>>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>")
 
         if hasattr(self.trainer.hparams, "lora_config") and self.trainer.hparams.lora_config.enable:
             model = self.trainer.model.base_model.model.model
@@ -104,4 +104,14 @@ class Evaluator(CallbackBase):
                 mean_iou, bbox_iou_25, bbox_iou_50
             )
         )
+
+        current_epoch = self.trainer.epoch + 1
+        self.trainer.wandb.log({
+            "mean_iou": mean_iou,
+            "Acc@0.25": bbox_iou_25,
+            "Acc@0.50": bbox_iou_50,
+            "epoch": current_epoch
+        })
+
+        self.trainer.logger.info(">>>>>>>>>>>>>>>> Evaluation Over >>>>>>>>>>>>>>>>\n")
 

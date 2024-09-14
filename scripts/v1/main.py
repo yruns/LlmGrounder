@@ -233,7 +233,7 @@ class Trainer(TrainerBase):
             save_code=False,
             resume=False,
             file_prefix=os.path.join(self.output_dir, "codebase"),
-            save_files=[__file__],
+            save_files=[__file__, os.path.abspath("scripts/v1/hparams.py")],
             debug=False
         )
 
@@ -273,7 +273,7 @@ def main(hparams):
 
     accelerator = Accelerator(
         mixed_precision="bf16",
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=hparams.gradient_accumulation_steps,
         deepspeed_plugin=DeepSpeedPlugin(
             hf_ds_config="configs/zero_3_stage.json",
         )

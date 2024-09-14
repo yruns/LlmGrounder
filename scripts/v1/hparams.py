@@ -64,7 +64,7 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42
-batch_size: int = 32
+batch_size: int = 96
 gradient_accumulation_steps: int = 3
 
 deepspeed_config: str = "configs/zero_3_stage.json"
@@ -90,7 +90,7 @@ scheduler: Dict = dict(
 gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
-save_freq: Union[str, int] = 400  # or "epoch"
+save_freq: Union[str, int] = 300  # or "epoch"
 resume_from_checkpoint: Optional[str] = None
 
 
