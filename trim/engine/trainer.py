@@ -38,7 +38,7 @@ class TrainerBase(object):
         self.data_iterator = None
         self.debug = False
 
-    def training_setp(self, batch_data, batch_index):
+    def training_step(self, batch_data, batch_index):
         pass
 
     def test_step(self, batch_data, batch_index):
@@ -54,11 +54,11 @@ class TrainerBase(object):
         self.storage.reset_histories()  # reset histories (required)
         self.wandb.save(os.path.join(self.output_dir, "train.log"))
 
-    def on_training_setp_start(self):
+    def on_training_step_start(self):
         for callback in self.callbacks:
-            callback.on_training_setp_start()
+            callback.on_training_step_start()
 
-    def on_training_setp_end(self):
+    def on_training_step_end(self):
         for callback in self.callbacks:
             callback.on_training_step_end()
 
@@ -102,14 +102,14 @@ class TrainerBase(object):
         self.logger.info("###  => Creating model ...")
         self.configure_model()
         num_parameters = comm.count_parameters(self.model)
-        self.logger.info(f"##  => Number of learnable parameters: {num_parameters}")
+        self.logger.info(f"##   => Number of learnable parameters: {num_parameters}")
         self.accelerator.wait_for_everyone()
         self.logger.info("###  => Model is ready to use")
 
         self.logger.info("###  => Creating dataloader...")
         self.configure_dataloader()
-        self.logger.info(f"##  => Train dataset size: {len(self.train_loader.dataset)}")
-        self.logger.info(f"##  => Val dataset size: {len(self.val_loader.dataset)}")
+        self.logger.info(f"##   => Train dataset size: {len(self.train_loader.dataset)}")
+        self.logger.info(f"##   => Val dataset size: {len(self.val_loader.dataset)}")
         self.logger.info("###  => Dataloader is ready to use")
 
         self.logger.info("###  => Creating optimizer and scheduler...")
@@ -154,10 +154,10 @@ class TrainerBase(object):
                 for batch_index, batch_data in self.data_iterator:
                     self.comm_info["iter"] = batch_index
                     if self.accelerator.sync_gradients:
-                        self.on_training_setp_start()
-                    self.training_setp(batch_data, batch_index)
+                        self.on_training_step_start()
+                    self.training_step(batch_data, batch_index)
                     if self.accelerator.sync_gradients:
-                        self.on_training_setp_end()
+                        self.on_training_step_end()
                 # => after epoch
                 # if self.accelerator.sync_gradients:
                 self.on_training_epoch_end()

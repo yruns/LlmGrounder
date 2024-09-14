@@ -24,14 +24,14 @@ model_max_length = 2048
 attn_implementation = "flash_attention_2"
 
 freeze_llm = True
-tune_pointcloud_tower = True
+tune_pointcloud_tower = False
 tune_grounding_tower = True
 tune_pointcloud_projector = True
 tune_grounding_projector = True
 tune_grounding_cross_attn = True
 
 lora_config = dict(
-    enable=False,
+    enable=True,
     lora_r=8,
     lora_alpha=16,
     lora_dropout=0.05,
@@ -64,8 +64,8 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42
-batch_size: int = 2
-gradient_accumulation_steps: int = 1
+batch_size: int = 32
+gradient_accumulation_steps: int = 3
 
 deepspeed_config: str = "configs/zero_3_stage.json"
 
@@ -79,7 +79,7 @@ optimizer: Dict = dict(
         weight_decay=0.0
     )
 )
-warmup_ratio: float = 0.00
+warmup_ratio: float = 0.03
 scheduler: Dict = dict(
     type="WarmupDecayLR",
     params=dict(
@@ -90,13 +90,13 @@ scheduler: Dict = dict(
 gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
-save_freq: Union[str, int] = 300  # or "epoch"
+save_freq: Union[str, int] = 400  # or "epoch"
 resume_from_checkpoint: Optional[str] = None
 
 
 # *************** logging ***************
 log_interval: int = 1
 log_project: str = "grounder_reg"
-log_tag: str = "test1"
+log_tag: str = "referit3-val1000"
 
 

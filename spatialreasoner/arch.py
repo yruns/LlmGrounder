@@ -192,7 +192,7 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
 
         ## => Call the grounding tower's `decode()` method for each sample(maybe have different number of ref tokens)
         # for i, ref_embedding in enumerate(ref_embeddings):
-        print(grounding_cross_attn.linear1.weight.dtype)
+        # print(grounding_cross_attn.linear1.weight.dtype)
         queries_pos = grounding_cross_attn(ref_embeddings_wrapped, raw_queries_pos.permute(1, 0, 2))
 
         ## => Call the grounding tower's `decode()` method

@@ -41,6 +41,10 @@ class Grounded3DDataset(Mask3DDataset, PTv3Dataset):
         self.split = split
         self.database = json.load(open(osp.join(self.data_path, f"nr3d_{self.split}.json"), "r"))
 
+        ## TODO Remove this
+        if self.split == "val":
+            self.database = self.database[:1000]
+
         self.tokenizer_copy = AutoTokenizer.from_pretrained(tokenizer.name_or_path)
         original_tokenizer_len = len(self.tokenizer_copy)
         added_tokens = []

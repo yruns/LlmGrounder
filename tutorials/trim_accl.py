@@ -135,7 +135,7 @@ class Trainer(TrainerBase):
             debug=True
         )
 
-    def training_setp(self, batch_data, batch_index):
+    def training_step(self, batch_data, batch_index):
         with self.accelerator.accumulate(self.model):
             batch_data = comm.convert_tensor_to_dtype(batch_data, self.accelerator.mixed_precision)
             data, target = batch_data

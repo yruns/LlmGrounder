@@ -28,7 +28,7 @@ class IterationTimer(CallbackBase):
     def on_training_epoch_start(self):
         self._iter_timer.reset()
 
-    def on_training_setp_start(self):
+    def on_training_step_start(self):
         data_time = self._iter_timer.seconds()
         self.trainer.storage.put_scalar("data_time", data_time)
 
@@ -69,7 +69,7 @@ class InformationWriter(CallbackBase):
         self.trainer.comm_info["iter_info"] = ""
         # self.trainer.logger.info(self.trainer.hparams)
 
-    def on_training_setp_start(self):
+    def on_training_step_start(self):
         info = "Train: [{epoch}/{max_epoch}][{iter}/{max_iter}] ".format(
             epoch=self.trainer.epoch + 1,
             max_epoch=self.trainer.max_epoch,
@@ -147,7 +147,7 @@ class CheckpointSaver(CallbackBase):
         output_dir = "epoch_{epoch}".format(epoch=self.trainer.epoch + 1) if self.save_freq == "epoch" else \
             "step_{step}".format(step=self.trainer.completed_steps)
         self.trainer.logger.info("=> Saving checkpoint to: " + output_dir)
-        output_dir = os.path.join(self.trainer.output_dir, output_dir)
+        output_dir = os.path.join(self.trainer.output_dir, "checkpoints", output_dir)
         self.accelerator.save_state(output_dir)
 
         import torch

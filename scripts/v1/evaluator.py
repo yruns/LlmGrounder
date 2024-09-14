@@ -8,18 +8,48 @@ from tqdm import tqdm
 
 
 class Evaluator(CallbackBase):
-    def on_training_epoch_end(self):
-        self.trainer.model.eval()
-        self.eval()
-        self.trainer.model.train()
+    
+    def __init__(self, eval_freq):
+        self.eval_freq = eval_freq
+        self.eval_steps = None
 
+        if isinstance(self.eval_freq, int):
+            # step based
+            self.eval_steps = self.eval_freq
+        elif isinstance(self.eval_freq, str) and self.eval_freq == "epoch":
+            # epoch based
+            self.eval_steps = self.trainer.num_update_steps_per_epoch
+    
+    # def on_training_epoch_end(self):
+    #     self.trainer.model.eval()
+    #     self.eval()
+    #     self.trainer.model.train()
+    #
     # def on_training_phase_start(self):
     #     self.trainer.model.eval()
     #     self.eval()
     #     self.trainer.model.train()
 
+
+    def on_training_step_end(self):
+        if (
+                hasattr(self, "eval_steps")
+                and self.trainer.completed_steps % self.eval_steps == 0
+        ):
+            self.trainer.model.eval()
+            self.eval()
+            self.trainer.model.train()
+
     def eval(self):
         self.trainer.logger.info(">>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>")
+
+        if hasattr(self.trainer.hparams, "lora_config") and self.trainer.hparams.lora_config.enable:
+            model = self.trainer.model.base_model.model.model
+        else:
+            model = self.trainer.model.model
+        model.reset_pointcloud_tower_precision(torch.float32)
+        model.reset_grounding_tower_precision(torch.float32)
+
         val_iter = tqdm(self.trainer.val_loader, desc="Validation") \
             if self.accelerator.is_main_process else self.trainer.val_loader
 
@@ -30,8 +60,6 @@ class Evaluator(CallbackBase):
         bbox_iou_50 = 0
 
         for i, batch in enumerate(val_iter):
-            if i > 5: break
-
             uid = batch.pop("uid", None)
             batch_data = comm.convert_tensor_to_dtype(
                 batch, self.accelerator.mixed_precision,

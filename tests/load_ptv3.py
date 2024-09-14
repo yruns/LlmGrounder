@@ -13,6 +13,7 @@ if __name__ == '__main__':
 
     from spatialreasoner.ptv3.point_transformerv3 import PointTransformerV3
     model = PointTransformerV3(**ptv3_cfg["model"])
+    model = model.to(torch.bfloat16)
     # model.load_state_dict(state, strict=False)
 
     load_state_dict(state, model, logger, strict=False)

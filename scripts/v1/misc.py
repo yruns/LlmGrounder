@@ -41,7 +41,10 @@ class ModelSaver(CallbackBase):
         self.trainer.logger.info("=> Saving model to: " + output_dir)
         output_dir = os.path.join(self.trainer.output_dir, output_dir)
 
-        model = self.trainer.model
+        if hasattr(self.trainer.hparams, "lora_config") and self.trainer.hparams.lora_config.enable:
+            model = self.trainer.model.base_model.model.model
+        else:
+            model = self.trainer.model.model
 
         ## Save model(LLM part)
         self.accelerator.unwrap_model(model).save_pretrained(
