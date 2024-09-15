@@ -17,8 +17,8 @@ from transformers import (
 from transformers.generation.utils import GenerateOutput
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from staticvars.const import *
 from spatialreasoner.arch import SpatialReasonerMetaModel, SpatialReasonerMetaForCausalLM
+from staticvars.const import *
 
 
 class SpatialReasonerConfig(LlamaConfig):
@@ -111,7 +111,7 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
         grounding_loss = self.call_grounding_tower(raw_input_ids, mask3d_data_dict, llm_hidden_states)
 
         final_loss = llm_output.loss * getattr(self.config, "llm_loss_weight") + \
-            grounding_loss * getattr(self.config, "grounding_loss_weight")
+                     grounding_loss * getattr(self.config, "grounding_loss_weight")
         return final_loss, (llm_output.loss, grounding_loss)
 
     @torch.no_grad()
@@ -168,14 +168,13 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 grounding_outputs.append(grounding_output)
         return output_ids, grounding_outputs
 
-
     @torch.no_grad()
     def generate(
-        self,
-        inputs: Optional[torch.Tensor] = None,
-        ptv3_data_dict: Dict = None,
-        max_new_tokens: int = MAX_NEW_TOKENS,
-        **kwargs,
+            self,
+            inputs: Optional[torch.Tensor] = None,
+            ptv3_data_dict: Dict = None,
+            max_new_tokens: int = MAX_NEW_TOKENS,
+            **kwargs,
     ) -> Tuple[Union[GenerateOutput, torch.LongTensor], bool]:
         position_ids = kwargs.pop("position_ids", None)
         attention_mask = kwargs.pop("attention_mask", None)

@@ -13,7 +13,6 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 
-
 def collate_fn(batch):
     """
     collate function for point cloud which support dict and list,

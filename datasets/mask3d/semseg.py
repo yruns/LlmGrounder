@@ -157,7 +157,6 @@ class Mask3DDataset(Dataset):
                 Path(label_db_filepath).parent / "instance_database.json"
             )
 
-
         if Path(str(color_mean_std)).exists():
             color_mean_std = self._load_json(color_mean_std)
             color_mean, color_std = (
@@ -195,7 +194,6 @@ class Mask3DDataset(Dataset):
         for data in scan_database:
             scan_id = data["raw_filepath"].split("/")[-2]
             self.scan_database[scan_id] = deepcopy(data)
-          
 
     @staticmethod
     def _load_json(json_path):
@@ -451,10 +449,8 @@ class Mask3DDataset(Dataset):
             raw_coordinates,
         )
 
-
     def __getitem__(self, idx):
         raise RuntimeError("You should not call this function directly")
-
 
     @staticmethod
     def splitPointCloud(cloud, size=50.0, stride=50, inner_core=-1):
@@ -518,7 +514,6 @@ class Mask3DDataset(Dataset):
 
         return torch.tensor(output_colors)
 
-
     @property
     def label_info(self):
         """database file containing information labels used by dataset"""
@@ -555,7 +550,7 @@ class Mask3DDataset(Dataset):
     def _build_from_zero_map(self):
         raw_indices = [int(i) for i in self.label_info.keys()]
 
-        self.label_map = np.ones((max(raw_indices) + 1, ), dtype=np.int32) * self.ignore_label
+        self.label_map = np.ones((max(raw_indices) + 1,), dtype=np.int32) * self.ignore_label
         for i, k in enumerate(raw_indices):
             self.label_map[k] = i
 

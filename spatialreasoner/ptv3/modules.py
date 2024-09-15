@@ -1,7 +1,9 @@
 import sys
-import torch.nn as nn
-import spconv.pytorch as spconv
 from collections import OrderedDict
+
+import spconv.pytorch as spconv
+import torch.nn as nn
+
 from .structure import Point
 
 
@@ -82,6 +84,7 @@ class PointSequential(PointModule):
                     input = module(input)
         return input
 
+
 class PointSequentialWithOuterInput(PointModule):
     r"""A sequential container.
     Modules will be added to it in the order they are passed in the constructor.
@@ -131,7 +134,8 @@ class PointSequentialWithOuterInput(PointModule):
             # Spconv module
             elif spconv.modules.is_spconv_module(module):
                 if isinstance(input, Point):
-                    input.sparse_conv_feat = module(input.sparse_conv_feat) if outer is None else module(input.sparse_conv_feat, outer)
+                    input.sparse_conv_feat = module(input.sparse_conv_feat) if outer is None else module(
+                        input.sparse_conv_feat, outer)
                     input.feat = input.sparse_conv_feat.features
                 else:
                     input = module(input) if outer is None else module(input, outer)
@@ -149,4 +153,3 @@ class PointSequentialWithOuterInput(PointModule):
                 else:
                     input = module(input) if outer is None else module(input, outer)
         return input
-

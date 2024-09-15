@@ -740,18 +740,19 @@ class ElasticDistortion(object):
                     )
         return data_dict
 
+
 class GridSample(object):
     def __init__(
-        self,
-        grid_size=0.05,
-        hash_type="fnv",
-        mode="train",
-        keys=("coord", "color", "normal", "segment"),
-        return_inverse=False,
-        return_grid_coord=False,
-        return_min_coord=False,
-        return_displacement=False,
-        project_displacement=False,
+            self,
+            grid_size=0.05,
+            hash_type="fnv",
+            mode="train",
+            keys=("coord", "color", "normal", "segment"),
+            return_inverse=False,
+            return_grid_coord=False,
+            return_min_coord=False,
+            return_displacement=False,
+            project_displacement=False,
     ):
         self.grid_size = grid_size
         self.hash = self.fnv_hash_vec if hash_type == "fnv" else self.ravel_hash_vec
@@ -778,8 +779,8 @@ class GridSample(object):
         _, inverse, count = np.unique(key_sort, return_inverse=True, return_counts=True)
         if self.mode == "train":  # train mode
             idx_select = (
-                np.cumsum(np.insert(count, 0, 0)[0:-1])
-                + np.random.randint(0, count.max(), count.size) % count
+                    np.cumsum(np.insert(count, 0, 0)[0:-1])
+                    + np.random.randint(0, count.max(), count.size) % count
             )
             idx_unique = idx_sort
             if "sampled_index" in data_dict:
@@ -799,7 +800,7 @@ class GridSample(object):
                 data_dict["min_coord"] = min_coord.reshape([1, 3])
             if self.return_displacement:
                 displacement = (
-                    scaled_coord - grid_coord - 0.5
+                        scaled_coord - grid_coord - 0.5
                 )  # [0, 1] -> [-0.5, 0.5] displacement to center
                 if self.project_displacement:
                     displacement = np.sum(
@@ -825,7 +826,7 @@ class GridSample(object):
                     data_part["min_coord"] = min_coord.reshape([1, 3])
                 if self.return_displacement:
                     displacement = (
-                        scaled_coord - grid_coord - 0.5
+                            scaled_coord - grid_coord - 0.5
                     )  # [0, 1] -> [-0.5, 0.5] displacement to center
                     if self.project_displacement:
                         displacement = np.sum(
@@ -877,7 +878,6 @@ class GridSample(object):
             hashed_arr *= np.uint64(1099511628211)
             hashed_arr = np.bitwise_xor(hashed_arr, arr[:, j])
         return hashed_arr
-
 
 
 class SphereCrop(object):
@@ -1002,6 +1002,7 @@ class ShufflePoint(object):
             data_dict["instance"] = data_dict["instance"][shuffle_index]
         return data_dict
 
+
 class Resample(object):
     def __init__(self, n_points=100000):
         self.n_points = n_points
@@ -1009,7 +1010,8 @@ class Resample(object):
     def __call__(self, data_dict):
         assert "coord" in data_dict.keys()
         sample_index = np.arange(data_dict["coord"].shape[0])
-        sample_index = np.random.choice(sample_index, self.n_points, replace=(self.n_points > data_dict["coord"].shape[0]))
+        sample_index = np.random.choice(sample_index, self.n_points,
+                                        replace=(self.n_points > data_dict["coord"].shape[0]))
         if "coord" in data_dict.keys():
             data_dict["coord"] = data_dict["coord"][sample_index]
         if "grid_coord" in data_dict.keys():

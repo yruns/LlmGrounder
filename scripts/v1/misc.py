@@ -1,9 +1,10 @@
 import os
 import shutil
-import time
+
 import torch
 
 from trim.callbacks.default import CallbackBase
+
 
 class ModelSaver(CallbackBase):
     """
@@ -70,11 +71,9 @@ class ModelSaver(CallbackBase):
                 "grounding_tower": grounding_tower.state_dict(),
             }, os.path.join(output_dir, "other_components.pth"))
 
-
         if self.save_lastest_only and self.last_model is not None and self.accelerator.is_main_process:
             shutil.rmtree(self.last_model)
             self.last_model = output_dir
-
 
 
 class ModelLoader(CallbackBase):

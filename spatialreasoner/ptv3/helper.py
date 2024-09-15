@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from .modules import PointModule
 
+
 def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
 
@@ -24,13 +25,13 @@ def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: b
 
 class PDNorm(PointModule):
     def __init__(
-        self,
-        num_features,
-        norm_layer,
-        context_channels=256,
-        conditions=("ScanNet", "S3DIS", "Structured3D"),
-        decouple=True,
-        adaptive=False,
+            self,
+            num_features,
+            norm_layer,
+            context_channels=256,
+            conditions=("ScanNet", "S3DIS", "Structured3D"),
+            decouple=True,
+            adaptive=False,
     ):
         super().__init__()
         self.conditions = conditions

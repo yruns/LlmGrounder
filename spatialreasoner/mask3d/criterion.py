@@ -5,6 +5,8 @@
 MaskFormer criterion.
 """
 
+from typing import *
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -15,7 +17,6 @@ from .misc import (
     nested_tensor_from_tensor_list,
 )
 
-from typing import *
 
 def point_sample(input, point_coords, **kwargs):
     """
@@ -42,6 +43,7 @@ def point_sample(input, point_coords, **kwargs):
         output = output.squeeze(3)
     return output
 
+
 def cat(tensors: List[torch.Tensor], dim: int = 0):
     """
     Efficient version of torch.cat that avoids a copy if there is only a single element in a list
@@ -51,8 +53,9 @@ def cat(tensors: List[torch.Tensor], dim: int = 0):
         return tensors[0]
     return torch.cat(tensors, dim)
 
+
 def get_uncertain_point_coords_with_randomness(
-    coarse_logits, uncertainty_func, num_points, oversample_ratio, importance_sample_ratio
+        coarse_logits, uncertainty_func, num_points, oversample_ratio, importance_sample_ratio
 ):
     """
     Sample points in [0, 1] x [0, 1] coordinate space based on their uncertainty. The unceratinties

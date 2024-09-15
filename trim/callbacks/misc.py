@@ -179,6 +179,8 @@ class Resumer(CallbackBase):
         self.trainer.logger.info(f"=> Resuming from checkpoint: {self.checkpoint}")
         self.accelerator.load_state(self.checkpoint)
 
+        self.accelerator.wait_for_everyone()
+
         import torch
         from ..utils import comm
         self.trainer.logger.info(f"### Model weight: {comm.sum_model_parameters(self.trainer.model)}")
@@ -213,7 +215,8 @@ class Resumer(CallbackBase):
         # store the train_loader
         self.stored_train_loader = self.trainer.train_loader
         self.trainer.train_loader = \
-            self.accelerator.skip_first_batches(self.trainer.train_loader, resume_step * self.accelerator.gradient_accumulation_steps)
+            self.accelerator.skip_first_batches(self.trainer.train_loader,
+                                                resume_step * self.accelerator.gradient_accumulation_steps)
 
     def on_training_epoch_end(self):
         # We need to reset the train_loader in next epoch

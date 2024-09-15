@@ -1,7 +1,8 @@
-import yaml
-import json
 import glob
+import json
 import os
+
+import yaml
 
 ROOT = "../../data/processed/scannet200/"
 
@@ -10,4 +11,3 @@ for filename in glob.glob(os.path.join(ROOT, '*.yaml')):
     json.dump(data, open(filename.replace(".yaml", ".json"), "w"), indent=4)
 
     print("Converted {} to {}".format(filename, filename.replace(".yaml", ".json")))
-

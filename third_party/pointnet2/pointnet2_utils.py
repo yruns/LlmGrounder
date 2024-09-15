@@ -13,9 +13,9 @@ import torch
 import torch.nn as nn
 from torch.autograd import Function
 
-# import ..pytorch_utils as pt_utils
-
 from ..pointnet2 import pytorch_utils as pt_utils
+
+# import ..pytorch_utils as pt_utils
 
 try:
     import builtins

@@ -44,6 +44,7 @@ num_encoded_scene_token: int = 384
 
 from configs.ptv3_conf import ptv3_cfg
 from configs.mask3d_conf import mask3d_cfg
+
 ptv3_cfg["model"]["K"] = num_encoded_scene_token
 pointcloud_tower_cfg: Dict = ptv3_cfg
 pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1] + 3  # Note `+3` for xyz
@@ -65,7 +66,7 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 # *************** training ***************
 seed: int = 42
 batch_size: int = 96
-gradient_accumulation_steps: int = 3
+gradient_accumulation_steps: int = 2
 
 deepspeed_config: str = "configs/zero_3_stage.json"
 
@@ -90,13 +91,11 @@ scheduler: Dict = dict(
 gradient_checkpointing: bool = True
 
 num_train_epochs: int = 10
-save_freq: Union[str, int] = 300  # or "epoch"
-resume_from_checkpoint: Optional[str] = None
-
+save_freq: Union[str, int] = 3  # or "epoch"
+# resume_from_checkpoint: Optional[str] = None
+resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240914-164840/checkpoints/step_150"
 
 # *************** logging ***************
 log_interval: int = 1
 log_project: str = "grounder_reg"
 log_tag: str = "referit3-val1000"
-
-

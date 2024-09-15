@@ -263,4 +263,3 @@ def get_3d_box_batch(box_size, heading_angle, center):
     corners_3d = np.matmul(corners_3d, np.transpose(R, tuple(tlist)))
     corners_3d += np.expand_dims(center, -2)
     return corners_3d
-

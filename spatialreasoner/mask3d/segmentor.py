@@ -1,21 +1,22 @@
-import statistics
-from typing import Mapping, Any
-
 import MinkowskiEngine as ME
+import numpy as np
+import json
+from pathlib import Path
 import torch
 from torch import nn
+from torch_scatter import scatter_mean
 
 from .metrics import IoU
-
-
-from trim.utils import comm
 
 
 class Mask3DSegmentor(nn.Module):
 
     def __init__(self, config):
         super().__init__()
+        self.device = None
         self.config = config
+
+        self.eval_on_segments = config.general.eval_on_segments
 
         self.decoder_id = config["general"]["decoder_id"]
         if config["model"]["train_on_segments"]:
@@ -62,11 +63,45 @@ class Mask3DSegmentor(nn.Module):
         self.confusion = ConfusionMatrix(**config["metrics"])
         self.iou = IoU()
 
+        num_labels = config["data"]["train_dataset"]["num_labels"]
+        labels = json.load(open(Path(config["data"]["train_dataset"]["label_db_filepath"]), "r"))
+        labels = {int(key): value for key, value in labels.items() if isinstance(key, str)}
+        # if working only on classes for validation - discard others
+        _labels = self._select_correct_labels(labels, num_labels)
         ## => misc
-        self.labels_info = dict()
+        self.labels_info = _labels
+
+    @staticmethod
+    def _select_correct_labels(labels, num_labels):
+        number_of_validation_labels = 0
+        number_of_all_labels = 0
+        for (
+                k,
+                v,
+        ) in labels.items():
+            number_of_all_labels += 1
+            if v["validation"]:
+                number_of_validation_labels += 1
+
+        if num_labels == number_of_all_labels:
+            return labels
+        elif num_labels == number_of_validation_labels:
+            valid_labels = dict()
+            for (
+                    k,
+                    v,
+            ) in labels.items():
+                if v["validation"]:
+                    valid_labels.update({k: v})
+            return valid_labels
+        else:
+            msg = f"""not available number labels, select from:
+                {number_of_validation_labels}, {number_of_all_labels}"""
+            raise ValueError(msg)
 
     def encode(self, batch, is_eval, device):
         data, target, file_names = batch
+        self.device = device
 
         if data.features.shape[0] > self.config.general.max_batch_size:
             print("data exceeds threshold")
@@ -97,7 +132,6 @@ class Mask3DSegmentor(nn.Module):
         )
         return encoder_state
 
-
     def decode(self, encoder_state, batch, queries_pos, is_eval=False):
         data, target, file_names = batch
         point2segment, is_eval, aux, pcd_features, \
@@ -105,7 +139,7 @@ class Mask3DSegmentor(nn.Module):
 
         queries = torch.zeros_like(queries_pos).permute(1, 0, 2)
         output = self.model.decode(point2segment, is_eval, aux, pcd_features,
-            coords, pos_encodings_pcd, mask_features, queries, queries_pos)
+                                   coords, pos_encodings_pcd, mask_features, queries, queries_pos)
 
         try:
             losses = self.criterion(output, target, mask_type=self.mask_type)
@@ -153,6 +187,65 @@ class Mask3DSegmentor(nn.Module):
                 gt_bboxes=gt_bbox_data,
             )
 
+    def get_mask_and_scores(
+            self, mask_cls, mask_pred, num_queries=100, num_classes=18, device=None
+    ):
+        if device is None:
+            device = self.device
+        labels = (
+            torch.arange(num_classes, device=device)
+            .unsqueeze(0)
+            .repeat(num_queries, 1)
+            .flatten(0, 1)
+        )
+
+        if self.config.general.topk_per_image != -1:
+            scores_per_query, topk_indices = mask_cls.flatten(0, 1).topk(
+                self.config.general.topk_per_image, sorted=True
+            )
+        else:
+            scores_per_query, topk_indices = mask_cls.flatten(0, 1).topk(
+                num_queries, sorted=True
+            )
+
+        labels_per_query = labels[topk_indices]
+        topk_indices = topk_indices // num_classes
+        mask_pred = mask_pred[:, topk_indices]
+
+        result_pred_mask = (mask_pred > 0).float()
+        heatmap = mask_pred.float().sigmoid()
+
+        mask_scores_per_image = (heatmap * result_pred_mask).sum(0) / (
+                result_pred_mask.sum(0) + 1e-6
+        )
+        score = scores_per_query * mask_scores_per_image
+        classes = labels_per_query
+
+        return score, result_pred_mask, classes, heatmap
+
+    def get_full_res_mask(
+            self, mask, inverse_map, point2segment_full, is_heatmap=False
+    ):
+        mask = mask.detach().cpu()[inverse_map]  # full res
+
+        if self.eval_on_segments and is_heatmap == False:
+            mask = scatter_mean(
+                mask, point2segment_full, dim=0
+            )  # full res segments
+            mask = (mask > 0.5).float()
+            mask = mask.detach().cpu()[
+                point2segment_full.cpu()
+            ]  # full res points
+
+        return mask
+
+    def remap_model_output(self, output):
+        output = np.array(output)
+        output_remapped = output.copy()
+        for i, k in enumerate(self.labels_info.keys()):
+            output_remapped[output == i] = k
+        return output_remapped
+
     def eval_instance_step(
             self,
             output,
@@ -164,11 +257,11 @@ class Mask3DSegmentor(nn.Module):
             first_full_res=False,
             backbone_features=None,
     ):
-        label_offset = 2    # `from mask3d_conf.py`
+        label_offset = 2  # `from mask3d_conf.py`
         prediction = output["aux_outputs"]
         prediction.append({
-                "pred_logits": output["pred_logits"],
-                "pred_masks": output["pred_masks"],
+            "pred_logits": output["pred_logits"],
+            "pred_masks": output["pred_masks"],
         })
 
         prediction[self.decoder_id][
@@ -342,15 +435,15 @@ class Mask3DSegmentor(nn.Module):
                 all_pred_scores.append(sort_scores_values)
                 all_heatmaps.append(sorted_heatmap)
 
-        if self.validation_dataset.dataset_name == "scannet200":
-            all_pred_classes[bid][all_pred_classes[bid] == 0] = -1
-            if self.config.data.test_mode != "test":
-                target_full_res[bid]["labels"][
-                    target_full_res[bid]["labels"] == 0
-                    ] = -1
+        # if self.validation_dataset.dataset_name == "scannet200":
+        all_pred_classes[bid][all_pred_classes[bid] == 0] = -1
+        # if self.config.data.test_mode != "test":
+        target_full_res[bid]["labels"][
+            target_full_res[bid]["labels"] == 0
+            ] = -1
 
         for bid in range(len(prediction[self.decoder_id]["pred_masks"])):
-            all_pred_classes[bid] = self.validation_dataset._remap_model_output(
+            all_pred_classes[bid] = self.remap_model_output(
                 all_pred_classes[bid].cpu() + label_offset
             )
 
@@ -358,7 +451,7 @@ class Mask3DSegmentor(nn.Module):
                     self.config.data.test_mode != "test"
                     and len(target_full_res) != 0
             ):
-                target_full_res[bid]["labels"] = self.validation_dataset._remap_model_output(
+                target_full_res[bid]["labels"] = self.remap_model_output(
                     target_full_res[bid]["labels"].cpu() + label_offset
                 )
 
@@ -416,7 +509,3 @@ class Mask3DSegmentor(nn.Module):
 
         # We only return the first one, because we only give one query at a time during inference
         return all_pred_classes[0], all_pred_masks[0], all_pred_scores[0], pred_bbox_data[0], gt_bbox_data[0]
-
-
-
-

@@ -4,6 +4,7 @@ Date: 2024/8/17
 Author: yruns
 """
 
+
 def build_pointcloud_tower(cfg):
     engine = cfg.pop("engine")
     if engine == "mask3d":
@@ -26,5 +27,3 @@ def build_grounding_tower(cfg):
         return build_mask3d_segmentor(cfg)
     else:
         raise NotImplementedError(f"engine {cfg['engine']} is not implemented")
-
-

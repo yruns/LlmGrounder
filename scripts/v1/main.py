@@ -15,11 +15,10 @@ from transformers import (
 )
 
 from staticvars.const import *
-
+from trim.callbacks.misc import InformationWriter, IterationTimer, Resumer, CheckpointSaver
+from trim.engine import TrainerBase
 from trim.thirdparty.logging import WandbWrapper
 from trim.thirdparty.logging import logger
-from trim.engine import TrainerBase
-from trim.callbacks.misc import InformationWriter, IterationTimer, Resumer, CheckpointSaver
 from trim.utils import comm
 from trim.utils.config import setup_hparams, DictAction, Config
 
@@ -42,6 +41,7 @@ class Trainer(TrainerBase):
     @staticmethod
     def setup_lora_config(model, lora_config):
         """ Configure LoRA settings for the model. """
+
         def find_proj_layers(model, target_modules):
             """ Identify projection layers in the model for LoRA adaptation. """
             linear_cls = torch.nn.Linear
@@ -174,7 +174,6 @@ class Trainer(TrainerBase):
 
         model_ref.load_pretrained_adapters(self.hparams.pretrained_adapters)
 
-
     def on_training_step_start(self):
         # Because Mask3D(MinkowskiEngine) and PTv3(spconv) not implemented for 'BFloat16'
         if hasattr(self.hparams, "lora_config") and self.hparams.lora_config.enable:
@@ -188,9 +187,11 @@ class Trainer(TrainerBase):
 
     def configure_dataloader(self):
         from datasets.grounded3d import build_dataloader
-        assert (self.hparams.batch_size / self.accelerator.num_processes / self.accelerator.gradient_accumulation_steps).is_integer(), \
+        assert (
+                    self.hparams.batch_size / self.accelerator.num_processes / self.accelerator.gradient_accumulation_steps).is_integer(), \
             "batch_size must be divisible by the number of gpus and gradient_accumulation_steps"
-        per_device_train_batch_size: int = int(self.hparams.batch_size / self.accelerator.num_processes / self.accelerator.gradient_accumulation_steps)
+        per_device_train_batch_size: int = int(
+            self.hparams.batch_size / self.accelerator.num_processes / self.accelerator.gradient_accumulation_steps)
         per_device_eval_batch_size: int = 1
         self.hparams.per_device_train_batch_size = per_device_train_batch_size
         self.hparams.per_device_eval_batch_size = per_device_eval_batch_size
@@ -289,14 +290,13 @@ def main(hparams):
         )
 
     from scripts.v1.evaluator import Evaluator
-    from scripts.v1.misc import ModelSaver, ModelLoader
     trainer = Trainer(hparams, accelerator, logger, debug=False, callbacks=[
         Resumer(checkpoint=hparams.resume_from_checkpoint),
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=hparams.log_interval),
         # ModelLoader(),
-        Evaluator(eval_freq=hparams.save_freq),
         CheckpointSaver(save_freq=hparams.save_freq),
+        Evaluator(eval_freq=hparams.save_freq),
         # ModelSaver(save_freq=hparams.save_freq),
     ])
     trainer.fit()
@@ -304,6 +304,7 @@ def main(hparams):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

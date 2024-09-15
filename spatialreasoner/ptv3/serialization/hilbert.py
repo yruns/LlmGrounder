@@ -160,19 +160,19 @@ def encode(locs, num_dims, num_bits):
             mask = gray[:, dim, bit]
 
             # Where this bit is on, invert the 0 dimension for lower bits.
-            gray[:, 0, bit + 1 :] = torch.logical_xor(
-                gray[:, 0, bit + 1 :], mask[:, None]
+            gray[:, 0, bit + 1:] = torch.logical_xor(
+                gray[:, 0, bit + 1:], mask[:, None]
             )
 
             # Where the bit is off, exchange the lower bits with the 0 dimension.
             to_flip = torch.logical_and(
                 torch.logical_not(mask[:, None]).repeat(1, gray.shape[2] - bit - 1),
-                torch.logical_xor(gray[:, 0, bit + 1 :], gray[:, dim, bit + 1 :]),
+                torch.logical_xor(gray[:, 0, bit + 1:], gray[:, dim, bit + 1:]),
             )
-            gray[:, dim, bit + 1 :] = torch.logical_xor(
-                gray[:, dim, bit + 1 :], to_flip
+            gray[:, dim, bit + 1:] = torch.logical_xor(
+                gray[:, dim, bit + 1:], to_flip
             )
-            gray[:, 0, bit + 1 :] = torch.logical_xor(gray[:, 0, bit + 1 :], to_flip)
+            gray[:, 0, bit + 1:] = torch.logical_xor(gray[:, 0, bit + 1:], to_flip)
 
     # Now flatten out.
     gray = gray.swapaxes(1, 2).reshape((-1, num_bits * num_dims))
@@ -253,7 +253,7 @@ def decode(hilberts, num_dims, num_bits):
         .bitwise_and(bitpack_mask_rev)
         .ne(0)
         .byte()
-        .flatten(-2, -1)[:, -num_dims * num_bits :]
+        .flatten(-2, -1)[:, -num_dims * num_bits:]
     )
 
     # Take the sequence of bits and Gray-code it.
@@ -271,19 +271,19 @@ def decode(hilberts, num_dims, num_bits):
             mask = gray[:, dim, bit]
 
             # Where this bit is on, invert the 0 dimension for lower bits.
-            gray[:, 0, bit + 1 :] = torch.logical_xor(
-                gray[:, 0, bit + 1 :], mask[:, None]
+            gray[:, 0, bit + 1:] = torch.logical_xor(
+                gray[:, 0, bit + 1:], mask[:, None]
             )
 
             # Where the bit is off, exchange the lower bits with the 0 dimension.
             to_flip = torch.logical_and(
                 torch.logical_not(mask[:, None]),
-                torch.logical_xor(gray[:, 0, bit + 1 :], gray[:, dim, bit + 1 :]),
+                torch.logical_xor(gray[:, 0, bit + 1:], gray[:, dim, bit + 1:]),
             )
-            gray[:, dim, bit + 1 :] = torch.logical_xor(
-                gray[:, dim, bit + 1 :], to_flip
+            gray[:, dim, bit + 1:] = torch.logical_xor(
+                gray[:, dim, bit + 1:], to_flip
             )
-            gray[:, 0, bit + 1 :] = torch.logical_xor(gray[:, 0, bit + 1 :], to_flip)
+            gray[:, 0, bit + 1:] = torch.logical_xor(gray[:, 0, bit + 1:], to_flip)
 
     # Pad back out to 64 bits.
     extra_dims = 64 - num_bits

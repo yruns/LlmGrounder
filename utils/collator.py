@@ -6,8 +6,6 @@ Author: yruns
 from abc import abstractmethod
 from dataclasses import dataclass
 
-from transformers import PreTrainedTokenizerBase
-
 
 @dataclass
 class DataCollatorBase(object):

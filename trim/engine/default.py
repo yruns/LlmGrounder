@@ -62,4 +62,3 @@ def load_state_dict(state_dict, model, logger, strict=False):
         logger.info(f"Unexpected keys: {load_state_info.unexpected_keys}")
 
     return model
-

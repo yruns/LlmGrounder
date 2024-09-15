@@ -5,10 +5,10 @@ This is useful when doing distributed engine.
 Modified from detectron2(https://github.com/facebookresearch/detectron2)
 """
 
+import inspect
 import os
 import random
 from typing import *
-import inspect
 
 import numpy as np
 import torch
@@ -71,6 +71,7 @@ def synchronize():
     """
     accelerator.wait_for_everyone()
 
+
 def get_callable_arguments(func_or_class):
     signature = inspect.signature(func_or_class)
     arguments = [param.name for param in signature.parameters.values() if param.name != 'self']
@@ -84,13 +85,13 @@ def count_parameters(model):
 def str_parameters(model):
     return list([n for n, p in model.named_parameters() if p.requires_grad])
 
+
 def print_parameters_with_learnable(model):
     ret = []
     for n, p in model.named_parameters():
         ret.append((n, p.requires_grad))
 
     return ret
-
 
 
 def sum_model_parameters(model):
@@ -127,7 +128,7 @@ def move_tensor_to_device(input_value, device):
 
 
 STR_TO_DTYPE = {
-    "no": torch.float32,    # Default dtype
+    "no": torch.float32,  # Default dtype
     "float16": torch.float16,
     "float32": torch.float32,
     "float64": torch.float64,
@@ -145,8 +146,10 @@ STR_TO_DTYPE = {
     "bool": torch.bool,
 }
 
+
 class DataBase:
     pass
+
 
 def convert_str_to_dtype(dtype_str: str) -> torch.dtype:
     """Convert string to torch.dtype"""
@@ -192,8 +195,6 @@ def convert_tensor_to_dtype(input_value, dtype: Union[torch.dtype, str], ignore_
             input_value.__dict__[key] = convert_tensor_to_dtype(input_value.__dict__[key], dtype)
 
     return input_value
-
-
 
 
 def copy_codebase(save_path, exclude_dirs=None):

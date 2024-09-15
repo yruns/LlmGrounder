@@ -3,7 +3,7 @@ File: arch.py
 Date: 2024/8/17
 Author: yruns
 """
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import *
 
 import torch
@@ -105,9 +105,9 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
     def encode_scene(self, scene_data_dict: Dict, device):
         dtype = getattr(self.config, "compute_dtype")
         scene_features = (
-             self.get_pointcloud_tower()
-             .encode_scene(scene_data_dict)
-             .to(dtype)
+            self.get_pointcloud_tower()
+            .encode_scene(scene_data_dict)
+            .to(dtype)
         )
         return self.get_pointcloud_projector()(scene_features)
 
@@ -161,7 +161,6 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
             start_i, end_i = seg_token_offset[i], seg_token_offset[i + 1]
             ref_embeddings.append(ref_embeddings_flattened[start_i:end_i])
         return ref_embeddings
-
 
     def call_grounding_tower(
             self,
@@ -240,7 +239,8 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
                 multimodal_labels.append(cur_labels)
                 continue
 
-            scene_token_indices = [-1] + torch.where(cur_input_ids == SCENE_TOKEN_INDEX)[0].tolist() + [cur_input_ids.shape[0]]
+            scene_token_indices = [-1] + torch.where(cur_input_ids == SCENE_TOKEN_INDEX)[0].tolist() + [
+                cur_input_ids.shape[0]]
             cur_input_ids_no_scene_snippets = []
             cur_labels_no_scene_snippets = []
 
@@ -265,7 +265,8 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
                 if i < num_scenes:
                     cur_scene_features = scene_enc_features[scene_idx]
                     cur_multimodal_embeds.append(cur_scene_features)
-                    cur_multimodal_labels.append(torch.full((cur_scene_features.shape[0],), IGNORE_INDEX, device=device, dtype=torch.long))
+                    cur_multimodal_labels.append(
+                        torch.full((cur_scene_features.shape[0],), IGNORE_INDEX, device=device, dtype=torch.long))
                     scene_idx += 1
 
             cur_multimodal_embeds = torch.cat(cur_multimodal_embeds, dim=0)
@@ -285,8 +286,9 @@ class SpatialReasonerMetaForCausalLM(nn.Module):
         ### => Combine the input_embeds and labels
         embedding_dim = multimodal_input_embeds[0].shape[1]
         multimodal_input_embeds_padded = torch.zeros((batch_size, batch_max_len, embedding_dim),
-                                                    dtype=multimodal_input_embeds_truncated[0].dtype, device=device)
-        multimodal_labels_padded = torch.ones((batch_size, batch_max_len), dtype=torch.long, device=device) * IGNORE_INDEX
+                                                     dtype=multimodal_input_embeds_truncated[0].dtype, device=device)
+        multimodal_labels_padded = torch.ones((batch_size, batch_max_len), dtype=torch.long,
+                                              device=device) * IGNORE_INDEX
         multimodal_attention_mask = torch.zeros((batch_size, batch_max_len), dtype=torch.bool, device=device)
 
         padding_strategy = getattr(self.config, 'tokenizer_padding_side', 'right')

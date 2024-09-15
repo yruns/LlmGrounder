@@ -1,14 +1,13 @@
 import torch
+from tqdm import tqdm
 
 from trim.callbacks.default import CallbackBase
 from trim.utils import comm
-
 from utils.votenet_utils.metric_util import calc_iou
-from tqdm import tqdm
 
 
 class Evaluator(CallbackBase):
-    
+
     def __init__(self, eval_freq):
         self.eval_freq = eval_freq
         self.eval_steps = None
@@ -19,7 +18,7 @@ class Evaluator(CallbackBase):
         elif isinstance(self.eval_freq, str) and self.eval_freq == "epoch":
             # epoch based
             self.eval_steps = self.trainer.num_update_steps_per_epoch
-    
+
     # def on_training_epoch_end(self):
     #     self.trainer.model.eval()
     #     self.eval()
@@ -29,7 +28,6 @@ class Evaluator(CallbackBase):
     #     self.trainer.model.eval()
     #     self.eval()
     #     self.trainer.model.train()
-
 
     def on_training_step_end(self):
         if (
@@ -69,7 +67,7 @@ class Evaluator(CallbackBase):
                 output_ids, grounding_outputs = self.trainer.model(**batch_data)
 
             ious = []
-            bbox_counter += 1   # `only for 1 sample`
+            bbox_counter += 1  # `only for 1 sample`
             for grounding_output in grounding_outputs:
                 if grounding_output is None:
                     # No grounding result
@@ -114,4 +112,3 @@ class Evaluator(CallbackBase):
         })
 
         self.trainer.logger.info(">>>>>>>>>>>>>>>> Evaluation Over >>>>>>>>>>>>>>>>\n")
-

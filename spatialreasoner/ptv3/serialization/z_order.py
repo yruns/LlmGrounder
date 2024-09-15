@@ -5,8 +5,9 @@
 # Written by Peng-Shuai Wang
 # --------------------------------------------------------
 
-import torch
 from typing import Optional, Union
+
+import torch
 
 
 class KeyLUT:
@@ -42,10 +43,10 @@ class KeyLUT:
         for i in range(depth):
             mask = 1 << i
             key = (
-                key
-                | ((x & mask) << (2 * i + 2))
-                | ((y & mask) << (2 * i + 1))
-                | ((z & mask) << (2 * i + 0))
+                    key
+                    | ((x & mask) << (2 * i + 2))
+                    | ((y & mask) << (2 * i + 1))
+                    | ((z & mask) << (2 * i + 0))
             )
         return key
 
@@ -64,11 +65,11 @@ _key_lut = KeyLUT()
 
 
 def xyz2key(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    z: torch.Tensor,
-    b: Optional[Union[torch.Tensor, int]] = None,
-    depth: int = 16,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        z: torch.Tensor,
+        b: Optional[Union[torch.Tensor, int]] = None,
+        depth: int = 16,
 ):
     r"""Encodes :attr:`x`, :attr:`y`, :attr:`z` coordinates to the shuffled keys
     based on pre-computed look up tables. The speed of this function is much

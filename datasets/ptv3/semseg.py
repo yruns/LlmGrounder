@@ -5,11 +5,10 @@ Author: Xiaoyang Wu (xiaoyang.wu.cs@gmail.com)
 Please cite our work if the code is helpful to you.
 """
 
+import functools
 import glob
 import os
 from collections.abc import Sequence
-from copy import deepcopy
-import functools
 
 import numpy as np
 import torch
@@ -74,7 +73,6 @@ class PTv3Dataset(Dataset):
             scan_id = os.path.basename(data_path).split(".")[0]
             self.scan_id_to_data[scan_id] = data_path
 
-
     def get_data_list(self):
         if isinstance(self.split, str):
             data_list = glob.glob(os.path.join(self.data_root, self.split, "*.pth"))
@@ -116,7 +114,6 @@ class PTv3Dataset(Dataset):
         data_dict = self._load_data(scan_id)
         return self.transform(data_dict)
 
-
     def __getitem__(self, idx):
         raise RuntimeError("You should not call this function directly. Please use `get_ptv3_data` instead.")
 
@@ -153,7 +150,6 @@ class ScanNet200Dataset(PTv3Dataset):
         return data_dict
 
 
-
 def build_datasets(args, cfg, mode="all"):
     data_cfg_train = cfg.data.train
     data_cfg_val = cfg.data.val
@@ -169,6 +165,3 @@ def build_datasets(args, cfg, mode="all"):
         return_datasets.append(builder(**data_cfg_val))
 
     return return_datasets
-
-
-

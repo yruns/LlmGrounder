@@ -1,7 +1,7 @@
 import copy
 
-import torch
 import spconv.pytorch as spconv
+import torch
 
 try:
     import ocnn
@@ -149,7 +149,7 @@ class Point(Dict):
         relay on ["grid_coord", "batch", "feat"]
         """
         assert (
-            ocnn is not None
+                ocnn is not None
         ), "Please follow https://github.com/octree-nn/ocnn-pytorch install ocnn."
         assert {"grid_coord", "feat", "batch"}.issubset(self.keys())
         # add 1 to make grid space support shift order
@@ -192,5 +192,3 @@ class Point(Dict):
             else:
                 copyed[k] = copy.copy(v)
         return copyed
-
-
