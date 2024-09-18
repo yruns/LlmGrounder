@@ -13,7 +13,7 @@ SCENE_TOKEN_INDEX = -201
 SCENE_START_TOKEN = "<scene_start>"
 SCENE_END_TOKEN = "<scene_end>"
 
-REF_TOKEN = "[ref]"
+REF_TOKEN = "[REF]"
 SOP_TOKEN = "<p>"
 EOP_TOKEN = "</p>"
 REPLY_END_TOKEN = "</s>"

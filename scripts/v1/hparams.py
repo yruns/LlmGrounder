@@ -90,10 +90,10 @@ scheduler: Dict = dict(
 
 gradient_checkpointing: bool = True
 
-num_train_epochs: int = 10
-save_freq: Union[str, int] = 3  # or "epoch"
-# resume_from_checkpoint: Optional[str] = None
-resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240914-164840/checkpoints/step_150"
+num_train_epochs: int = 20
+save_freq: Union[str, int] = 150  # or "epoch"
+resume_from_checkpoint: Optional[str] = None
+# resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240917-163657/checkpoints/step_600"
 
 # *************** logging ***************
 log_interval: int = 1

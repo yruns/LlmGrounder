@@ -507,5 +507,7 @@ class Mask3DSegmentor(nn.Module):
                             )
                         )
 
+        if len(pred_bbox_data) == 0:
+            pred_bbox_data = [(-1, np.zeros(6), 0)]
         # We only return the first one, because we only give one query at a time during inference
         return all_pred_classes[0], all_pred_masks[0], all_pred_scores[0], pred_bbox_data[0], gt_bbox_data[0]

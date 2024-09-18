@@ -127,6 +127,7 @@ class Trainer(TrainerBase):
         self.model.config.tokenizer_padding_side = self.tokenizer.padding_side
         self.model.config.tokenizer_model_max_length = self.tokenizer.model_max_length
         self.model.config.compute_dtype = self.compute_dtype
+        self.model.tokenizer = self.tokenizer
 
         ##  Gradient checkpointing
         if self.hparams.gradient_checkpointing:

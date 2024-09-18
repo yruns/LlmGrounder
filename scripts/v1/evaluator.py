@@ -71,28 +71,35 @@ class Evaluator(CallbackBase):
             for grounding_output in grounding_outputs:
                 if grounding_output is None:
                     # No grounding result
+                    ious.append(torch.tensor(0).cuda())
                     continue
 
-                pred_bboxes, gt_bboxes = grounding_output["pred_bboxes"], grounding_output["gt_bboxes"]
-                if len(pred_bboxes) != len(gt_bboxes):
-                    self.trainer.logger.warning(f"Uid: {uid[0]}: Number of pred_bboxes and gt_bboxes are not equal!")
+                pred_bbox, gt_bbox = grounding_output["pred_bboxes"], grounding_output["gt_bboxes"]
+                # if len(pred_bbox) != len(gt_bbox):
+                #     self.trainer.logger.warning(f"Uid: {uid[0]}: Number of pred_bboxes and gt_bboxes are not equal!")
 
-                for pred_bbox, gt_bbox in zip(pred_bboxes, gt_bboxes):
-                    iou = torch.tensor(calc_iou(pred_bbox, gt_bbox)).cuda()
-                    ious.append(iou)
+                iou = calc_iou(pred_bbox[1], gt_bbox[1])
+                if iou >= 1:
+                    self.trainer.logger.warning(f"Begin, Uid: {uid[0]}: IoU is greater than 1!")
+                ious.append(iou)
 
-            ious = self.accelerator.gather(ious)
+            ious = torch.tensor(ious, dtype=torch.float32).cuda()
+
+            ious_gathered = self.accelerator.gather(ious)
             if len(ious) == 0:
                 continue
-            ious = torch.cat(ious, dim=0).tolist()
-            for iou in ious:
-                bbox_ious.append(iou)
-                if iou >= 0.25:
+            for iou_ in ious_gathered:
+                bbox_ious.append(iou_)
+                if iou_ >= 0.25:
                     bbox_iou_25 += 1
-                    if iou >= 0.5:
+                    if iou_ >= 0.5:
                         bbox_iou_50 += 1
+                if iou_ >= 1:
+                    self.trainer.logger.warning(f"Uid: {uid[0]}: IoU is greater than 1!")
 
         self.accelerator.wait_for_everyone()
+        # bbox_counter = self.accelerator.reduce(bbox_counter, reduction="sum")
+        bbox_counter = bbox_counter * self.accelerator.num_processes
         mean_iou = sum(bbox_ious) / bbox_counter
         bbox_iou_25 = bbox_iou_25 / bbox_counter
         bbox_iou_50 = bbox_iou_50 / bbox_counter

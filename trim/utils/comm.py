@@ -95,7 +95,7 @@ def print_parameters_with_learnable(model):
 
 
 def sum_model_parameters(model):
-    total_params = 0
+    total_params = 0.0
     for param in model.parameters():
         total_params += torch.sum(param)
     return total_params

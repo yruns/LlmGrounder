@@ -165,7 +165,11 @@ class SpatialReasonerForCausalLM(LlamaForCausalLM, SpatialReasonerMetaForCausalL
                 grounding_output = grounding_tower.decode(
                     encoded_state, mask3d_data_dict, queries_pos.permute(1, 0, 2), is_eval=True
                 )
-                grounding_outputs.append(grounding_output)
+                if grounding_output["pred_bboxes"][0] == -1:
+                    # no vaild points
+                    grounding_outputs.append(None)
+                else:
+                    grounding_outputs.append(grounding_output)
         return output_ids, grounding_outputs
 
     @torch.no_grad()
