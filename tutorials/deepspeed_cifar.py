@@ -1,3 +1,4 @@
+print("Started")
 import argparse
 
 import deepspeed
@@ -13,37 +14,8 @@ from torch.utils.data import Sampler
 from typing import Iterator
 from torch.utils.data import DataLoader
 
-
-class CheckpointSampler(Sampler[int]):
-    def __init__(self, data_source: int, start_step: int, batch_size: int):
-        super().__init__()
-        self.data_source = data_source
-        self.start_step = start_step
-        self.batch_size = batch_size
-
-    def __iter__(self) -> Iterator[int]:
-        start_idx = self.start_step * self.batch_size
-        return iter(range(start_idx, len(self.data_source)))
-
-    def __len__(self) -> int:
-        return len(self.data_source) - (self.start_step * self.batch_size)
-
-
-def dataloader_to_step(dataloader, step):
-    # Create a new sampler starting from the checkpoint step
-    new_sampler = CheckpointSampler(dataloader.dataset, step, dataloader.batch_size)
-
-    # Create a new DataLoader with the updated sampler
-    new_dataloader = DataLoader(
-        dataloader.dataset,
-        batch_size=dataloader.batch_size,
-        sampler=new_sampler,
-        collate_fn=dataloader.collate_fn,
-        num_workers=dataloader.num_local_io_workers,
-        pin_memory=dataloader.pin_memory,
-    )
-
-    return new_dataloader
+import os
+os.environ["TORCH_CUDA_ARCH_LIST"] = "8.0"
 
 
 def add_argument():
@@ -153,6 +125,7 @@ def get_ds_config(args):
     """Get the DeepSpeed configuration dictionary."""
     ds_config = {
         "train_batch_size": 16,
+        "gradient_accumulation_steps": 1,
         "steps_per_print": 2000,
         "optimizer": {
             "type": "Adam",
@@ -328,6 +301,22 @@ def sum_model_parameters(model):
 
 def main(args):
     # Initialize DeepSpeed distributed backend.
+    import random
+    import numpy as np
+    from torch.backends import cudnn
+
+    def seed_everything(seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        cudnn.benchmark = False
+        cudnn.deterministic = True
+        os.environ["PYTHONHASHSEED"] = str(seed)
+
+    seed_everything(1004)
+
     deepspeed.init_distributed()
 
     ########################################################################
@@ -389,20 +378,42 @@ def main(args):
         config=ds_config,
     )
 
+    def wrap_dataloader(dataloader, num_batches):
+        class SkipSampler(Sampler):
+            def __init__(self, sampler, skip_batches):
+                self.sampler = sampler
+                self.skip_batches = skip_batches
+
+            def __iter__(self):
+                it = iter(self.sampler)
+                for _ in range(self.skip_batches):
+                    next(it)
+                return it
+
+            def __len__(self):
+                return len(self.sampler) - self.skip_batches
+
+        return DataLoader(
+            dataloader.dataset,
+            batch_size=dataloader.batch_size,
+            sampler=SkipSampler(dataloader.sampler, num_batches),
+            num_workers=dataloader.num_io_workers,
+            pin_memory=dataloader.pin_memory,
+            drop_last=dataloader.drop_last,
+        )
+    # trainloader = wrap_dataloader(trainloader, 0)
+
     start_epoch = 0
     start_step = 0
-    resume = True
+    resume_step = 0
+    resume = False
 
+    resume = True
     _, client_state = model_engine.load_checkpoint("checkpoint_1.pt")
     print("Loaded checkpoint", sum_model_parameters(model_engine))
-    start_epoch = client_state["epoch"]
-    start_step = client_state["step"]
-    print("Loaded checkpoint", start_epoch, start_step)
-
-    begin_from_checkpoint = False
-    if start_step != 0:
-        begin_from_checkpoint = True
-        trainloader = dataloader_to_step(trainloader, start_step)
+    start_epoch = client_state["epoch"] + 1
+    resume_step = client_state["step"]
+    print("Loaded checkpoint", start_epoch, resume_step)
 
     # Get the local device name (str) and local rank (int).
     local_device = get_accelerator().device_name(model_engine.local_rank)
@@ -418,17 +429,11 @@ def main(args):
     # Define the Classification Cross-Entropy loss function.
     criterion = nn.CrossEntropyLoss()
 
-    ########################################################################
-    # Step 3. Train the network.
-    #
-    # This is when things start to get interesting.
-    # We simply have to loop over our data iterator, and feed the inputs to the
-    # network and optimize. (DeepSpeed handles the distributed details for us!)
-    ########################################################################
 
     for epoch in range(start_epoch, args.epochs):  # loop over the dataset multiple times
         running_loss = 0.0
 
+        trainloader.data_sampler.set_epoch(epoch)
         for i, data in enumerate(trainloader):
             # Get the inputs. ``data`` is a list of [inputs, labels].
             inputs, labels = data[0].to(local_device), data[1].to(local_device)
@@ -437,6 +442,7 @@ def main(args):
             if target_dtype is not None:
                 inputs = inputs.to(target_dtype)
 
+            step, model_weights = i, sum_model_parameters(model_engine)
             outputs = model_engine(inputs)
             loss = criterion(outputs, labels)
 
@@ -449,20 +455,20 @@ def main(args):
                 args.log_interval - 1
             ):  # Print every log_interval mini-batches.
                 print(
-                    f"[{epoch + 1 : d}, {i + 1 : 5d}] loss: {running_loss / args.log_interval : .3f}"
+                    f"[{epoch + 1 : d}, {i + 1 : 5d}] loss: {running_loss / args.log_interval : .3f}, data: {torch.sum(inputs)}"
                 )
-                print(torch.sum(labels))
                 running_loss = 0.0
 
-            if i % 1000 == 999:
-                print(sum_model_parameters(model_engine))
-                model_engine.save_checkpoint(f"checkpoint_{epoch}.pt", client_state={"epoch": epoch, "step": i})
+            # if i % 1000 == 999:
+        print(sum_model_parameters(model_engine))
+        model_engine.save_checkpoint(f"checkpoint_{epoch}.pt", client_state={"epoch": epoch, "step": i})
+        # test(model_engine, testset, local_device, target_dtype)
     print("Finished Training")
 
     ########################################################################
     # Step 4. Test the network on the test data.
     ########################################################################
-    test(model_engine, testset, local_device, target_dtype)
+
 
 
 if __name__ == "__main__":

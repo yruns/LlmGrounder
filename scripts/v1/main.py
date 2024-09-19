@@ -236,7 +236,7 @@ class Trainer(TrainerBase):
             resume=False,
             file_prefix=os.path.join(self.output_dir, "codebase"),
             save_files=[__file__, os.path.abspath("scripts/v1/hparams.py")],
-            debug=False
+            debug=True
         )
 
     def training_step(self, batch_data, batch_index):
@@ -296,7 +296,7 @@ def main(hparams):
         IterationTimer(warmup_iter=1),
         InformationWriter(log_interval=hparams.log_interval),
         # ModelLoader(),
-        CheckpointSaver(save_freq=hparams.save_freq),
+        # CheckpointSaver(save_freq=hparams.save_freq),
         Evaluator(eval_freq=hparams.save_freq),
         # ModelSaver(save_freq=hparams.save_freq),
     ])

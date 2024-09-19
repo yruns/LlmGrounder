@@ -1,5 +1,6 @@
 import torch
 from tqdm import tqdm
+import numpy as np
 
 from trim.callbacks.default import CallbackBase
 from trim.utils import comm
@@ -52,6 +53,8 @@ class Evaluator(CallbackBase):
             if self.accelerator.is_main_process else self.trainer.val_loader
 
         # Metrics
+        bbox_preds = []
+        bbox_gts = []
         bbox_ious = []
         bbox_counter = 0
         bbox_iou_25 = 0
@@ -72,6 +75,8 @@ class Evaluator(CallbackBase):
                 if grounding_output is None:
                     # No grounding result
                     ious.append(torch.tensor(0).cuda())
+                    bbox_preds.append(torch.zeros(6))
+                    bbox_gts.append(torch.zeros(6))
                     continue
 
                 pred_bbox, gt_bbox = grounding_output["pred_bboxes"], grounding_output["gt_bboxes"]
@@ -82,6 +87,8 @@ class Evaluator(CallbackBase):
                 if iou >= 1:
                     self.trainer.logger.warning(f"Begin, Uid: {uid[0]}: IoU is greater than 1!")
                 ious.append(iou)
+                bbox_preds.append(pred_bbox[1])
+                bbox_gts.append(gt_bbox[1])
 
             ious = torch.tensor(ious, dtype=torch.float32).cuda()
 
@@ -98,6 +105,24 @@ class Evaluator(CallbackBase):
                     self.trainer.logger.warning(f"Uid: {uid[0]}: IoU is greater than 1!")
 
         self.accelerator.wait_for_everyone()
+
+        bbox_preds = torch.from_numpy(np.stack(bbox_preds)).cuda()
+        bbox_gts = torch.from_numpy(np.stack(bbox_gts)).cuda()
+        bbox_preds = self.accelerator.gather(bbox_preds)
+        bbox_gts = self.accelerator.gather(bbox_gts)
+
+        if self.accelerator.is_main_process:
+            import json
+            import os
+            output_dir = os.path.join(self.trainer.output_dir, "bboxes")
+            os.makedirs(output_dir, exist_ok=True)
+            with open(os.path.join(output_dir, "bbox_preds.json"), "w") as f:
+                json.dump(bbox_preds.tolist(), f)
+            with open(os.path.join(output_dir, "bbox_gts.json"), "w") as f:
+                json.dump(bbox_gts.tolist(), f)
+
+            self.trainer.logger.info(f"Saved bbox_preds and bbox_gts to {output_dir}")
+
         # bbox_counter = self.accelerator.reduce(bbox_counter, reduction="sum")
         bbox_counter = bbox_counter * self.accelerator.num_processes
         mean_iou = sum(bbox_ious) / bbox_counter

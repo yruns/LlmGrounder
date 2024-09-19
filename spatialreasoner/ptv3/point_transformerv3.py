@@ -546,7 +546,7 @@ class PointTransformerV3(PointModule):
             dec_channels=(64, 64, 128, 256),
             dec_num_head=(4, 4, 8, 16),
             dec_patch_size=(48, 48, 48, 48),
-            K=384,
+            K=1024,
             mlp_ratio=4,
             qkv_bias=True,
             qk_scale=None,
@@ -665,6 +665,55 @@ class PointTransformerV3(PointModule):
             if len(enc) != 0:
                 self.enc.add(module=enc, name=f"enc{s}")
 
+        # decoder
+        if not self.cls_mode:
+            dec_drop_path = [
+                x.item() for x in torch.linspace(0, drop_path, sum(dec_depths))
+            ]
+            self.dec = PointSequential()
+            dec_channels = list(dec_channels) + [enc_channels[-1]]
+            for s in reversed(range(self.num_stages - 1)):
+                dec_drop_path_ = dec_drop_path[
+                                 sum(dec_depths[:s]): sum(dec_depths[: s + 1])
+                                 ]
+                dec_drop_path_.reverse()
+                dec = PointSequential()
+                dec.add(
+                    SerializedUnpooling(
+                        in_channels=dec_channels[s + 1],
+                        skip_channels=enc_channels[s],
+                        out_channels=dec_channels[s],
+                        norm_layer=bn_layer,
+                        act_layer=act_layer,
+                    ),
+                    name="up",
+                )
+                for i in range(dec_depths[s]):
+                    dec.add(
+                        Block(
+                            channels=dec_channels[s],
+                            num_heads=dec_num_head[s],
+                            patch_size=dec_patch_size[s],
+                            mlp_ratio=mlp_ratio,
+                            qkv_bias=qkv_bias,
+                            qk_scale=qk_scale,
+                            attn_drop=attn_drop,
+                            proj_drop=proj_drop,
+                            drop_path=dec_drop_path_[i],
+                            norm_layer=ln_layer,
+                            act_layer=act_layer,
+                            pre_norm=pre_norm,
+                            order_index=i % len(self.order),
+                            cpe_indice_key=f"stage{s}",
+                            enable_rpe=enable_rpe,
+                            enable_flash=enable_flash,
+                            upcast_attention=upcast_attention,
+                            upcast_softmax=upcast_softmax,
+                        ),
+                        name=f"block{i}",
+                    )
+                self.dec.add(module=dec, name=f"dec{s}")
+
     def encode_scene(self, data_dict):
         return self.forward(data_dict)
 
@@ -675,6 +724,7 @@ class PointTransformerV3(PointModule):
 
         point = self.embedding(point)
         point = self.enc(point)
+        point = self.dec(point)
 
         offset = point.offset
         batch_size = len(offset)

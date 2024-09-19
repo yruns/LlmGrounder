@@ -24,7 +24,7 @@ model_max_length = 2048
 attn_implementation = "flash_attention_2"
 
 freeze_llm = True
-tune_pointcloud_tower = False
+tune_pointcloud_tower = True
 tune_grounding_tower = True
 tune_pointcloud_projector = True
 tune_grounding_projector = True
@@ -40,14 +40,14 @@ lora_config = dict(
     task_type="CAUSAL_LM",
 )
 use_scene_start_end = False
-num_encoded_scene_token: int = 384
+num_encoded_scene_token: int = 1024
 
 from configs.ptv3_conf import ptv3_cfg
 from configs.mask3d_conf import mask3d_cfg
 
 ptv3_cfg["model"]["K"] = num_encoded_scene_token
 pointcloud_tower_cfg: Dict = ptv3_cfg
-pointcloud_output_dim: int = ptv3_cfg["model"]["enc_channels"][-1] + 3  # Note `+3` for xyz
+pointcloud_output_dim: int = ptv3_cfg["model"]["dec_channels"][0] + 3  # Note `+3` for xyz
 grounding_tower_cfg = mask3d_cfg
 
 pretrained_adapters = dict(
@@ -65,7 +65,7 @@ grounding_granularity: Literal["reg", "seg"] = "seg"
 
 # *************** training ***************
 seed: int = 42
-batch_size: int = 96
+batch_size: int = 64
 gradient_accumulation_steps: int = 2
 
 deepspeed_config: str = "configs/zero_3_stage.json"
@@ -90,10 +90,10 @@ scheduler: Dict = dict(
 
 gradient_checkpointing: bool = True
 
-num_train_epochs: int = 20
+num_train_epochs: int = 30
 save_freq: Union[str, int] = 150  # or "epoch"
 resume_from_checkpoint: Optional[str] = None
-# resume_from_checkpoint: Optional[str] = "output/grounder_reg_20240917-163657/checkpoints/step_600"
+# resume_from_checkpoint: Optional[str] = "output/stored_checkpoints/checkpoints/step_6150"
 
 # *************** logging ***************
 log_interval: int = 1
