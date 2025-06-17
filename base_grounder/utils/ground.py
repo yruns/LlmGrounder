@@ -16,8 +16,8 @@ import open3d as o3d
 import torch
 from transformers import AutoTokenizer, CLIPModel
 
-from base_grounder.data.scannet200_constants import CLASS_LABELS_200
-from base_grounder.utils import render as render_utils
+from ..data.scannet200_constants import CLASS_LABELS_200
+from ..utils import render as render_utils
 
 feats: Union[List[Dict], None] = None
 

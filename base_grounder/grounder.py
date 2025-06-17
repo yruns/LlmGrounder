@@ -10,8 +10,8 @@ from typing import Literal
 
 import numpy as np
 
-from base_grounder.utils import ground as ground_utils
-from base_grounder.utils.ground import GrounderBase
+from .utils import ground as ground_utils
+from .utils.ground import GrounderBase
 
 
 class LMMGrounder(object):
@@ -26,20 +26,20 @@ class LMMGrounder(object):
     ):
 
         if "llava" in lmm:
-            from base_grounder.grounder_core import llava
+            from .grounder_core import llava
             self.lmm: GrounderBase = llava.Llava(
                 model=lmm,
                 temperature=temperature,
             )
         elif "gpt" in lmm:
-            from base_grounder.grounder_core import openai
+            from .grounder_core import openai
             self.lmm: GrounderBase = openai.GPT(
                 model="gpt-4o",
                 api_key="sk-c1h5RWNyx6WxgiNEF2D01f2cF1A042De95F94b6b3b0cB5C3",
                 base_url="https://api3.wlai.vip/v1/",
             )
         elif "qwen" in lmm:
-            from base_grounder.grounder_core import qwen
+            from .grounder_core import qwen
             self.lmm: GrounderBase = qwen.Qwen(
                 model=lmm,
                 api_key="sk-024ef12d081e4a1da9434f7f15176357"

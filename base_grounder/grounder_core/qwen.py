@@ -9,7 +9,7 @@ import json
 
 import dashscope
 
-from base_grounder.utils.ground import GrounderBase
+from ..utils.ground import GrounderBase
 
 
 class Qwen(GrounderBase):

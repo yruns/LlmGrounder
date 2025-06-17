@@ -1,0 +1,13 @@
+dashscope==1.23.3
+httpx==0.28.1
+langchain_core==0.3.61
+langchain_ollama==0.3.3
+langchain_openai==0.3.18
+loguru==0.7.3
+matplotlib==3.7.2
+numpy==1.24.3
+open3d==0.18.0
+opencv_python==4.8.1.78
+torch==2.2.0.dev20231009
+tqdm==4.65.0
+transformers==4.32.1

@@ -16,7 +16,7 @@ from tqdm import tqdm
 warnings.filterwarnings("ignore", category=UserWarning, message="TypedStorage is deprecated")
 
 from grounder import LMMGrounder
-from base_grounder.utils import comm, ground as ground_utils
+from .utils import comm, ground as ground_utils
 
 if __name__ == '__main__':
     # add an argument
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     with open(args.data_path, 'r') as f:
         datas = json.load(f)
 
-    from base_grounder.configs.lmmgroundercfg import LMMGrounderConfig as cfg
+    from .configs.lmmgroundercfg import LMMGrounderConfig as cfg
 
     exp_name = "LMM:{}&vote_nums:{}&render_quality:{}&{}&".format(
         cfg.lmm_name, cfg.vote_nums, cfg.render_quality, "nr3d" if "nr3d" in args.data_path else "scanrefer")

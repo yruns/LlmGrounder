@@ -13,8 +13,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_openai import ChatOpenAI
 
-from base_grounder.utils import comm
-from base_grounder.utils.ground import GrounderBase
+from ..utils import comm
+from ..utils.ground import GrounderBase
 
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
 os.environ["LANGSMITH_API_KEY"] = "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"

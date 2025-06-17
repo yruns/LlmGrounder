@@ -8,7 +8,7 @@ Author: yruns
 
 from typing import Literal
 
-from base_grounder.configs.baseconfig import BaseConfig
+from ..configs.baseconfig import BaseConfig
 
 
 class LMMGrounderConfig(BaseConfig):

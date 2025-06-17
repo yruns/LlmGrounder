@@ -11,8 +11,8 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_ollama.llms import OllamaLLM
 
-from base_grounder.utils import comm
-from base_grounder.utils.ground import GrounderBase
+from ..utils import comm
+from ..utils.ground import GrounderBase
 
 
 class Llava(GrounderBase):
